@@ -58,3 +58,48 @@ test('new growth can advance from melt-exposed surviving edges after cooling', (
   for(let i=0;i<80;i++)w.step();
   assert.ok(w.segments.length>remnant,'After thermal recovery the fronts should resume growth');
 });
+
+test('frost needles are real persistent segments and the frost control changes morphology', () => {
+  const dry = new CrystalWorld(240), ornate = new CrystalWorld(240);
+  for(const w of [dry, ornate]) { w.config.morphology = 'feather'; w.seed(115, 115, .5); }
+  dry.config.frost = 0;
+  ornate.config.frost = .92;
+  for(let i=0;i<145;i++) { dry.step(); ornate.step(); }
+  assert.equal(dry.stats().microSegments, 0, 'No micro-needles with frost set to zero');
+  assert.ok(ornate.stats().microSegments>150, 'Ornate growth produces persistent microscopic needles');
+  assert.ok(ornate.segments.some(s=>s.level>=4), 'Needles are actual segment history');
+  const count = ornate.segments.filter(s=>s.level>=4).length;
+  const snapshot = ornate.snapshot();
+  ornate.melt(115,115,19);
+  ornate.restore(snapshot);
+  assert.equal(ornate.segments.filter(s=>s.level>=4).length,count,'Undo restores real microscopic material');
+});
+
+test('distinct growth anatomies retain separate grain identity and do not reset existing artwork', () => {
+  const w = new CrystalWorld(250);
+  for(const morphology of ['cathedral','feather','starburst','wild']) {
+    w.config.morphology = morphology;
+    w.seed(40 + 53*w.grains.length, 100, .12);
+  }
+  assert.deepEqual(w.grains.map(g=>g.morphology),['cathedral','feather','starburst','wild']);
+  assert.deepEqual(w.grains.map(g=>g.axes),[6,4,8,0]);
+  for(let i=0;i<60;i++) w.step();
+  assert.ok(new Set(w.segments.map(s=>s.grain)).size>=3);
+  const count = w.segments.length;
+  w.config.morphology = 'starburst';
+  w.seed(60,190);
+  assert.equal(w.segments.length,count,'Selecting the next seed anatomy must not change existing segments');
+  assert.equal(w.grains[0].morphology,'cathedral');
+  assert.equal(w.grains.at(-1).morphology,'starburst');
+});
+
+test('repeating each morphology with the same RNG seed is deterministic', () => {
+  for(const morphology of ['cathedral','feather','starburst','wild']) {
+    const a = new CrystalWorld(210), b = new CrystalWorld(210);
+    a.config.morphology=b.config.morphology=morphology;
+    a.seed(90,99,.28); b.seed(90,99,.28);
+    for(let i=0;i<65;i++) { a.step(); b.step(); }
+    assert.deepEqual(a.stats(),b.stats(),morphology);
+    assert.deepEqual(a.segments,b.segments,morphology);
+  }
+});

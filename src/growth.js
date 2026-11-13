@@ -5,6 +5,12 @@
  * persistent state changes, not precomputed animation or shader-only movement.
  */
 export const SIZE = 340;
+export const ANATOMIES = Object.freeze({
+  cathedral: Object.freeze({ axes: 6, length: 1.0, drift: .9, fork: 1.0, needle: .62, spread: 1.0 }),
+  feather: Object.freeze({ axes: 4, length: 1.1, drift: .65, fork: 1.15, needle: 1.5, spread: 1.08 }),
+  starburst: Object.freeze({ axes: 8, length: .88, drift: .55, fork: 1.20, needle: .85, spread: .70 }),
+  wild: Object.freeze({ axes: 0, length: 1.03, drift: 2.9, fork: .95, needle: 1.0, spread: 1.50 }),
+});
 const TAU = Math.PI * 2;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 function cloneTip(t) { return { ...t }; }
@@ -13,7 +19,7 @@ export class CrystalWorld {
   constructor(size = SIZE) {
     this.size = size;
     this.amount = size * size;
-    this.config = { speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18 };
+    this.config = { speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, morphology: 'cathedral' };
     this.randomize(357321);
   }
   randomize(seed) {
@@ -37,13 +43,18 @@ export class CrystalWorld {
     return this.rngState / 4294967296;
   }
   index(x, y) { return Math.floor(y) * this.size + Math.floor(x); }
-  seed(x, y, angle, count = 6) {
+  seed(x, y, angle, count, morphology = this.config.morphology) {
+    // Anatomy is a property of this individual grain. Future UI changes do not
+    // retroactively transform already-grown colonies.
+    morphology = Object.hasOwn(ANATOMIES, morphology) ? morphology : 'cathedral';
+    const anatomy = ANATOMIES[morphology];
+    count ??= anatomy.axes || 5;
     x = clamp(x, 3, this.size - 4);
     y = clamp(y, 3, this.size - 4);
     if (this.grains.length >= 250) return false;
     const id = this.grains.length + 1;
     const ori = angle ?? this.rand() * TAU;
-    const grain = { id, x, y, angle: ori, seededAt: this.ticks };
+    const grain = { id, x, y, angle: ori, seededAt: this.ticks, morphology, axes: anatomy.axes };
     this.grains.push(grain);
     for (let i = 0; i < count; i++) {
       const a = ori + TAU * i / count;
@@ -56,7 +67,10 @@ export class CrystalWorld {
   makeTip(x, y, angle, grain, level, drift = 0) {
     return { x, y, angle, grain, level, drift, traveled: 0, branchClock: 0,
       nextFork: 6 + this.rand() * 10, flip: this.rand() > .5 ? 1 : -1,
-      lengthLimit: [160, 79, 37, 19][level] * this.config.length * (.83 + this.rand() * .38),
+      microClock: this.rand() * 3, nextMicro: 2 + this.rand() * 5,
+      lengthLimit: [160, 79, 37, 19, 11, 6][level] * this.config.length
+        * (ANATOMIES[this.grains[grain-1]?.morphology || 'cathedral']?.length || 1)
+        * (.83 + this.rand() * .38),
       lastCell: -1 };
   }
   markCrystal(x, y, grain) {
@@ -72,9 +86,9 @@ export class CrystalWorld {
   plantInitial() {
     // The asymmetric seeds demonstrate actual grain competition as the colonies meet.
     const n = this.size;
-    this.seed(n * .46, n * .50, -.20);
-    this.seed(n * .79, n * .22, .32);
-    this.seed(n * .20, n * .80, -.09);
+    this.seed(n * .46, n * .50, -.20, undefined, 'cathedral');
+    this.seed(n * .79, n * .22, .32, undefined, 'feather');
+    this.seed(n * .20, n * .80, -.09, undefined, 'wild');
     for (let i = 0; i < 15; i++) this.step();
   }
   step() {
@@ -100,14 +114,16 @@ export class CrystalWorld {
       if (supply < .065) { if (this.rand() < .025) survived.push(t); continue; }
       const grain = this.grains[t.grain - 1];
       if (!grain) continue;
+      const anatomy = ANATOMIES[grain.morphology || 'cathedral'];
       // Pull tip direction towards the nearest grain-locked hexagonal growth axis.
-      const phase = TAU / 6;
-      const axis = grain.angle + Math.round((t.angle - grain.angle) / phase) * phase;
+      const phase = anatomy.axes ? TAU / anatomy.axes : 0;
+      const axis = phase ? grain.angle + Math.round((t.angle - grain.angle) / phase) * phase : t.angle;
       const targetPull = Math.sin(axis - t.angle) * c.anisotropy * (t.level === 0 ? .13 : .025);
       // Spatially varying, smooth directional perturbation: no pre-baked paths.
       const curling = Math.sin((oldX * .047 + oldY * .031 + t.grain) + this.ticks * .008) * .006;
-      t.angle += targetPull + curling + (this.rand() - .5) * (.014 + .07 * (1 - c.anisotropy) + .012 * t.level);
-      const lengthScale = [.94, .89, .81, .74][t.level];
+      t.angle += targetPull + curling * anatomy.drift + (this.rand() - .5)
+        * (.014 + .07 * (1 - c.anisotropy) + .012 * t.level) * anatomy.drift;
+      const lengthScale = [.94, .89, .81, .74, .69, .61][t.level];
       const distance = (.48 + .35 * supply) * lengthScale;
       const nx = oldX + Math.cos(t.angle) * distance;
       const ny = oldY + Math.sin(t.angle) * distance;
@@ -117,7 +133,7 @@ export class CrystalWorld {
       const occupied = this.crystal[nextCell];
       if (occupied && occupied !== t.grain) continue;
       if (occupied === t.grain && nextCell !== t.lastCell && t.traveled > 3 && this.rand() < .11) continue;
-      t.x = nx; t.y = ny; t.traveled += distance; t.branchClock += distance;
+      t.x = nx; t.y = ny; t.traveled += distance; t.branchClock += distance; t.microClock += distance;
       const s = { x0: oldX, y0: oldY, x1: nx, y1: ny, grain: t.grain, level: t.level, stamp: this.ticks };
       this.segments.push(s); this.newSegments.push(s);
       t.lastCell = this.markCrystal(nx, ny, t.grain);
@@ -129,16 +145,33 @@ export class CrystalWorld {
         this.nutrient[idx - n] *= .985;
         this.nutrient[idx + n] *= .985;
       }
-      if (t.level < 3 && t.branchClock > t.nextFork && this.tips.length + born.length < 1200) {
-        const branchingOdds = c.branching * [1, .57, .29][t.level] * clamp(supply * 1.35, .12, 1);
+      if (t.level < 3 && t.branchClock > t.nextFork && this.tips.length + born.length < 1850) {
+        const branchingOdds = c.branching * anatomy.fork * [1, .66, .43, .24, .16][t.level] * clamp(supply * 1.35, .12, 1);
         if (this.rand() < branchingOdds) {
-          const deviation = (.56 + this.rand() * .46) * (t.flip);
+          const deviation = (.48 + this.rand() * .48) * c.spread * anatomy.spread * (t.flip);
           const child = this.makeTip(nx, ny, t.angle + deviation, t.grain, t.level + 1);
           born.push(child);
         }
         t.flip = -t.flip;
         t.branchClock = 0;
-        t.nextFork = [8, 6, 4][t.level] + this.rand() * [7, 5, 4][t.level];
+        t.nextFork = [8, 6, 4.7, 3.1, 2.4][t.level] + this.rand() * [7, 5, 4, 2.5, 1.8][t.level];
+      }
+      // Frost anatomy: genuine new growth fronts, not a cosmetic overlay.
+      // Short needles grow from exposed parent segments and become persistent
+      // material subject to future heat, solute competition and collisions.
+      if (t.level <= 3 && t.microClock >= t.nextMicro && this.tips.length + born.length < 1850) {
+        const chance = c.frost * anatomy.needle * clamp(supply * 1.15, 0, 1) * (t.level ? 1 : .4);
+        if (this.rand() < chance) {
+          const side = t.flip;
+          const base = Math.max(4, t.level + 1);
+          const spread = (1.0 + this.rand() * .48) * side * c.spread * anatomy.spread;
+          born.push(this.makeTip(nx, ny, t.angle + spread, t.grain, base));
+          // Feathery crystals often generate bilateral needle pairs.
+          if (grain.morphology === 'feather' && this.rand() < .75 * c.frost && this.tips.length + born.length < 1850)
+            born.push(this.makeTip(nx, ny, t.angle - spread, t.grain, base));
+        }
+        t.microClock = 0;
+        t.nextMicro = (t.level === 0 ? 4.5 : 2.6) + this.rand() * (grain.morphology === 'feather' ? 2.5 : 5);
       }
       survived.push(t);
     }
@@ -206,7 +239,7 @@ export class CrystalWorld {
     this.segments = left;
     // Surviving edge material becomes an exposed front, allowing regrowth.
     for (let k = 0; k < Math.min(12, rim.length); k++) {
-      if (this.tips.length >= 1200 || rim.length === 0) break;
+      if (this.tips.length >= 1850 || rim.length === 0) break;
       const s = rim[Math.floor(this.rand() * rim.length)];
       const heading = Math.atan2(y-s.y1,x-s.x1) + (this.rand()-.5)*.55;
       const tip = this.makeTip(s.x1,s.y1,heading,s.grain,1);
@@ -225,8 +258,10 @@ export class CrystalWorld {
     this.ticks = s.ticks; this.newSegments = []; this.fullRedraw = true; this.modified++;
   }
   stats() {
+    let microSegments = 0;
+    for (const s of this.segments) if (s.level >= 4) microSegments++;
     let crystalCount = 0;
     for (let i = 0; i < this.crystal.length; i++) if (this.crystal[i]) crystalCount++;
-    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks };
+    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks,microSegments };
   }
 }
