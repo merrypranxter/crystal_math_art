@@ -12,7 +12,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / METAMORPHOSIS</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / MUTATION CHAMBER</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -23,7 +23,7 @@
       </div>
       <div class="bottom-bar">
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
-        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve real fractures in phase-field and 3D volume crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
+        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve real fractures in phase-field and 3D volume crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="mutate" type="button" title="Paint inherited growth laws into the current 3D crystal at a selected Z depth">🧬 MUTATE</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
       </div>
       <div class="specimen-actions" aria-label="Crystal lifecycle actions">
         <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
@@ -33,11 +33,12 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.12 · CRYSTAL METAMORPHOSIS</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.13 · MINERAL MUTATION CHAMBER</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
         <button data-tab="material" role="tab" aria-selected="false">FINISHES</button><button data-tab="archaeology" role="tab" aria-selected="false">ARCHIVE</button>
+        <button data-tab="mutation" role="tab" aria-selected="false">MUTATION</button>
         <button data-tab="body" role="tab" aria-selected="false">BODY 3D</button><button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
@@ -144,6 +145,23 @@
         <label class="range-label" for="archiveReveal">Reveal old mineral generations <output id="archiveReveal-value">68%</output></label><input id="archiveReveal" type="range" min="0" max="100" value="68" step="1" />
         <div class="info"><strong>ARCHAEOLOGY LENS</strong><p>Select “CRYSTAL ARCHAEOLOGY” under FINISHES to see past deposition ghosts, generation-dependent bands and illuminated scars. Painting a fracture changes physics; revealing layers only changes how they look. Fractures work in both phase-field and 3D volume crystals; 3D mineral cuts can regrow as later generations.</p></div>
       </div>
+
+      <div class="panel" id="panel-mutation" role="tabpanel" hidden>
+        <div class="info"><strong>A.13 · MINERAL MUTATION CHAMBER</strong><p>Graft new growth laws into REAL 3D crystalline material. Each voxel stores a heritable gene, an angular orientation and its mutation lineage. Future growth inherits the strongest neighboring parent. Existing rock is not erased or reshaped by the edit.</p></div>
+        <label class="select-label" for="mutationPrimary">Primary growth gene</label>
+        <select id="mutationPrimary"><option value="volumeNeedle">NEEDLE STAR · SIX AXES</option><option value="volumeOcta" selected>OCTAHEDRAL · EIGHT DIRECTIONS</option><option value="volumeCoral">CAVERN CORAL · MUTANT DISORDER</option></select>
+        <label class="select-label" for="mutationPartner">Competing / partner gene</label>
+        <select id="mutationPartner"><option value="volumeNeedle">NEEDLE STAR</option><option value="volumeOcta">OCTAHEDRAL</option><option value="volumeCoral" selected>CAVERN CORAL</option></select>
+        <label class="range-label" for="mutationMix">Partner inheritance ratio <output id="mutationMix-value">44%</output></label><input id="mutationMix" type="range" min="0" max="100" value="44" step="1" />
+        <label class="range-label" for="mutationRotation">Mutation axis rotation <output id="mutationRotation-value">44°</output></label><input id="mutationRotation" type="range" min="-180" max="180" value="44" step="1" />
+        <div class="info"><strong>PAINT GENETIC GRAFTS</strong><p>Select 🧬 MUTATE under the artwork, then draw on an existing 3D specimen. The selected Z-depth and reach define the region of material affected. Change to Z-SLICE in BODY 3D to inspect the surgery. This works in 2D inspection mode, not on the orbiting camera view.</p></div>
+        <label class="range-label" for="mutationDepth">Brush Z depth <output id="mutationDepth-value">50%</output></label><input id="mutationDepth" type="range" min="0" max="100" value="50" step="1" />
+        <label class="range-label" for="mutationReach">Mutation reach across Z <output id="mutationReach-value">36%</output></label><input id="mutationReach" type="range" min="0" max="100" value="36" step="1" />
+        <label class="range-label" for="mutationRadius">Gene brush radius <output id="mutationRadius-value">27</output></label><input id="mutationRadius" type="range" min="8" max="70" value="27" step="1" />
+        <div class="row"><button id="mutationPlant" type="button">✳ PLANT 3D SPECIMEN</button><button id="mutationFronts" class="primary" type="button">🧬 MUTATE LIVING FRONTS</button></div>
+        <p class="control-note" id="mutationStatus" aria-live="polite">Plant a VOLUME specimen, let it grow, then mutate its exposed frontier or paint a local 3D gene patch. The old interior survives while descendants inherit the new law.</p>
+        <div class="info"><strong>GENETIC ARCHIVE, NOT A BIOLOGICAL CLAIM</strong><p>These are three competing procedural growth kinetics—not actual molecular DNA, cell genetics, or measured mineral nucleation. Gene, angle and lineage affect new material attachment and its palette sampling.</p></div>
+      </div>
       <div class="panel" id="panel-body" role="tabpanel" hidden>
   <p class="panel-intro">A real triangulated crystal body: genuinely 3D solidification for volumetric specimens, with the older 2D growth bodies preserved as extrusions. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
   <div class="info"><strong>3D VOLUMETRIC SPECIMENS</strong><p>For the new volume growth species, the geometry comes from individual 3D cells, not an extruded 2D outline. The 2D preview uses a real volumetric projection or a chosen Z-slice if WebGL2 is unavailable.</p></div>
@@ -170,7 +188,7 @@
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately. The PNG export captures the live 3D body when WebGL2 is available; otherwise it captures the 2D volume projection or selected Z-slice.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <div class="info"><strong>SPECIMEN CONTROL</strong><p>Use the three buttons beneath the artwork: NEW SEED plants a colony without clearing anything; REFRESH generates new crystals using your selected anatomy; RESTART replays this specimen’s saved starting seed. Destructive actions ask first and can be undone.</p></div>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div><div><b id="volumeScarMetric">0</b><span>3D FRACTURE VOXELS</span></div><div><b id="volumeRegrowMetric">0</b><span>RECRYSTALLIZED VOXELS</span></div></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div><div><b id="volumeScarMetric">0</b><span>3D FRACTURE VOXELS</span></div><div><b id="volumeRegrowMetric">0</b><span>RECRYSTALLIZED VOXELS</span></div><div><b id="volumeMutantMetric">0</b><span>MUTANT 3D CELLS</span></div><div><b id="volumeChimeraMetric">0</b><span>CHIMERIC CRYSTALS</span></div><div><b id="volumeMutationEventMetric">0</b><span>GENE EDITS</span></div></div>
         <div class="info"><strong>ENGINE STATUS</strong><p>Four stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>

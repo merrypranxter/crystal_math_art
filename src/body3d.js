@@ -155,7 +155,8 @@ export function buildVolumeMesh(volume,{depth=.72}={}){
     const center=[(x+.5)/n*2-1,1-(y+.5)/n*2,((z+.5)/n*2-1)*(.82+.17*depth)];
     const r=1/n;
     const corners=[[-r,r,-r],[r,r,-r],[r,-r,-r],[-r,-r,-r],[-r,r,r],[r,r,r],[r,-r,r],[-r,-r,r]].map(c=>[center[0]+c[0],center[1]+c[1],center[2]+c[2]*(.82+.17*depth)]);
-    const tone=paletteTone(g,volume.birth[i],z)+(volume.generation?.[i]||0)*.097;
+    const allele=volume.gene?.[i]||0,mutation=volume.lineage?.[i]||0;
+    const tone=paletteTone(g,volume.birth[i],z)+(volume.generation?.[i]||0)*.097+allele*.119+(mutation%23)*.017;
     const history=(volume.birth[i]*.009)%1,band=thickness[y*n+x];
     for(const side of sides){
       const xx=x+side.d[0],yy=y+side.d[1],zz=z+side.d[2];
@@ -240,10 +241,11 @@ export function buildSmoothVolumeMesh(volume,{depth=.72}={}){
     const vals=ids.map(i=>field[i]);
     if(Math.min(...vals)>=iso||Math.max(...vals)<iso)continue;
     // Pick the dominant real grain in the tetra-cube (not fabricated identity).
-    let grain=0,age=0,maxVal=-1,generation=0;
-    for(const i of ids)if(data[i]&&field[i]>maxVal){maxVal=field[i];grain=data[i];age=volume.birth[i];generation=volume.generation?.[i]||0;}
+    let grain=0,age=0,maxVal=-1,generation=0,allele=0,mutation=0;
+    for(const i of ids)if(data[i]&&field[i]>maxVal){maxVal=field[i];grain=data[i];age=volume.birth[i];generation=volume.generation?.[i]||0;
+      allele=volume.gene?.[i]||0;mutation=volume.lineage?.[i]||0;}
     if(!grain)continue;
-    const tone=((grain*.167+age*.0032+z/n*.18+generation*.097)%1+1)%1;
+    const tone=((grain*.167+age*.0032+z/n*.18+generation*.097+allele*.119+(mutation%23)*.017)%1+1)%1;
     const history=((age*.009)%1+1)%1,band=thick[y*n+x];
     const lattice=Object.fromEntries(ids.map((i,k)=>[i,coords[k]]));
     const make=(ia,ib)=>crossing(ids[ia],ids[ib],lattice);

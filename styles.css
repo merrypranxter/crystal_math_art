@@ -36,3 +36,16 @@
 #bodyToggle[aria-pressed="true"]{background:#28516a;border-color:#8de6ff;color:white}
 #bodyDetail{width:100%}
 @media(max-width:730px){.tabs{flex-wrap:wrap}.tabs button{flex:1 1 18%;min-width:49px;padding:9px 2px}.toolbox button[data-tool="orbit"]{min-height:36px}}
+
+/* A.13 — legible mutant metrics and touch-target controls on iPhone. */
+.toolbox button[data-tool="mutate"]{border-color:#749649;color:#dcffa5}
+.toolbox button[data-tool="mutate"].selected{border-color:#cdff75;background:rgba(97,135,27,.30);color:#f1ffc6}
+#panel-mutation .row{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 9px}
+#panel-mutation .row button{flex:1 1 140px;min-height:41px;padding:10px 7px;font-size:10px}
+#mutationStatus{border-left:2px solid #81c65f;padding:5px 0 5px 10px}
+@media(max-width:730px){
+ .stage-head{gap:10px;font-size:9px;letter-spacing:.8px;align-items:flex-start}
+ .stage-head .alive{flex-shrink:0;white-space:nowrap}
+ .stage-head #stageReadout{max-width:55%;white-space:normal;text-align:right;line-height:1.35;overflow-wrap:normal}
+ #panel-mutation .row button{flex:1 1 126px}
+}

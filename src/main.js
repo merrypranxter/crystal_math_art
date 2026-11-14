@@ -32,6 +32,8 @@ const bodySettings={surface:'facets',opticalPath:.45,depth:.72,yaw:20*Math.PI/18
   lightAngle:315,dispersion:.60,bands:.52,absorption:.28,transparency:.12,detail:'balanced'};
 const bodyPointers=new Map();let bodyPinchDistance=0;
 let editing = false;
+let mutationStrokeEpoch = 0;
+let mutationStrokeChanged = false;
 let recentPoint = null;
 let lastPaint = -Infinity;
 let undoStack = [];
@@ -313,18 +315,24 @@ function drawScreen() {
     }
   }
   if(editing && recentPoint && activeTool !== 'seed') {
-    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':activeTool==='fracture'?'rgba(232,119,245,.88)':activeTool==='twist'?'rgba(67,224,250,.94)':'rgba(129,244,203,.75)';
+    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':activeTool==='fracture'?'rgba(232,119,245,.88)':activeTool==='mutate'?'rgba(204,255,72,.95)':activeTool==='twist'?'rgba(67,224,250,.94)' :'rgba(129,244,203,.75)';
     display.lineWidth=Math.max(1,size*.0013);
     display.setLineDash([5,5]);display.beginPath();
-    display.arc(recentPoint.x/SIZE*size,recentPoint.y/SIZE*size,(activeTool==='fracture'?world.config.fractureWidth:world.config.brush)/SIZE*size,0,Math.PI*2);display.stroke();display.setLineDash([]);
+    display.arc(recentPoint.x/SIZE*size,recentPoint.y/SIZE*size,(activeTool==='fracture'?world.config.fractureWidth:activeTool==='mutate'?world.config.mutationRadius:world.config.brush)/SIZE*size,0,Math.PI*2);display.stroke();display.setLineDash([]);
   }
   display.restore();
 }
 function setTool(tool) {
   if(tool==='orbit'&&!bodyEnabled && !enableBody())return;
+  if(tool==='mutate'&&bodyEnabled){
+    bodyEnabled=false;
+    $('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';
+    $('bodyToggle').setAttribute('aria-pressed','false');
+    $('bodyStatus').textContent='3D preview disabled for accurate 2D brush positioning';
+  }
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAW A REAL CRACK THROUGH PHASE OR 3D ROCK · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAW A REAL CRACK THROUGH PHASE OR 3D ROCK · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',mutate:'DRAW HERITABLE CRYSTAL GENES THROUGH THE SELECTED Z LAYERS',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -345,6 +353,19 @@ function doBrush(p){
     }
   }
   else if(activeTool==='twist')world.spherulite.twistOptics(p.x,p.y,world.config.brush,opticalTwist);
+  else if(activeTool==='mutate'){
+    const count=world.volume.mutateRegion(p.x,p.y,world.config.mutationRadius,{
+      ...currentMutation(),epoch:mutationStrokeEpoch,
+      zPercent:world.config.mutationDepth,reach:world.config.mutationReach
+    });
+    if(count){
+      mutationStrokeChanged=true;
+      $('mutationStatus').textContent=`Painted ${count} mineral voxels with heritable growth laws. Future descendants compete at the live surface.`;
+      if(volumeView!=='slice'){volumeView='slice';$('volumeView').value='slice';}
+      volumeSlice=world.config.mutationDepth;
+      $('volumeSlice').value=volumeSlice;$('volumeSlice-value').textContent=volumeSlice+'%';volumeRenderVersion=-1;
+    } else if(!world.volume.active) $('mutationStatus').textContent='Plant a 3D specimen first, then paint on its existing mineral.';
+  }
   recentPoint=p;
 }
 crystalCanvas.addEventListener('pointerdown',ev=>{
@@ -356,6 +377,7 @@ crystalCanvas.addEventListener('pointerdown',ev=>{
     return;
   }
   saveUndo();editing=true;recentPoint=pointFromEvent(ev);
+  if(activeTool==='mutate'){mutationStrokeEpoch=world.volume.newMutationEpoch();mutationStrokeChanged=false;}
   if(activeTool==='seed') world.seed(recentPoint.x,recentPoint.y);
   else doBrush(recentPoint);
 });
@@ -380,7 +402,7 @@ crystalCanvas.addEventListener('pointermove',ev=>{
   if(activeTool!=='seed'){
     // Interpolate brush position to avoid gaps during fast drags.
     const prev=recentPoint||next, dist=Math.hypot(next.x-prev.x,next.y-prev.y);
-    const steps=Math.min(15,Math.max(1,Math.ceil(dist/((activeTool==='fracture'?world.config.fractureWidth:world.config.brush)*.75))));
+    const steps=Math.min(15,Math.max(1,Math.ceil(dist/((activeTool==='fracture'?world.config.fractureWidth:activeTool==='mutate'?world.config.mutationRadius:world.config.brush)*.75))));
     for(let k=1;k<=steps;k++){let t=k/steps;doBrush({x:prev.x+(next.x-prev.x)*t,y:prev.y+(next.y-prev.y)*t});}
   }
   recentPoint=next;lastPaint=now;
@@ -394,7 +416,16 @@ function updateBodyCameraControls(){
     $(id).value=Math.round(v);$(id+'-value').textContent=Math.round(v)+(id==='bodyZoom'?'%':'°');
   }
 }
-function endEdit(ev){if(ev?.pointerId!==undefined)bodyPointers.delete(ev.pointerId);bodyPinchDistance=pointerSpan();editing=false;recentPoint=null;}
+function endEdit(ev){
+  if(ev?.pointerId!==undefined)bodyPointers.delete(ev.pointerId);
+  bodyPinchDistance=pointerSpan();
+  if(editing&&activeTool==='mutate'&&!mutationStrokeChanged){
+    // A brush stroke that hit no crystal is not an undoable edit.
+    undoStack.pop();$('undo').disabled=undoStack.length===0;
+    if(mutationStrokeEpoch===world.volume.mutationSerial)world.volume.mutationSerial--;
+  }
+  editing=false;recentPoint=null;mutationStrokeEpoch=0;mutationStrokeChanged=false;
+}
 crystalCanvas.addEventListener('pointerup',endEdit);
 crystalCanvas.addEventListener('pointercancel',endEdit);
 crystalCanvas.addEventListener('lostpointercapture',endEdit);
@@ -439,7 +470,29 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={volumeFractureDepth:{value:v=>v+'%',transform:v=>v},volumeFractureReach:{value:v=>v+'%',transform:v=>v/100},volumeHealing:{value:v=>v+'%',transform:v=>v/100},volumeGrowth:{value:v=>v+'%',transform:v=>v/100},volumeFacets:{value:v=>v+'%',transform:v=>v/100},volumeBranches:{value:v=>v+'%',transform:v=>v/100},volumeDiffusion:{value:v=>v+'%',transform:v=>v/100},volumeSupply:{value:v=>v+'%',transform:v=>v/100},volumeSeedDepth:{value:v=>v+'%',transform:v=>v},fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+function currentMutation(){
+  return {primary:world.config.mutationPrimary,partner:world.config.mutationPartner,
+    mix:world.config.mutationMix,rotation:world.config.mutationRotation};
+}
+function syncMutationSelect(id){$(id).value=world.config[id];$(id).addEventListener('change',ev=>{world.config[id]=ev.target.value;});}
+syncMutationSelect('mutationPrimary');syncMutationSelect('mutationPartner');
+$('mutationPlant').addEventListener('click',()=>{
+  saveUndo();const type=Object.hasOwn(VOLUME_MODES,world.config.morphology)?world.config.morphology:'volumeNeedle';
+  world.seed(SIZE*.50,SIZE*.49,undefined,undefined,type);
+  $('mutationStatus').textContent='Planted a three-dimensional crystal. Let it grow, then mutate its living fronts or draw a DNA graft.';
+});
+function mutateAllFronts(){
+  if(!world.volume.active){$('mutationStatus').textContent='No 3D crystals yet. Use PLANT 3D SPECIMEN above.';return 0;}
+  saveUndo();const epoch=world.volume.newMutationEpoch();
+  const count=world.volume.mutateFronts({...currentMutation(),epoch});
+  if(!count){undoStack.pop();$('undo').disabled=undoStack.length===0;if(world.volume.mutationSerial===epoch)world.volume.mutationSerial--;}
+  $('mutationStatus').textContent=count
+    ? `Switched ${count.toLocaleString()} exposed voxels to competing hereditary laws. Interior mineral is unchanged; new growth inherits the graft.`
+    : 'The exposed frontier already has those growth laws. Change the genes or rotation to mutate it again.';
+  return count;
+}
+$('mutationFronts').addEventListener('click',mutateAllFronts);
+const configs={mutationRadius:{value:v=>String(v),transform:v=>v},mutationDepth:{value:v=>v+'%',transform:v=>v},mutationReach:{value:v=>v+'%',transform:v=>v/100},mutationMix:{value:v=>v+'%',transform:v=>v/100},mutationRotation:{value:v=>v+'°',transform:v=>v},volumeFractureDepth:{value:v=>v+'%',transform:v=>v},volumeFractureReach:{value:v=>v+'%',transform:v=>v/100},volumeHealing:{value:v=>v+'%',transform:v=>v/100},volumeGrowth:{value:v=>v+'%',transform:v=>v/100},volumeFacets:{value:v=>v+'%',transform:v=>v/100},volumeBranches:{value:v=>v+'%',transform:v=>v/100},volumeDiffusion:{value:v=>v+'%',transform:v=>v/100},volumeSupply:{value:v=>v+'%',transform:v=>v/100},volumeSeedDepth:{value:v=>v+'%',transform:v=>v},fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
@@ -548,6 +601,9 @@ function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.volumeCells>0 ? s.volumeCells.toLocaleString()+' 3D VOXELS · '+s.volumeDepthSlices+' Z-LAYERS' : s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
   $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();$('volumeMetric').textContent=s.volumeCells.toLocaleString();$('volumeZMetric').textContent=s.volumeDepthSlices.toLocaleString();$('volumeFrontMetric').textContent=s.volumeFrontier.toLocaleString();$('volumeScarMetric').textContent=s.volumeScars.toLocaleString();$('volumeRegrowMetric').textContent=s.volumeRegrown.toLocaleString();
+  $('volumeMutantMetric').textContent=s.volumeMutants.toLocaleString();
+  $('volumeChimeraMetric').textContent=s.volumeChimeras.toLocaleString();
+  $('volumeMutationEventMetric').textContent=s.volumeMutations.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;
@@ -560,5 +616,7 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},enableBody};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},
+  get mutation(){return {...currentMutation(),...world.volume.stats()};},
+  mutateAllFronts,enableBody};
 requestAnimationFrame(loop);
