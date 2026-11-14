@@ -100,13 +100,26 @@
 /* Compact pinned specimen only while comparing siblings on phones. */
 @media(max-width:730px){body.nursery-mode .viewport .stage{height:176px;min-height:176px}body.nursery-mode .viewport .toolbox{display:none}body.nursery-mode .viewport .specimen-actions{display:none}body.nursery-mode .viewport .stage-head{padding:8px}body.nursery-mode .viewport .stage-bottom{padding:8px}}
 
+/* A.16 — selection goals are grouped next to the family gallery, not scattered through the other tabs. */
+#panel-nursery .evolution-panel{margin:12px 0 17px;border:1px solid #526078;border-radius:10px;background:linear-gradient(135deg,#182237,#141b2c);padding:12px}
+#panel-nursery .evolution-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 10px;font-size:11px;color:#ead7ff}
+#panel-nursery .evolution-heading span{font-size:10px;color:#91b4c2}
+#panel-nursery .evolution-preset-row,#panel-nursery .evolution-action-row{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}
+#panel-nursery .evolution-preset-row button{flex:1 1 90px;min-height:34px;padding:7px 4px;font-size:9px}
+#panel-nursery .evolution-action-row button{flex:1 1 130px;min-height:39px;padding:8px 5px;font-size:10px}
+#panel-nursery .evolution-panel input[type=range]{width:100%;margin:3px 0 10px}
+#panel-nursery .nursery-score{margin:5px 7px 0;font:700 12px/1.6 ui-monospace,monospace;color:#e6b3fc}
+#panel-nursery .nursery-score small{font:500 9px/1.5 ui-monospace,monospace;color:#9bb9ce;display:block}
+#panel-nursery .nursery-card.evolution-best{border-color:#b4f0c7;box-shadow:inset 0 0 0 1px #4b9979}
+#panel-nursery .nursery-card.evolution-best .nursery-score{color:#b1ffce}
+
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / MUTATION NURSERY</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / SELECTIVE EVOLUTION</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -127,7 +140,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.15 · MUTATION NURSERY</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.16 · SELECTIVE EVOLUTION</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -286,6 +299,17 @@
         <label class="select-label" for="nurseryCount">Sibling batch size</label><select id="nurseryCount"><option value="4" selected>FOUR SIBLINGS · QUICK COMPARISON</option><option value="6">SIX SIBLINGS · WIDER EXPERIMENT</option></select>
         <label class="select-label" for="nurserySteps">Growth time per trial</label><select id="nurserySteps"><option value="36">36 STEPS · QUICK SPROUT</option><option value="56" selected>56 STEPS · BALANCED</option><option value="90">90 STEPS · MORE DEVELOPED</option></select>
         <label class="range-label" for="nurseryVariation">DNA variation between siblings <output id="nurseryVariation-value">38%</output></label><input id="nurseryVariation" type="range" min="0" max="100" value="38" step="1"/>
+        <div class="evolution-panel" aria-label="Selective evolution goals">
+          <div class="evolution-heading"><strong>A.16 · SELECTIVE EVOLUTION</strong><span>Score actual 3D geometry—not appearance</span></div>
+          <div class="evolution-preset-row"><button type="button" data-evo-preset="balanced">BALANCED</button><button type="button" data-evo-preset="spikes">SPIKE MONSTER</button><button type="button" data-evo-preset="caverns">CAVERN HUNTER</button><button type="button" data-evo-preset="chaos">WTF MUTANT</button></div>
+          <label class="range-label" for="evoSpikes">Favor needle-like spikes <output id="evoSpikes-value">70%</output></label><input id="evoSpikes" type="range" min="0" max="100" value="70" step="5"/>
+          <label class="range-label" for="evoBranching">Favor branching / exposed surfaces <output id="evoBranching-value">75%</output></label><input id="evoBranching" type="range" min="0" max="100" value="75" step="5"/>
+          <label class="range-label" for="evoHollow">Favor enclosed caverns <output id="evoHollow-value">30%</output></label><input id="evoHollow" type="range" min="0" max="100" value="30" step="5"/>
+          <label class="range-label" for="evoAsymmetry">Favor asymmetry <output id="evoAsymmetry-value">35%</output></label><input id="evoAsymmetry" type="range" min="0" max="100" value="35" step="5"/>
+          <label class="range-label" for="evoNovelty">Favor unusual siblings <output id="evoNovelty-value">60%</output></label><input id="evoNovelty" type="range" min="0" max="100" value="60" step="5"/>
+          <div class="evolution-action-row"><button id="evoRank" type="button">⌁ RANK CURRENT GENERATION</button><button id="evoKeep" type="button">★ KEEP TOP THREE</button><button id="evoAdvance" class="primary" type="button">⚡ EVOLVE NEXT GENERATION</button></div>
+          <p class="control-note" id="evoStatus" role="status" aria-live="polite">Objectives are weighted preferences, not beauty judgments. Your manual favorites remain yours; auto-selection never removes them.</p>
+        </div>
         <button id="nurseryGenerate" class="wide primary" type="button">✳ GROW A SIBLING BATCH</button>
         <div class="nursery-toolbar"><button id="nurseryNext" type="button">🧬 BREED THREE KEPT FAVORITES</button><button id="nurseryExport" type="button">↓ EXPORT KEPT GENOMES</button><label class="nursery-import" for="nurseryImport">↑ IMPORT NURSERY <input id="nurseryImport" type="file" accept=".json,application/json" aria-label="Import curated nursery archive"/></label></div>
         <p class="control-note" id="nurseryStatus" role="status" aria-live="polite">Generation 1 ready. Parent A/B/C from the BREEDING tab will found the next siblings. Keep three favorites to create a new generation.</p>
@@ -324,7 +348,7 @@
       </div>
     </aside>
   </main>
-  <footer class="foot">MUTATION NURSERY · 3D GROWTH TRIALS · 199 PALETTES</footer>
+  <footer class="foot">SELECTIVE EVOLUTION · 3D GROWTH TRIALS · 199 PALETTES</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script>
@@ -5473,6 +5497,125 @@ function plantOffspring(world,recipe){
 }
 
 /**
+ * A.16 Selective Evolution — objective and bounded 3D phenotype measurements.
+ * Scores describe the occupied voxel geometry; no optics or palette enters them.
+ * They are artist-controlled selection heuristics, not universal measures of beauty.
+ */
+const clampE=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const EVOLUTION_TRAITS=Object.freeze([
+  Object.freeze({key:'spikes',name:'Spikes & needles'}),
+  Object.freeze({key:'branching',name:'Branchy skeletons'}),
+  Object.freeze({key:'hollow',name:'Internal caverns'}),
+  Object.freeze({key:'asymmetry',name:'Broken symmetry'}),
+  Object.freeze({key:'novelty',name:'Strange relatives'})
+]);
+const EVOLUTION_DEFAULTS=Object.freeze({spikes:70,branching:75,hollow:30,asymmetry:35,novelty:60});
+const signedNeighbors=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+
+/** Analyze the full solid x/y/z lattice, NOT a picture of the specimen.
+ * Cavity counts use flood-fill of empty voxels from outside a padded bounding box.
+ * Ratios use stable bounded mappings so the different objectives are comparable.
+ */
+function analyzeVolumeShape(volume){
+  const n=volume.size, solid=volume.owner;
+  if(!Number.isInteger(n)||n<3||!solid||solid.length!==n*n*n)throw Error('Invalid solid 3D volume');
+  const ix=(x,y,z)=>z*n*n+y*n+x;
+  let count=0,min=[n,n,n],max=[-1,-1,-1],mass=[0,0,0];
+  for(let z=0;z<n;z++)for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    if(!solid[ix(x,y,z)])continue;
+    count++;const v=[x,y,z];
+    for(let a=0;a<3;a++){min[a]=Math.min(min[a],v[a]);max[a]=Math.max(max[a],v[a]);mass[a]+=v[a];}
+  }
+  if(!count)return {spikes:0,branching:0,hollow:0,asymmetry:0,surfaceToVolume:0,exposedFaces:0,tips:0,enclosedVoxels:0,voxels:0,spans:[0,0,0]};
+  const spans=max.map((v,i)=>v-min[i]+1);
+  let exposedFaces=0,exposedCells=0,tips=0,mirrorMismatch=0;
+  for(let z=min[2];z<=max[2];z++)for(let y=min[1];y<=max[1];y++)for(let x=min[0];x<=max[0];x++){
+    if(!solid[ix(x,y,z)])continue;
+    let bonds=0;
+    for(const [dx,dy,dz] of signedNeighbors){
+      const xx=x+dx,yy=y+dy,zz=z+dz;
+      if(xx<0||yy<0||zz<0||xx>=n||yy>=n||zz>=n||!solid[ix(xx,yy,zz)])exposedFaces++;
+      else bonds++;
+    }
+    if(bonds<6)exposedCells++;
+    if(bonds<=2)tips++;
+    if(!solid[ix(min[0]+max[0]-x,y,z)])mirrorMismatch++;
+    if(!solid[ix(x,min[1]+max[1]-y,z)])mirrorMismatch++;
+    if(!solid[ix(x,y,min[2]+max[2]-z)])mirrorMismatch++;
+  }
+  // Padded-box flood fill: every empty voxel connected to the outer boundary
+  // belongs to the exterior, not an internal cavern.
+  const sx=spans[0]+2,sy=spans[1]+2,sz=spans[2]+2,area=sx*sy,total=area*sz;
+  const outside=new Uint8Array(total),queue=new Int32Array(total);
+  const id=(x,y,z)=>z*area+y*sx+x;
+  let read=0,write=0;
+  outside[0]=1;queue[write++]=0;
+  while(read<write){
+    const key=queue[read++],z=Math.floor(key/area),y=Math.floor(key%area/sx),x=key%sx;
+    for(const [dx,dy,dz] of signedNeighbors){
+      const xx=x+dx,yy=y+dy,zz=z+dz;
+      if(xx<0||yy<0||zz<0||xx>=sx||yy>=sy||zz>=sz)continue;
+      const t=id(xx,yy,zz);if(outside[t])continue;
+      if(xx>0&&yy>0&&zz>0&&xx<sx-1&&yy<sy-1&&zz<sz-1&&solid[ix(min[0]+xx-1,min[1]+yy-1,min[2]+zz-1)])continue;
+      outside[t]=1;queue[write++]=t;
+    }
+  }
+  let enclosedVoxels=0;
+  for(let z=1;z<sz-1;z++)for(let y=1;y<sy-1;y++)for(let x=1;x<sx-1;x++){
+    if(!outside[id(x,y,z)]&&!solid[ix(min[0]+x-1,min[1]+y-1,min[2]+z-1)])enclosedVoxels++;
+  }
+  const exposedRatio=exposedFaces/Math.max(1,6*count);
+  const tipRatio=tips/Math.max(1,exposedCells);
+  const longest=Math.max(...spans),shortest=Math.max(1,Math.min(...spans));
+  const elongation=clampE((longest/shortest-1)/2.6);
+  const shapeCenter=mass.map((v,i)=>v/count-(min[i]+max[i])/2);
+  const offCenter=Math.hypot(...shapeCenter.map((v,i)=>v/Math.max(1,spans[i])));
+  const asymmetry=clampE(.84*mirrorMismatch/(3*count)+.22*offCenter);
+  return {
+    spikes:clampE(.65*tipRatio*3.5+.35*elongation),
+    branching:clampE(Math.max(0,(exposedRatio-.28)*2.5)+.18*tipRatio),
+    hollow:clampE(enclosedVoxels/Math.max(1,count+enclosedVoxels)*9),
+    asymmetry,
+    surfaceToVolume:Number((exposedFaces/count).toFixed(4)),
+    exposedFaces,tips,enclosedVoxels,voxels:count,spans
+  };
+}
+function validatedGoals(input=EVOLUTION_DEFAULTS){
+  const next={};for(const {key} of EVOLUTION_TRAITS){const v=Number(input[key]??0);if(!Number.isFinite(v)||v<0||v>100)throw Error('Evolution weight must be between 0 and 100');next[key]=v;}
+  if(!Object.values(next).some(Boolean))throw Error('Choose at least one selection goal');
+  return next;
+}
+function features(record){
+  const m=record?.metrics,s=m?.shape;
+  if(!s||!['spikes','branching','hollow','asymmetry'].every(k=>Number.isFinite(s[k])))return null;
+  const denom=Math.max(1,(m.genes||[]).reduce((a,b)=>a+b,0));
+  return [s.spikes,s.branching,s.hollow,s.asymmetry,...(m.genes||[0,0,0]).map(v=>v/denom)];
+}
+/** Difference from the closest distinct specimen, using shape AND gene ratios.
+ * No reference records => neutral 0.5, not a fraudulent promise of novelty.
+ */
+function noveltyOf(record,reference=[]){
+  const f=features(record);if(!f)return null;
+  const others=reference.filter(r=>r!==record && r.id!==record.id).map(features).filter(Boolean);
+  if(!others.length)return .5;
+  const distance=other=>Math.sqrt(f.reduce((sum,v,i)=>sum+(v-other[i])**2,0)/f.length);
+  return clampE(Math.min(...others.map(distance))*2.3);
+}
+function scoreEvolution(record, goals=EVOLUTION_DEFAULTS, reference=[]){
+  const weight=validatedGoals(goals),shape=record?.metrics?.shape;
+  if(!features(record))return null; // A.15 imports without measured shape stay unscored
+  const values={spikes:shape.spikes,branching:shape.branching,hollow:shape.hollow,asymmetry:shape.asymmetry,novelty:noveltyOf(record,reference)};
+  const sum=Object.values(weight).reduce((a,b)=>a+b,0);
+  const score=100*Object.keys(weight).reduce((acc,k)=>acc+weight[k]*values[k],0)/sum;
+  return {score:Number(score.toFixed(1)),values};
+}
+function rankEvolution(records,goals=EVOLUTION_DEFAULTS,reference=[]){
+  validatedGoals(goals);
+  return records.map(r=>({record:r,result:scoreEvolution(r,goals,reference)}))
+    .filter(v=>v.result!==null).sort((a,b)=>b.result.score-a.result.score || String(a.record.id).localeCompare(String(b.record.id)));
+}
+
+/**
  * A.15 Mutation Nursery — bounded, deterministic, real 3D growth trials.
  * This module never mutates the artist's live world. It simulates a smaller
  * independent CrystalWorld for each sibling and records the resulting phenotype.
@@ -5552,7 +5695,7 @@ function evaluateSibling(recipe,{steps=56, worldSeed=6939151, size=172}={}){
   return {
     phenotype:clone(phenotype),
     metrics:{cells:stats.volumeCells,depth:stats.volumeDepthSlices,roughness:phenotype.roughness,
-      genes:geneCounts,frontier:stats.volumeFrontier,steps},
+      genes:geneCounts,frontier:stats.volumeFrontier,steps,shape:analyzeVolumeShape(world.volume)},
     preview:{size:world.volume.size,pixels:phenotypeMap(world.volume),cloud:exposedVoxelCloud(world.volume)}
   };
 }
@@ -5613,10 +5756,28 @@ function importNursery(doc){
     const m=s.metrics||{},genes=Array.isArray(m.genes)&&m.genes.length===3?m.genes:[0,0,0];
     return {id:String(s.id||`import-${index}`).slice(0,80),generation:clampN(Math.trunc(Number(s.generation))||1,1,999),kept:true,
       recipe:{...dna,seed:uint(s.recipe.seed),mutation:clampN(Number(s.recipe.mutation)||0,0,1),crossover:clampN(Number(s.recipe.crossover)||0,0,1)},
-      phenotype,metrics:{cells:clampN(Math.trunc(Number(m.cells))||0,0,1e7),depth:clampN(Math.trunc(Number(m.depth))||0,0,48),roughness:clampN(Number(m.roughness)||0,0,1),genes:genes.map(v=>clampN(Math.trunc(Number(v))||0,0,1e7)),frontier:clampN(Math.trunc(Number(m.frontier))||0,0,1e7),steps:clampN(Math.trunc(Number(m.steps))||56,10,130)},
+      phenotype,metrics:{cells:clampN(Math.trunc(Number(m.cells))||0,0,1e7),depth:clampN(Math.trunc(Number(m.depth))||0,0,48),roughness:clampN(Number(m.roughness)||0,0,1),genes:genes.map(v=>clampN(Math.trunc(Number(v))||0,0,1e7)),frontier:clampN(Math.trunc(Number(m.frontier))||0,0,1e7),steps:clampN(Math.trunc(Number(m.steps))||56,10,130),
+        ...(m.shape ? {shape:validateShape(m.shape)} : {})},
       preview:{size:n,pixels:pixel.slice(),cloud:cloud.slice()}};
   });
   return {generation:clampN(Math.trunc(Number(doc.generation))||1,1,999),specimens};
+}
+
+/** Safely restore a real measured phenotype; older A.15 archives without it
+ * remain importable and show 'Unscored' until trialed again.
+ */
+function validateShape(shape){
+  if(!shape||typeof shape!=='object')throw Error('Invalid shape metrics');
+  const safe={};
+  for(const key of ['spikes','branching','hollow','asymmetry']){
+    const value=Number(shape[key]);if(!Number.isFinite(value)||value<0||value>1)throw Error('Invalid shape metrics');safe[key]=value;
+  }
+  for(const key of ['surfaceToVolume','exposedFaces','tips','enclosedVoxels','voxels']){
+    const value=Number(shape[key]);if(!Number.isFinite(value)||value<0||value>1e7)throw Error('Invalid shape metrics');safe[key]=value;
+  }
+  const spans=shape.spans;
+  if(!Array.isArray(spans)||spans.length!==3||spans.some(v=>!Number.isInteger(v)||v<0||v>48))throw Error('Invalid shape metrics');
+  safe.spans=[...spans];return safe;
 }
 
 
@@ -6185,6 +6346,31 @@ $('breedImport').addEventListener('change',async ev=>{
 // Only a deliberate PLANT changes the main crystal; the kept archive survives
 // Refresh/Restart until the user exports or imports a curated family.
 let nurseryGeneration=1,nurserySerial=0,nurseryRecords=[],nurseryBusy=false;
+let evolutionGoals={...EVOLUTION_DEFAULTS};
+function currentGenerationRecords(){return nurseryRecords.filter(r=>r.generation===nurseryGeneration);}
+function scoredGeneration(){
+  const candidates=currentGenerationRecords();
+  return rankEvolution(candidates,evolutionGoals,[...candidates,...nurseryRecords.filter(r=>r.kept && r.generation!==nurseryGeneration)]);
+}
+function currentElite(){return scoredGeneration().slice(0,3).map(x=>x.record);}
+function keepElite(){
+  if(nurseryBusy)return [];
+  const best=currentElite();
+  if(best.length<3){$('evoStatus').textContent='Grow at least three scored siblings in this generation first.';return [];}
+  const totalKept=nurseryRecords.filter(r=>r.kept).length;
+  if(totalKept+best.filter(r=>!r.kept).length>36){$('evoStatus').textContent='Shelf is full. Export your favorites before keeping more.';return [];}
+  for(const r of best)r.kept=true;
+  renderNursery();$('evoStatus').textContent='Kept '+best.map(r=>r.id).join(', ')+'. Existing favorites were not removed.';
+  return best;
+}
+function advanceWithElite(elite){
+  if(elite.length!==3)return false;
+  breedParents=elite.map(r=>normalizeGenome({...r.phenotype,name:`GEN ${r.generation} · ${r.id} · SELECTED PHENOTYPE`}));
+  nurseryGeneration++;renderBreeding();nurseryLabel();
+  $('evoStatus').textContent=`Generation ${nurseryGeneration} founded by ${elite.map(r=>r.id).join(' + ')}.`;
+  return true;
+}
+
 function nurseryLabel(){
   $('nurseryCountLabel').textContent=`${nurseryRecords.length} specimens · ${nurseryRecords.filter(r=>r.kept).length} kept · generation ${nurseryGeneration}`;
 }
@@ -6230,11 +6416,23 @@ function repaintNurseryThumbnails(){
 }
 function renderNursery(){
   const grid=$('nurseryGallery');grid.replaceChildren();
-  for(const record of nurseryRecords){
-    const card=document.createElement('article');card.className='nursery-card'+(record.kept?' kept':'');
+  const ranked=scoredGeneration(),best=new Set(ranked.slice(0,3).map(x=>x.record.id));
+  const scoreboard=new Map(ranked.map((entry,i)=>[entry.record.id,{rank:i+1,...entry.result}]));
+  // Current generation first, then archived favorites. Sorting never mutates the archive.
+  const displayRecords=[...nurseryRecords].sort((a,b)=>b.generation-a.generation || (scoreboard.get(a.id)?.rank??999)-(scoreboard.get(b.id)?.rank??999) || a.id.localeCompare(b.id));
+  for(const record of displayRecords){
+    const ranking=scoreboard.get(record.id);
+    const card=document.createElement('article');card.className='nursery-card'+(record.kept?' kept':'')+(best.has(record.id)?' evolution-best':'');
     const canvas=document.createElement('canvas');canvas.className='nursery-photo';canvas.dataset.nurseryId=record.id;canvas.setAttribute('aria-label',`3D trial projection for ${record.id}`);card.appendChild(canvas);
     const title=document.createElement('div');title.className='nursery-label';title.textContent=`GEN ${record.generation} · ${record.id}`;card.appendChild(title);
     const facts=document.createElement('div');facts.className='nursery-facts';facts.textContent=`${record.metrics.cells.toLocaleString()} VOXELS · ${record.metrics.depth} Z-LAYERS · ROUGH ${(record.metrics.roughness*100).toFixed(0)}%`;card.appendChild(facts);
+    const scoreLabel=document.createElement('div');scoreLabel.className='nursery-score';
+    if(ranking){
+      scoreLabel.textContent=`#${ranking.rank} · ${ranking.score.toFixed(1)} / 100 · SELECTION SCORE`;
+      const detail=document.createElement('small');detail.textContent=`SPIKES ${(record.metrics.shape.spikes*100).toFixed(0)} · BRANCH ${(record.metrics.shape.branching*100).toFixed(0)} · HOLLOW ${(record.metrics.shape.hollow*100).toFixed(0)} · ASYMM ${(record.metrics.shape.asymmetry*100).toFixed(0)} · NEW ${(ranking.values.novelty*100).toFixed(0)}`;
+      scoreLabel.appendChild(detail);
+    } else scoreLabel.textContent=record.metrics.shape?'PREVIOUS GENERATION':'LEGACY · NO MEASURED SHAPE';
+    card.appendChild(scoreLabel);
     const genes=document.createElement('div');genes.className='nursery-gene';genes.setAttribute('aria-label',`Needle, octahedral and coral cells: ${record.metrics.genes.join(', ')}`);
     const total=Math.max(1,record.metrics.genes.reduce((a,b)=>a+b,0));
     for(const number of record.metrics.genes){const bar=document.createElement('span');bar.style.width=(number/total*100).toFixed(1)+'%';genes.appendChild(bar);}
@@ -6288,19 +6486,46 @@ async function growNurseryBatch(){
       while(nurseryRecords.length>36){const k=nurseryRecords.findIndex(r=>!r.kept);if(k<0)break;nurseryRecords.splice(k,1);}
       renderNursery();
     }
-    $('nurseryStatus').textContent=`${count} actual 3D sibling trials finished. Compare their growth, keep favorites, or plant their DNA in the artwork.`;
+    $('nurseryStatus').textContent=`${count} actual 3D sibling trials finished and measured. Adjust SELECTIVE EVOLUTION sliders to reorder the gallery without rerunning growth.`;
+    $('evoStatus').textContent=`Ranked ${scoredGeneration().length} specimens in generation ${nurseryGeneration}. Your objective sliders only change selection, not the crystals.`;
   }catch(error){$('nurseryStatus').textContent='Nursery trial failed: '+error.message;console.error(error);}
   finally{nurseryBusy=false;button.disabled=false;setPlaying(wasPlaying);}
 }
 function nextNurseryGeneration(){
   if(nurseryBusy)return false;
-  const favorites=nurseryRecords.filter(r=>r.kept).slice(-3);
+  const favorites=currentGenerationRecords().filter(r=>r.kept).slice(-3);
   if(favorites.length!==3){$('nurseryStatus').textContent='KEEP at least three siblings first. The newest three kept specimens become the next parents.';return false;}
   breedParents=favorites.map(r=>normalizeGenome({...r.phenotype,name:`G${r.generation} ${r.id} · GROWN PHENOTYPE`}));
   nurseryGeneration++;renderBreeding();
   $('nurseryStatus').textContent=`Generation ${nurseryGeneration} ready: ${favorites.map(r=>r.id).join(' + ')}. Press GROW A SIBLING BATCH to raise their descendants.`;
   nurseryLabel();return true;
 }
+const evolutionInputs={evoSpikes:'spikes',evoBranching:'branching',evoHollow:'hollow',evoAsymmetry:'asymmetry',evoNovelty:'novelty'};
+for(const [id,key] of Object.entries(evolutionInputs))$(''+id).addEventListener('input',ev=>{
+  evolutionGoals[key]=Number(ev.target.value);$(id+'-value').textContent=ev.target.value+'%';
+  // A deliberately zero-weighted set of goals is not useful. Preserve the
+  // previous nonzero goal instead of making the gallery throw an exception.
+  if(Object.values(evolutionGoals).every(v=>v===0)){evolutionGoals[key]=5;ev.target.value='5';$(id+'-value').textContent='5%';}
+  renderNursery();
+});
+const evolutionPresets={balanced:EVOLUTION_DEFAULTS,spikes:{spikes:100,branching:65,hollow:0,asymmetry:25,novelty:40},caverns:{spikes:0,branching:40,hollow:100,asymmetry:20,novelty:30},chaos:{spikes:60,branching:65,hollow:65,asymmetry:100,novelty:100}};
+for(const b of document.querySelectorAll('[data-evo-preset]'))b.addEventListener('click',()=>{
+  evolutionGoals={...evolutionPresets[b.dataset.evoPreset]};
+  for(const [id,key] of Object.entries(evolutionInputs)){$(id).value=evolutionGoals[key];$(id+'-value').textContent=evolutionGoals[key]+'%';}
+  renderNursery();$('evoStatus').textContent='Goal preset applied. Re-ranked existing 3D specimens; no crystal state changed.';
+});
+$('evoRank').addEventListener('click',()=>{renderNursery();$('evoStatus').textContent=`Ranked ${scoredGeneration().length} measured specimens in generation ${nurseryGeneration}. Scores follow your current goals.`;});
+$('evoKeep').addEventListener('click',keepElite);
+$('evoAdvance').addEventListener('click',async()=>{
+  if(nurseryBusy)return;
+  if(nurseryRecords.length>=36 && nurseryRecords.every(r=>r.kept)){
+    $('evoStatus').textContent='Your nursery has 36 kept specimens. Export the family and release some favorites before evolving again.';
+    return;
+  }
+  const selected=keepElite();if(!advanceWithElite(selected))return;
+  $('nurseryStatus').textContent=`Generation ${nurseryGeneration} · evolving the three best measured parents…`;
+  await growNurseryBatch();
+});
 $('nurseryGenerate').addEventListener('click',growNurseryBatch);
 $('nurseryVariation').addEventListener('input',ev=>{$('nurseryVariation-value').textContent=ev.target.value+'%';});
 $('nurseryNext').addEventListener('click',nextNurseryGeneration);
@@ -6475,7 +6700,7 @@ function loop(now){
 }
 // Named for test harnesses: no private user data or external connections.
 window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},
-  get nursery(){return {generation:nurseryGeneration,busy:nurseryBusy,records:nurseryRecords.map(r=>({id:r.id,kept:r.kept,metrics:{...r.metrics},recipe:{...r.recipe}}))}},growNurseryBatch,nextNurseryGeneration,
+  get nursery(){return {generation:nurseryGeneration,busy:nurseryBusy,records:nurseryRecords.map(r=>({id:r.id,kept:r.kept,metrics:{...r.metrics},recipe:{...r.recipe}}))}},get evolution(){return {goals:{...evolutionGoals},ranked:scoredGeneration().map(x=>({id:x.record.id,score:x.result.score}))}},growNurseryBatch,nextNurseryGeneration,
   get mutation(){return {...currentMutation(),...world.volume.stats()};},
   mutateAllFronts,enableBody,get breeding(){return {parents:breedParents.map(g=>({...g,laws:[...g.laws],angles:[...g.angles]})),preview:buildOffspringRecipe(),hybrids:world.volume.hybrids.size}},breedAndPlant,refreshBreedingSources};
 requestAnimationFrame(loop);

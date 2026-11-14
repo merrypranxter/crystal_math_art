@@ -6,6 +6,7 @@
  */
 import {CrystalWorld} from './growth.js';
 import {breedThreeParents, normalizeGenome, plantOffspring, captureVolumeGenome} from './breeding.js';
+import {analyzeVolumeShape} from './evolution.js';
 
 export const NURSERY_SCHEMA='mathemagical-crystal-nursery/v1';
 const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -80,7 +81,7 @@ export function evaluateSibling(recipe,{steps=56, worldSeed=6939151, size=172}={
   return {
     phenotype:clone(phenotype),
     metrics:{cells:stats.volumeCells,depth:stats.volumeDepthSlices,roughness:phenotype.roughness,
-      genes:geneCounts,frontier:stats.volumeFrontier,steps},
+      genes:geneCounts,frontier:stats.volumeFrontier,steps,shape:analyzeVolumeShape(world.volume)},
     preview:{size:world.volume.size,pixels:phenotypeMap(world.volume),cloud:exposedVoxelCloud(world.volume)}
   };
 }
@@ -141,8 +142,26 @@ export function importNursery(doc){
     const m=s.metrics||{},genes=Array.isArray(m.genes)&&m.genes.length===3?m.genes:[0,0,0];
     return {id:String(s.id||`import-${index}`).slice(0,80),generation:clampN(Math.trunc(Number(s.generation))||1,1,999),kept:true,
       recipe:{...dna,seed:uint(s.recipe.seed),mutation:clampN(Number(s.recipe.mutation)||0,0,1),crossover:clampN(Number(s.recipe.crossover)||0,0,1)},
-      phenotype,metrics:{cells:clampN(Math.trunc(Number(m.cells))||0,0,1e7),depth:clampN(Math.trunc(Number(m.depth))||0,0,48),roughness:clampN(Number(m.roughness)||0,0,1),genes:genes.map(v=>clampN(Math.trunc(Number(v))||0,0,1e7)),frontier:clampN(Math.trunc(Number(m.frontier))||0,0,1e7),steps:clampN(Math.trunc(Number(m.steps))||56,10,130)},
+      phenotype,metrics:{cells:clampN(Math.trunc(Number(m.cells))||0,0,1e7),depth:clampN(Math.trunc(Number(m.depth))||0,0,48),roughness:clampN(Number(m.roughness)||0,0,1),genes:genes.map(v=>clampN(Math.trunc(Number(v))||0,0,1e7)),frontier:clampN(Math.trunc(Number(m.frontier))||0,0,1e7),steps:clampN(Math.trunc(Number(m.steps))||56,10,130),
+        ...(m.shape ? {shape:validateShape(m.shape)} : {})},
       preview:{size:n,pixels:pixel.slice(),cloud:cloud.slice()}};
   });
   return {generation:clampN(Math.trunc(Number(doc.generation))||1,1,999),specimens};
+}
+
+/** Safely restore a real measured phenotype; older A.15 archives without it
+ * remain importable and show 'Unscored' until trialed again.
+ */
+function validateShape(shape){
+  if(!shape||typeof shape!=='object')throw Error('Invalid shape metrics');
+  const safe={};
+  for(const key of ['spikes','branching','hollow','asymmetry']){
+    const value=Number(shape[key]);if(!Number.isFinite(value)||value<0||value>1)throw Error('Invalid shape metrics');safe[key]=value;
+  }
+  for(const key of ['surfaceToVolume','exposedFaces','tips','enclosedVoxels','voxels']){
+    const value=Number(shape[key]);if(!Number.isFinite(value)||value<0||value>1e7)throw Error('Invalid shape metrics');safe[key]=value;
+  }
+  const spans=shape.spans;
+  if(!Array.isArray(spans)||spans.length!==3||spans.some(v=>!Number.isInteger(v)||v<0||v>48))throw Error('Invalid shape metrics');
+  safe.spans=[...spans];return safe;
 }

@@ -1,3 +1,7 @@
+## A.16 — Selective Evolution
+
+The Mutation Nursery can now **score actual 3D-grown shapes** and breed toward artist-chosen objectives: needles, branching, enclosed caverns, asymmetry and novelty. It measures real occupied voxels using exposed-face geometry, flood-filled interior voids and 3-axis reflection mismatch, then ranks siblings under editable goal weights. **KEEP TOP THREE** is nondestructive; **EVOLVE NEXT GENERATION** uses their actually grown phenotypes as parents. A.15 archives without 3D shape metrics remain importable but unscored. See [A.16 details](docs/PROTOTYPE_A16.md).
+
 # CRYSTALLIZATION APOCALYPSE
 
 **Latest: A.15 — MUTATION NURSERY.** Grow four or six offspring in real independent 3D mini-simulations, compare material shapes and genetic tissue ratios, KEEP favorites, promote any child into a breeding parent, and breed your newest three kept phenotypes into the next generation. The NURSERY tab adds portable JSON import/export and palette-aware thumbnails. The existing breeding/physics tools and all 199 palettes are preserved. See [A.15 technical notes](docs/PROTOTYPE_A15.md).

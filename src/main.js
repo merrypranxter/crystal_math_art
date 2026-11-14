@@ -8,6 +8,7 @@ import { renderSpectralCPU, SpectralGPU } from './optics.js';
 import { CrystalBodyGPU } from './body3d.js';
 import { BREEDING_PRESETS, normalizeGenome, captureVolumeGenome, breedThreeParents, plantOffspring, describeGenome } from './breeding.js';
 import { createSiblingRecipes, evaluateSibling, nurseryPixels, exportNursery, importNursery } from './nursery.js';
+import {EVOLUTION_TRAITS, EVOLUTION_DEFAULTS, rankEvolution} from './evolution.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -574,6 +575,31 @@ $('breedImport').addEventListener('change',async ev=>{
 // Only a deliberate PLANT changes the main crystal; the kept archive survives
 // Refresh/Restart until the user exports or imports a curated family.
 let nurseryGeneration=1,nurserySerial=0,nurseryRecords=[],nurseryBusy=false;
+let evolutionGoals={...EVOLUTION_DEFAULTS};
+function currentGenerationRecords(){return nurseryRecords.filter(r=>r.generation===nurseryGeneration);}
+function scoredGeneration(){
+  const candidates=currentGenerationRecords();
+  return rankEvolution(candidates,evolutionGoals,[...candidates,...nurseryRecords.filter(r=>r.kept && r.generation!==nurseryGeneration)]);
+}
+function currentElite(){return scoredGeneration().slice(0,3).map(x=>x.record);}
+function keepElite(){
+  if(nurseryBusy)return [];
+  const best=currentElite();
+  if(best.length<3){$('evoStatus').textContent='Grow at least three scored siblings in this generation first.';return [];}
+  const totalKept=nurseryRecords.filter(r=>r.kept).length;
+  if(totalKept+best.filter(r=>!r.kept).length>36){$('evoStatus').textContent='Shelf is full. Export your favorites before keeping more.';return [];}
+  for(const r of best)r.kept=true;
+  renderNursery();$('evoStatus').textContent='Kept '+best.map(r=>r.id).join(', ')+'. Existing favorites were not removed.';
+  return best;
+}
+function advanceWithElite(elite){
+  if(elite.length!==3)return false;
+  breedParents=elite.map(r=>normalizeGenome({...r.phenotype,name:`GEN ${r.generation} · ${r.id} · SELECTED PHENOTYPE`}));
+  nurseryGeneration++;renderBreeding();nurseryLabel();
+  $('evoStatus').textContent=`Generation ${nurseryGeneration} founded by ${elite.map(r=>r.id).join(' + ')}.`;
+  return true;
+}
+
 function nurseryLabel(){
   $('nurseryCountLabel').textContent=`${nurseryRecords.length} specimens · ${nurseryRecords.filter(r=>r.kept).length} kept · generation ${nurseryGeneration}`;
 }
@@ -619,11 +645,23 @@ function repaintNurseryThumbnails(){
 }
 function renderNursery(){
   const grid=$('nurseryGallery');grid.replaceChildren();
-  for(const record of nurseryRecords){
-    const card=document.createElement('article');card.className='nursery-card'+(record.kept?' kept':'');
+  const ranked=scoredGeneration(),best=new Set(ranked.slice(0,3).map(x=>x.record.id));
+  const scoreboard=new Map(ranked.map((entry,i)=>[entry.record.id,{rank:i+1,...entry.result}]));
+  // Current generation first, then archived favorites. Sorting never mutates the archive.
+  const displayRecords=[...nurseryRecords].sort((a,b)=>b.generation-a.generation || (scoreboard.get(a.id)?.rank??999)-(scoreboard.get(b.id)?.rank??999) || a.id.localeCompare(b.id));
+  for(const record of displayRecords){
+    const ranking=scoreboard.get(record.id);
+    const card=document.createElement('article');card.className='nursery-card'+(record.kept?' kept':'')+(best.has(record.id)?' evolution-best':'');
     const canvas=document.createElement('canvas');canvas.className='nursery-photo';canvas.dataset.nurseryId=record.id;canvas.setAttribute('aria-label',`3D trial projection for ${record.id}`);card.appendChild(canvas);
     const title=document.createElement('div');title.className='nursery-label';title.textContent=`GEN ${record.generation} · ${record.id}`;card.appendChild(title);
     const facts=document.createElement('div');facts.className='nursery-facts';facts.textContent=`${record.metrics.cells.toLocaleString()} VOXELS · ${record.metrics.depth} Z-LAYERS · ROUGH ${(record.metrics.roughness*100).toFixed(0)}%`;card.appendChild(facts);
+    const scoreLabel=document.createElement('div');scoreLabel.className='nursery-score';
+    if(ranking){
+      scoreLabel.textContent=`#${ranking.rank} · ${ranking.score.toFixed(1)} / 100 · SELECTION SCORE`;
+      const detail=document.createElement('small');detail.textContent=`SPIKES ${(record.metrics.shape.spikes*100).toFixed(0)} · BRANCH ${(record.metrics.shape.branching*100).toFixed(0)} · HOLLOW ${(record.metrics.shape.hollow*100).toFixed(0)} · ASYMM ${(record.metrics.shape.asymmetry*100).toFixed(0)} · NEW ${(ranking.values.novelty*100).toFixed(0)}`;
+      scoreLabel.appendChild(detail);
+    } else scoreLabel.textContent=record.metrics.shape?'PREVIOUS GENERATION':'LEGACY · NO MEASURED SHAPE';
+    card.appendChild(scoreLabel);
     const genes=document.createElement('div');genes.className='nursery-gene';genes.setAttribute('aria-label',`Needle, octahedral and coral cells: ${record.metrics.genes.join(', ')}`);
     const total=Math.max(1,record.metrics.genes.reduce((a,b)=>a+b,0));
     for(const number of record.metrics.genes){const bar=document.createElement('span');bar.style.width=(number/total*100).toFixed(1)+'%';genes.appendChild(bar);}
@@ -677,19 +715,46 @@ async function growNurseryBatch(){
       while(nurseryRecords.length>36){const k=nurseryRecords.findIndex(r=>!r.kept);if(k<0)break;nurseryRecords.splice(k,1);}
       renderNursery();
     }
-    $('nurseryStatus').textContent=`${count} actual 3D sibling trials finished. Compare their growth, keep favorites, or plant their DNA in the artwork.`;
+    $('nurseryStatus').textContent=`${count} actual 3D sibling trials finished and measured. Adjust SELECTIVE EVOLUTION sliders to reorder the gallery without rerunning growth.`;
+    $('evoStatus').textContent=`Ranked ${scoredGeneration().length} specimens in generation ${nurseryGeneration}. Your objective sliders only change selection, not the crystals.`;
   }catch(error){$('nurseryStatus').textContent='Nursery trial failed: '+error.message;console.error(error);}
   finally{nurseryBusy=false;button.disabled=false;setPlaying(wasPlaying);}
 }
 function nextNurseryGeneration(){
   if(nurseryBusy)return false;
-  const favorites=nurseryRecords.filter(r=>r.kept).slice(-3);
+  const favorites=currentGenerationRecords().filter(r=>r.kept).slice(-3);
   if(favorites.length!==3){$('nurseryStatus').textContent='KEEP at least three siblings first. The newest three kept specimens become the next parents.';return false;}
   breedParents=favorites.map(r=>normalizeGenome({...r.phenotype,name:`G${r.generation} ${r.id} · GROWN PHENOTYPE`}));
   nurseryGeneration++;renderBreeding();
   $('nurseryStatus').textContent=`Generation ${nurseryGeneration} ready: ${favorites.map(r=>r.id).join(' + ')}. Press GROW A SIBLING BATCH to raise their descendants.`;
   nurseryLabel();return true;
 }
+const evolutionInputs={evoSpikes:'spikes',evoBranching:'branching',evoHollow:'hollow',evoAsymmetry:'asymmetry',evoNovelty:'novelty'};
+for(const [id,key] of Object.entries(evolutionInputs))$(''+id).addEventListener('input',ev=>{
+  evolutionGoals[key]=Number(ev.target.value);$(id+'-value').textContent=ev.target.value+'%';
+  // A deliberately zero-weighted set of goals is not useful. Preserve the
+  // previous nonzero goal instead of making the gallery throw an exception.
+  if(Object.values(evolutionGoals).every(v=>v===0)){evolutionGoals[key]=5;ev.target.value='5';$(id+'-value').textContent='5%';}
+  renderNursery();
+});
+const evolutionPresets={balanced:EVOLUTION_DEFAULTS,spikes:{spikes:100,branching:65,hollow:0,asymmetry:25,novelty:40},caverns:{spikes:0,branching:40,hollow:100,asymmetry:20,novelty:30},chaos:{spikes:60,branching:65,hollow:65,asymmetry:100,novelty:100}};
+for(const b of document.querySelectorAll('[data-evo-preset]'))b.addEventListener('click',()=>{
+  evolutionGoals={...evolutionPresets[b.dataset.evoPreset]};
+  for(const [id,key] of Object.entries(evolutionInputs)){$(id).value=evolutionGoals[key];$(id+'-value').textContent=evolutionGoals[key]+'%';}
+  renderNursery();$('evoStatus').textContent='Goal preset applied. Re-ranked existing 3D specimens; no crystal state changed.';
+});
+$('evoRank').addEventListener('click',()=>{renderNursery();$('evoStatus').textContent=`Ranked ${scoredGeneration().length} measured specimens in generation ${nurseryGeneration}. Scores follow your current goals.`;});
+$('evoKeep').addEventListener('click',keepElite);
+$('evoAdvance').addEventListener('click',async()=>{
+  if(nurseryBusy)return;
+  if(nurseryRecords.length>=36 && nurseryRecords.every(r=>r.kept)){
+    $('evoStatus').textContent='Your nursery has 36 kept specimens. Export the family and release some favorites before evolving again.';
+    return;
+  }
+  const selected=keepElite();if(!advanceWithElite(selected))return;
+  $('nurseryStatus').textContent=`Generation ${nurseryGeneration} · evolving the three best measured parents…`;
+  await growNurseryBatch();
+});
 $('nurseryGenerate').addEventListener('click',growNurseryBatch);
 $('nurseryVariation').addEventListener('input',ev=>{$('nurseryVariation-value').textContent=ev.target.value+'%';});
 $('nurseryNext').addEventListener('click',nextNurseryGeneration);
@@ -864,7 +929,7 @@ function loop(now){
 }
 // Named for test harnesses: no private user data or external connections.
 window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},
-  get nursery(){return {generation:nurseryGeneration,busy:nurseryBusy,records:nurseryRecords.map(r=>({id:r.id,kept:r.kept,metrics:{...r.metrics},recipe:{...r.recipe}}))}},growNurseryBatch,nextNurseryGeneration,
+  get nursery(){return {generation:nurseryGeneration,busy:nurseryBusy,records:nurseryRecords.map(r=>({id:r.id,kept:r.kept,metrics:{...r.metrics},recipe:{...r.recipe}}))}},get evolution(){return {goals:{...evolutionGoals},ranked:scoredGeneration().map(x=>({id:x.record.id,score:x.result.score}))}},growNurseryBatch,nextNurseryGeneration,
   get mutation(){return {...currentMutation(),...world.volume.stats()};},
   mutateAllFronts,enableBody,get breeding(){return {parents:breedParents.map(g=>({...g,laws:[...g.laws],angles:[...g.angles]})),preview:buildOffspringRecipe(),hybrids:world.volume.hybrids.size}},breedAndPlant,refreshBreedingSources};
 requestAnimationFrame(loop);
