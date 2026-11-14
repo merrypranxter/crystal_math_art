@@ -50,6 +50,12 @@ Run `npm test` to check the existing A.1–A.6 tests and the new A.7 history/fra
 
 **Important scope:** the A.4 PDE can be run as a relatively compact phase-growth baseline by setting A.5 instability to 0. A.5 adds deliberately heuristic branching front assistance rather than claiming a full thermodynamic model. See [A.4 details and limitations](docs/PROTOTYPE_A4.md).
 
+## A.9 — Optical Heresy (new)
+
+**New:** a spectral optical material treatment for the radial crystal family, backed by a standalone **WebGL2 GLSL shader** with a pure Canvas 2D fallback, plus a reversible **TWIST LIGHT** paint tool. The shader combines the stored fiber-director field, per-grain ring coordinate, three wavelength-dependent interference signals, grain-boundary markings and the original palette color stops. Optical painting changes the director field only, not the crystal occupancy or other growth laws. New controls: prismatic RGB separation, defect highlights, twist strength, and automatic/GPU/Canvas renderer choice. This is *artistically inspired*, not calibrated birefringence. Full notes: [docs/PROTOTYPE_A9.md](docs/PROTOTYPE_A9.md).
+
+**Palettes:** the published GitHub version must preserve **all 194** original MATHEMAGICAL vault palettes plus **five** studio palettes (199 total). Original stop lists, palette search, editing/shuffle and Restore Original remain intact. The development folder may use a small vault fixture; never commit that fixture to GitHub.
+
 ## Play / development
 
 - [Standalone HTML](standalone.html) — a complete offline browser/HTML-viewer build, no external scripts, server, subscription or secret keys needed.

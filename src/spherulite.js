@@ -144,6 +144,25 @@ export class SpheruliteField{
     }
     if(changed)w.modified++;
   }
+  /** A.9 direct-touch director distortion. This is an optical edit, NOT growth or heat. */
+  twistOptics(x,y,worldRadius=19,strength=.65){
+    if(!this.active)return 0;
+    const n=this.size,cx=x/this.scale,cy=y/this.scale,r=Math.max(.2,worldRadius/this.scale);
+    const rate=clampS(strength,0,1)*.27;
+    if(rate<=0)return 0;
+    let changed=0;
+    for(let yy=Math.max(2,Math.floor(cy-r)); yy<=Math.min(n-3,Math.ceil(cy+r)); yy++)
+      for(let xx=Math.max(2,Math.floor(cx-r)); xx<=Math.min(n-3,Math.ceil(cx+r)); xx++){
+        const dx=xx-cx,dy=yy-cy,d=Math.hypot(dx,dy),i=yy*n+xx;
+        if(d>=r||!this.owner[i])continue;
+        const influence=(1-d/r)**2;
+        // Tangential circulation near fingers, no modification to material identity.
+        this.director[i]+=rate*influence;
+        changed++;
+      }
+    if(changed){this.version++;this.world.modified++;}
+    return changed;
+  }
   melt(x,y,worldRadius){
     const n=this.size,cx=x/this.scale,cy=y/this.scale,r=worldRadius/this.scale,r2=r*r;
     let cut=0;

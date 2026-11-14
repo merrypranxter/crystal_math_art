@@ -3,6 +3,7 @@ import { DEFAULT_COMPOSITION, startComposition, addRandomColony, freshSeed } fro
 import { PALETTES, PALETTE_MAP, basePalette, originalStops, hexToRgb, buildColorLUT, randomColor } from './palettes.js';
 import { renderMineral, MINERAL_FINISHES } from './mineral.js';
 import { renderSpherulites } from './spherulite.js';
+import { renderSpectralCPU, SpectralGPU } from './optics.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -22,6 +23,8 @@ let luminosity = .62;
 let materialDepth=.74, materialBands=.55, materialLight=315, materialSpectral=.55, archiveReveal=.68;
 let materialRevision=0;
 let analyzerAngle=28,opticalRetardance=.65,polarizerContrast=.80,polarRevision=0;
+let spectralDispersion=.52,opticalDefects=.50,opticalTwist=.65,opticalBackend='auto';
+let spectralGPU=null,spectralError='';
 let editing = false;
 let recentPoint = null;
 let lastPaint = -Infinity;
@@ -216,9 +219,28 @@ function paintPhase(ctx, size) {
 function paintSpherulites(ctx,size){
   const f=world.spherulite;
   if(!f.active)return;
-  if(spherRenderVersion!==f.version||spherPaletteRevision!==paletteRevision||spherFinish!==finish||spherPolarRevision!==polarRevision||spherLuminosity!==luminosity){
-    const rendered=renderSpherulites(f,world,paletteLUT,{analyzer:analyzerAngle,retardance:opticalRetardance,contrast:polarizerContrast,light:luminosity,finish});
-    const img=spherCtx.createImageData(f.size,f.size);img.data.set(rendered.data);spherCtx.putImageData(img,0,0);
+  const spectral=finish==='spectral';
+  const shouldPaint=spherRenderVersion!==f.version||spherPaletteRevision!==paletteRevision||spherFinish!==finish||spherPolarRevision!==polarRevision||spherLuminosity!==luminosity;
+  const settings={analyzer:analyzerAngle,retardance:opticalRetardance,contrast:polarizerContrast,dispersion:spectralDispersion,defects:opticalDefects,light:luminosity};
+  if(shouldPaint){
+    let renderedOnGPU=false;
+    if(spectral && opticalBackend!=='cpu'){
+      try{
+        if(!spectralGPU)spectralGPU=new SpectralGPU(f.size,()=>document.createElement('canvas'));
+        const glCanvas=spectralGPU.render(f,paletteLUT,settings,paletteRevision);
+        spherCtx.clearRect(0,0,f.size,f.size);
+        spherCtx.drawImage(glCanvas,0,0,f.size,f.size);
+        spectralError='';renderedOnGPU=true;
+      }catch(err){
+        // Never show a black artwork on unsupported Safari hardware.
+        spectralError=String(err);spectralGPU=null;
+      }
+    }
+    if(!renderedOnGPU){
+      const painted=spectral?renderSpectralCPU(f,paletteLUT,settings):renderSpherulites(f,world,paletteLUT,{analyzer:analyzerAngle,retardance:opticalRetardance,contrast:polarizerContrast,light:luminosity,finish});
+      const img=spherCtx.createImageData(f.size,f.size);img.data.set(painted.data);spherCtx.putImageData(img,0,0);
+    }
+    if(spectral && $('opticalStatus'))$('opticalStatus').dataset.backend=renderedOnGPU?'webgl2':'canvas2d';
     spherRenderVersion=f.version;spherPaletteRevision=paletteRevision;spherFinish=finish;spherPolarRevision=polarRevision;spherLuminosity=luminosity;
   }
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(spherLayer,0,0,size,size);ctx.restore();
@@ -252,7 +274,7 @@ function drawScreen() {
     }
   }
   if(editing && recentPoint && activeTool !== 'seed') {
-    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':activeTool==='fracture'?'rgba(232,119,245,.88)':'rgba(129,244,203,.75)';
+    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':activeTool==='fracture'?'rgba(232,119,245,.88)':activeTool==='twist'?'rgba(67,224,250,.94)':'rgba(129,244,203,.75)';
     display.lineWidth=Math.max(1,size*.0013);
     display.setLineDash([5,5]);display.beginPath();
     display.arc(recentPoint.x/SIZE*size,recentPoint.y/SIZE*size,(activeTool==='fracture'?world.config.fractureWidth:world.config.brush)/SIZE*size,0,Math.PI*2);display.stroke();display.setLineDash([]);
@@ -262,7 +284,7 @@ function drawScreen() {
 function setTool(tool) {
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -274,6 +296,7 @@ function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
   else if(activeTool==='fracture')world.fracture(p.x,p.y);
+  else if(activeTool==='twist')world.spherulite.twistOptics(p.x,p.y,world.config.brush,opticalTwist);
   recentPoint=p;
 }
 crystalCanvas.addEventListener('pointerdown',ev=>{
@@ -333,10 +356,11 @@ $('randomPalette').addEventListener('click',()=>choosePalette(PALETTES[Math.floo
 $('shuffleStops').addEventListener('click',()=>changeStops(shuffleColors(activeStops)));
 $('randomColors').addEventListener('click',()=>changeStops(activeStops.map(()=>randomColor())));
 $('restorePalette').addEventListener('click',()=>changeStops(originalStops(palette)));
-function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish);$('polarizedControls').hidden=finish!=='polarized'; }
-$('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;phaseRenderVersion=-1;syncMineralControls();});
+function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish);$('polarizedControls').hidden=finish!=='polarized'&&finish!=='spectral'; }
+$('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;syncMineralControls();});
+$('opticalBackend').addEventListener('change',ev=>{opticalBackend=ev.target.value;spherRenderVersion=-1;});
 syncMineralControls();
-for(const [name,apply] of Object.entries({analyzerAngle:v=>analyzerAngle=v,opticalRetardance:v=>opticalRetardance=v/100,polarizerContrast:v=>polarizerContrast=v/100})){
+for(const [name,apply] of Object.entries({analyzerAngle:v=>analyzerAngle=v,opticalRetardance:v=>opticalRetardance=v/100,polarizerContrast:v=>polarizerContrast=v/100,spectralDispersion:v=>spectralDispersion=v/100,opticalDefects:v=>opticalDefects=v/100,opticalTwist:v=>opticalTwist=v/100})){
   $(name).addEventListener('input',ev=>{const v=Number(ev.target.value);apply(v);$(name+'-value').textContent=v+(name==='analyzerAngle'?'°':'%');polarRevision++;spherRenderVersion=-1;});
 }
 const mineralSliders={archiveReveal:v=>{archiveReveal=v/100},materialDepth:v=>{materialDepth=v/100},materialBands:v=>{materialBands=v/100},materialLight:v=>{materialLight=v},materialSpectral:v=>{materialSpectral=v/100}};
@@ -414,5 +438,5 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast}},renderSpherulites};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites};
 requestAnimationFrame(loop);

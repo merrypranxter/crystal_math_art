@@ -12,7 +12,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / CHROMATIC HERESY</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / OPTICAL HERESY</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -23,7 +23,7 @@
       </div>
       <div class="bottom-bar">
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
-        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button></div>
+        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button></div>
       </div>
       <div class="specimen-actions" aria-label="Crystal lifecycle actions">
         <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
@@ -33,7 +33,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.8 · CHROMATIC HERESY</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.9 · OPTICAL HERESY</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -100,7 +100,7 @@
           <button id="restorePalette" type="button">↶ ORIGINAL COLORS</button>
         </div>
         <p class="control-note">All original color stops are preserved, including 12-color recipes. Editing a swatch changes only the appearance—not the crystals you've grown.</p>
-        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option><option value="mineral">MINERAL RELIEF · FACET LIGHT</option><option value="strata">STRATIFIED GHOST · GROWTH BANDS</option><option value="prism">PRISMATIC OXIDE · IRIDESCENCE</option><option value="obsidian">OBSIDIAN · DARK METALLURGY</option><option value="archive">CRYSTAL ARCHAEOLOGY · FOSSIL LAYERS</option><option value="polarized">POLARIZED HERESY · ORIENTATION COLOR</option></select>
+        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option><option value="mineral">MINERAL RELIEF · FACET LIGHT</option><option value="strata">STRATIFIED GHOST · GROWTH BANDS</option><option value="prism">PRISMATIC OXIDE · IRIDESCENCE</option><option value="obsidian">OBSIDIAN · DARK METALLURGY</option><option value="archive">CRYSTAL ARCHAEOLOGY · FOSSIL LAYERS</option><option value="polarized">POLARIZED HERESY · ORIENTATION COLOR</option><option value="spectral">OPTICAL HERESY · SPECTRAL SEPARATION</option></select>
         <div id="mineralControls" hidden>
           <div class="info"><strong>A.6 · MINERAL FLESH</strong><p>2.5D relief follows the actual growth silhouette. Interior bands come from the time each cell crystallized. Highlights change with grain orientation and lighting—no generic rainbow fog.</p></div>
           <label class="range-label" for="materialDepth">Facet relief <output id="materialDepth-value">74%</output></label><input id="materialDepth" type="range" min="0" max="100" value="74" step="1" />
@@ -114,7 +114,11 @@
           <label class="range-label" for="analyzerAngle">Analyzer angle <output id="analyzerAngle-value">28°</output></label><input id="analyzerAngle" type="range" min="0" max="180" value="28" step="1" />
           <label class="range-label" for="opticalRetardance">Optical path / color order <output id="opticalRetardance-value">65%</output></label><input id="opticalRetardance" type="range" min="0" max="100" value="65" step="1" />
           <label class="range-label" for="polarizerContrast">Crossed polarizer contrast <output id="polarizerContrast-value">80%</output></label><input id="polarizerContrast" type="range" min="0" max="100" value="80" step="1" />
-          <p class="control-note">Stylized optics, NOT a measured birefringent retardation map. All 199 palettes remain available with editable original color stops.</p>
+          <label class="range-label" for="spectralDispersion">Prismatic RGB separation <output id="spectralDispersion-value">52%</output></label><input id="spectralDispersion" type="range" min="0" max="100" value="52" step="1" />
+          <label class="range-label" for="opticalDefects">Crystal defect highlights <output id="opticalDefects-value">50%</output></label><input id="opticalDefects" type="range" min="0" max="100" value="50" step="1" />
+          <label class="range-label" for="opticalTwist">Touch twist strength <output id="opticalTwist-value">65%</output></label><input id="opticalTwist" type="range" min="0" max="100" value="65" step="1" />
+          <label class="select-label" for="opticalBackend">Spectral renderer</label><select id="opticalBackend"><option value="auto">AUTO · GPU WHEN AVAILABLE</option><option value="gpu">WEBGL2 · GPU</option><option value="cpu">CANVAS 2D · COMPATIBILITY</option></select>
+          <p class="control-note" id="opticalStatus">WebGL2 is optional; Canvas 2D is always available. TWIST LIGHT changes the crystal's persistent optical orientation, not its solid shape; Undo restores it. Spectral optics are inspired by birefringence, NOT laboratory calibrated.</p>
         </div>
         <label class="range-label" for="luminosity">Highlight strength <output id="luminosity-value">62%</output></label><input id="luminosity" type="range" min="0" max="100" value="62" step="1" />
         <div class="info"><strong>NO FAKE PHYSICS</strong><p>These are artistic structural finishes, not calibrated optical simulation. A.6 uses real phase geometry and deposition history for depth and color. True volumetric ray tracing and physically correct birefringence remain future work.</p></div>
@@ -136,7 +140,7 @@
       </div>
     </aside>
   </main>
-  <footer class="foot">RADIAL FIBRILS · GRAIN BOUNDARIES · POLARIZED-LIGHT COLOR · LOCAL ONLY</footer>
+  <footer class="foot">GPU SPECTRAL OPTICS · REVERSIBLE DIRECTOR WITCHCRAFT · LOCAL ONLY</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script type="module" src="./src/main.js"></script>

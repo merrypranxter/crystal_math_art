@@ -33,13 +33,19 @@
 .palette-actions button{font-size:9px;letter-spacing:0;padding:11px 5px}
 @media(max-width:730px){.specimen-actions{padding:5px 7px;gap:4px}.specimen-actions button{font-size:9px;flex:1 1 28%;padding:8px 5px}.specimen-code{width:100%;text-align:center;margin:0;font-size:8px}.palette-stops{grid-template-columns:repeat(6,minmax(0,1fr))}}
 
+/* A.9: keep the enlarged 5-tool strip friendly to narrow iPhone screens. */
+.toolbox {flex-wrap:wrap;row-gap:6px}
+.toolbox button[data-tool="twist"].selected {border-color:#59d6fd;background:rgba(31,143,177,.21);color:#b4f7ff}
+#opticalStatus[data-backend="webgl2"]::before {content:"● GPU ACTIVE · ";color:#60e5c8;font-weight:700}
+#opticalStatus[data-backend="canvas2d"]::before {content:"● CANVAS FALLBACK · ";color:#ffd174;font-weight:700}
+
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / CHROMATIC HERESY</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / OPTICAL HERESY</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -50,7 +56,7 @@
       </div>
       <div class="bottom-bar">
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
-        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button></div>
+        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button></div>
       </div>
       <div class="specimen-actions" aria-label="Crystal lifecycle actions">
         <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
@@ -60,7 +66,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.8 · CHROMATIC HERESY</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.9 · OPTICAL HERESY</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -127,7 +133,7 @@
           <button id="restorePalette" type="button">↶ ORIGINAL COLORS</button>
         </div>
         <p class="control-note">All original color stops are preserved, including 12-color recipes. Editing a swatch changes only the appearance—not the crystals you've grown.</p>
-        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option><option value="mineral">MINERAL RELIEF · FACET LIGHT</option><option value="strata">STRATIFIED GHOST · GROWTH BANDS</option><option value="prism">PRISMATIC OXIDE · IRIDESCENCE</option><option value="obsidian">OBSIDIAN · DARK METALLURGY</option><option value="archive">CRYSTAL ARCHAEOLOGY · FOSSIL LAYERS</option><option value="polarized">POLARIZED HERESY · ORIENTATION COLOR</option></select>
+        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option><option value="mineral">MINERAL RELIEF · FACET LIGHT</option><option value="strata">STRATIFIED GHOST · GROWTH BANDS</option><option value="prism">PRISMATIC OXIDE · IRIDESCENCE</option><option value="obsidian">OBSIDIAN · DARK METALLURGY</option><option value="archive">CRYSTAL ARCHAEOLOGY · FOSSIL LAYERS</option><option value="polarized">POLARIZED HERESY · ORIENTATION COLOR</option><option value="spectral">OPTICAL HERESY · SPECTRAL SEPARATION</option></select>
         <div id="mineralControls" hidden>
           <div class="info"><strong>A.6 · MINERAL FLESH</strong><p>2.5D relief follows the actual growth silhouette. Interior bands come from the time each cell crystallized. Highlights change with grain orientation and lighting—no generic rainbow fog.</p></div>
           <label class="range-label" for="materialDepth">Facet relief <output id="materialDepth-value">74%</output></label><input id="materialDepth" type="range" min="0" max="100" value="74" step="1" />
@@ -141,7 +147,11 @@
           <label class="range-label" for="analyzerAngle">Analyzer angle <output id="analyzerAngle-value">28°</output></label><input id="analyzerAngle" type="range" min="0" max="180" value="28" step="1" />
           <label class="range-label" for="opticalRetardance">Optical path / color order <output id="opticalRetardance-value">65%</output></label><input id="opticalRetardance" type="range" min="0" max="100" value="65" step="1" />
           <label class="range-label" for="polarizerContrast">Crossed polarizer contrast <output id="polarizerContrast-value">80%</output></label><input id="polarizerContrast" type="range" min="0" max="100" value="80" step="1" />
-          <p class="control-note">Stylized optics, NOT a measured birefringent retardation map. All 199 palettes remain available with editable original color stops.</p>
+          <label class="range-label" for="spectralDispersion">Prismatic RGB separation <output id="spectralDispersion-value">52%</output></label><input id="spectralDispersion" type="range" min="0" max="100" value="52" step="1" />
+          <label class="range-label" for="opticalDefects">Crystal defect highlights <output id="opticalDefects-value">50%</output></label><input id="opticalDefects" type="range" min="0" max="100" value="50" step="1" />
+          <label class="range-label" for="opticalTwist">Touch twist strength <output id="opticalTwist-value">65%</output></label><input id="opticalTwist" type="range" min="0" max="100" value="65" step="1" />
+          <label class="select-label" for="opticalBackend">Spectral renderer</label><select id="opticalBackend"><option value="auto">AUTO · GPU WHEN AVAILABLE</option><option value="gpu">WEBGL2 · GPU</option><option value="cpu">CANVAS 2D · COMPATIBILITY</option></select>
+          <p class="control-note" id="opticalStatus">WebGL2 is optional; Canvas 2D is always available. TWIST LIGHT changes the crystal's persistent optical orientation, not its solid shape; Undo restores it. Spectral optics are inspired by birefringence, NOT laboratory calibrated.</p>
         </div>
         <label class="range-label" for="luminosity">Highlight strength <output id="luminosity-value">62%</output></label><input id="luminosity" type="range" min="0" max="100" value="62" step="1" />
         <div class="info"><strong>NO FAKE PHYSICS</strong><p>These are artistic structural finishes, not calibrated optical simulation. A.6 uses real phase geometry and deposition history for depth and color. True volumetric ray tracing and physically correct birefringence remain future work.</p></div>
@@ -163,7 +173,7 @@
       </div>
     </aside>
   </main>
-  <footer class="foot">RADIAL FIBRILS · GRAIN BOUNDARIES · POLARIZED-LIGHT COLOR · LOCAL ONLY</footer>
+  <footer class="foot">GPU SPECTRAL OPTICS · REVERSIBLE DIRECTOR WITCHCRAFT · LOCAL ONLY</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script>
@@ -846,6 +856,25 @@ class SpheruliteField{
       if(this.deposit(x,y,grain))changed=true;
     }
     if(changed)w.modified++;
+  }
+  /** A.9 direct-touch director distortion. This is an optical edit, NOT growth or heat. */
+  twistOptics(x,y,worldRadius=19,strength=.65){
+    if(!this.active)return 0;
+    const n=this.size,cx=x/this.scale,cy=y/this.scale,r=Math.max(.2,worldRadius/this.scale);
+    const rate=clampS(strength,0,1)*.27;
+    if(rate<=0)return 0;
+    let changed=0;
+    for(let yy=Math.max(2,Math.floor(cy-r)); yy<=Math.min(n-3,Math.ceil(cy+r)); yy++)
+      for(let xx=Math.max(2,Math.floor(cx-r)); xx<=Math.min(n-3,Math.ceil(cx+r)); xx++){
+        const dx=xx-cx,dy=yy-cy,d=Math.hypot(dx,dy),i=yy*n+xx;
+        if(d>=r||!this.owner[i])continue;
+        const influence=(1-d/r)**2;
+        // Tangential circulation near fingers, no modification to material identity.
+        this.director[i]+=rate*influence;
+        changed++;
+      }
+    if(changed){this.version++;this.world.modified++;}
+    return changed;
   }
   melt(x,y,worldRadius){
     const n=this.size,cx=x/this.scale,cy=y/this.scale,r=worldRadius/this.scale,r2=r*r;
@@ -4115,6 +4144,187 @@ function renderMineral(field,world,paletteLUT,settings={}) {
   return {width:n,height:n,data:out,statistics:{cells:rendered,peakDepth}};
 }
 
+/**
+ * A.9 Optical Heresy: wavelength-separated interference, director-defect scattering
+ * and WebGL2 rendering with a deterministic Canvas 2D/CPU fallback.
+ * Purely visual: no optics operation here ever mutates the growth simulation.
+ * Deliberately an artistic crossed-polarizer approximation, NOT measured crystal optics.
+ */
+const TWO_PI_O=Math.PI*2;
+const boundO=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const phaseO=(v)=>((v%1)+1)%1;
+
+function packOpticalField(field) {
+  const n=field.size;
+  const data=new Uint8Array(n*n*4);
+  for(let i=0;i<field.owner.length;i++){
+    if(!field.owner[i])continue;
+    const angle=phaseO(field.director[i]/TWO_PI_O);
+    const radial=boundO(field.ring[i]*.5+.5);
+    const base=phaseO(field.owner[i]*.097+field.birth[i]*.0027+field.director[i]/TWO_PI_O*.27+field.ring[i]*.15);
+    const j=i*4;
+    data[j]=Math.round(angle*255);
+    data[j+1]=Math.round(radial*255);
+    data[j+2]=Math.round(base*255);
+    data[j+3]=field.boundary[i]?127:255;
+  }
+  return {width:n,height:n,data};
+}
+
+/** Deterministic material-defect metric; director differences have pi-periodic equivalence. */
+function opticalDefect(field,x,y){
+  const n=field.size, i=y*n+x;
+  if(x<1||y<1||x>=n-1||y>=n-1||!field.owner[i])return 0;
+  let sum=0,count=0;
+  for(const j of [i-1,i+1,i-n,i+n]) {
+    if(!field.owner[j]||field.owner[j]!==field.owner[i])continue;
+    // sin(angle difference) is unchanged by +pi director equivalence.
+    const delta=field.director[i]-field.director[j];
+    sum+=Math.abs(Math.sin(delta));count++;
+  }
+  return count?boundO(sum/count*4):0;
+}
+
+/** Fully portable pixel path for browsers without WebGL2 (and for numerical QA). */
+function renderSpectralCPU(field,lut,settings={}){
+  const n=field.size,out=new Uint8ClampedArray(n*n*4);
+  const analyzer=(settings.analyzer??28)*Math.PI/180;
+  const contrast=boundO(settings.contrast??.8),ret=boundO(settings.retardance??.65);
+  const dispersion=boundO(settings.dispersion??.52),reveal=boundO(settings.defects??.5);
+  const light=boundO(settings.light??.62);
+  const wavelengths=[.69,.545,.45];
+  for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+    const i=y*n+x,g=field.owner[i];if(!g)continue;
+    const director=field.director[i],radial=field.ring[i];
+    const cross=Math.sin(2*(director-analyzer))**2;
+    const thickness=.53+.47*(.5+.5*radial);
+    const defect=opticalDefect(field,x,y),seam=field.boundary[i]?1:0;
+    const base=phaseO(g*.097+field.birth[i]*.0027+director/TWO_PI_O*.27+radial*.15);
+    const brightness=(.37+.63*light);
+    const q=i*4;
+    for(let c=0;c<3;c++){
+      const k=Math.min(255,Math.floor(phaseO(base+dispersion*(c-1)*.095+defect*.06*reveal)*255))*3;
+      const delta=TWO_PI_O*(.12+ret*2.65*thickness)/wavelengths[c];
+      const wave=Math.sin(delta*.5)**2;
+      const polar=(1-contrast)*.56+contrast*(.10+1.26*cross*wave);
+      const scatter=.28+.72*polar;
+      out[q+c]=boundO(lut[k+c]*scatter*brightness+155*reveal*defect*.14+120*seam*(.25+.6*reveal),0,255);
+    }
+    out[q+3]=255;
+  }
+  return {width:n,height:n,data:out};
+}
+
+const VERT_O=`#version 300 es
+precision highp float;
+out vec2 uv;
+void main(){
+  vec2 p=vec2((gl_VertexID << 1) & 2,gl_VertexID & 2);
+  uv=p;
+  gl_Position=vec4(p*2.0-1.0,0.0,1.0);
+}`;
+const FRAG_O=`#version 300 es
+precision highp float;
+in vec2 uv;
+out vec4 frag;
+uniform sampler2D material;
+uniform sampler2D paletteTex;
+uniform float analyzer;
+uniform float retardance;
+uniform float contrast;
+uniform float dispersion;
+uniform float defects;
+uniform float light;
+uniform vec2 texel;
+const float TAU=6.28318530718;
+void main(){
+  // Pixel-uploaded texture stores top-to-bottom rows; WebGL framebuffer is bottom-up.
+  vec2 q=vec2(uv.x,1.0-uv.y);
+  vec4 m=texture(material,q);
+  if(m.a<0.1){frag=vec4(0.);return;}
+  float theta=m.r*TAU, r=(m.g*2.0-1.0);
+  float seam=step(0.20,m.a)* (1.0-step(0.78,m.a));
+  float cross=pow(sin(2.0*(theta-analyzer)),2.0);
+  float thick=.53+.47*(.5+.5*r);
+  float diff=0.0;
+  vec4 other;
+  other=texture(material,q+vec2(texel.x,0));
+  if(other.a>0.1)diff+=abs(sin(theta-other.r*TAU));
+  other=texture(material,q-vec2(texel.x,0));
+  if(other.a>0.1)diff+=abs(sin(theta-other.r*TAU));
+  other=texture(material,q+vec2(0,texel.y));
+  if(other.a>0.1)diff+=abs(sin(theta-other.r*TAU));
+  other=texture(material,q-vec2(0,texel.y));
+  if(other.a>0.1)diff+=abs(sin(theta-other.r*TAU));
+  float defect=clamp(diff,0.,1.);
+  vec3 waves=vec3(.69,.545,.45);
+  vec3 phase=TAU*(.12+retardance*2.65*thick)/waves;
+  vec3 intensity=pow(sin(phase*.5),vec3(2.0));
+  vec3 polar=(1.0-contrast)*.56+contrast*(.10+1.26*cross*intensity);
+  vec3 offsets=vec3(-1.,0.,1.)*dispersion*.095;
+  vec3 dye;
+  for(int c=0;c<3;c++){
+    float index=fract(m.b+offsets[c]+defect*.06*defects);
+    vec3 col=texture(paletteTex,vec2(index,.5)).rgb;
+    dye[c]=col[c];
+  }
+  vec3 rgb=clamp(dye*(.28+.72*polar)*(.37+.63*light)+vec3(155./255.*defects*defect*.14 +120./255.*seam*(.25+.6*defects)),0.,1.);
+  frag=vec4(rgb,1.0);
+}`;
+
+function makeShader(gl,kind,source){
+  const shader=gl.createShader(kind);gl.shaderSource(shader,source);gl.compileShader(shader);
+  if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){
+    const err=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw Error(`Optics shader: ${err}`);
+  }return shader;
+}
+/** Synchronous WebGL2 renderer. No network fetch, no shader/CDN dependency. */
+class SpectralGPU{
+  constructor(size,createCanvas){
+    this.canvas=createCanvas();this.canvas.width=this.canvas.height=size;
+    this.gl=this.canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:true});
+    if(!this.gl)throw Error('WebGL2 unavailable');
+    const gl=this.gl,program=gl.createProgram();
+    const vs=makeShader(gl,gl.VERTEX_SHADER,VERT_O),fs=makeShader(gl,gl.FRAGMENT_SHADER,FRAG_O);
+    gl.attachShader(program,vs);gl.attachShader(program,fs);gl.linkProgram(program);
+    if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(`Optics link: ${gl.getProgramInfoLog(program)}`);
+    gl.deleteShader(vs);gl.deleteShader(fs);this.program=program;
+    this.vao=gl.createVertexArray();gl.bindVertexArray(this.vao);
+    this.dataTex=gl.createTexture();this.colorTex=gl.createTexture();
+    this.size=size;this.lutRevision=-1;this.fieldRevision=-1;
+    this.locations=Object.fromEntries(['material','paletteTex','analyzer','retardance','contrast','dispersion','defects','light','texel'].map(k=>[k,gl.getUniformLocation(program,k)]));
+    this.canvas.addEventListener('webglcontextlost',ev=>{ev.preventDefault();this.lost=true;});
+  }
+  texture(unit,handle,width,height,pixels){
+    const gl=this.gl;gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,handle);
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,width,height,0,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+  }
+  render(field,lut,settings,paletteRevision){
+    if(this.lost)throw Error('WebGL2 context lost');
+    const gl=this.gl,n=field.size;
+    if(this.canvas.width!==n){this.canvas.width=this.canvas.height=n;this.fieldRevision=-1;this.size=n;}
+    if(this.fieldRevision!==field.version){const packed=packOpticalField(field);this.texture(0,this.dataTex,n,n,packed.data);this.fieldRevision=field.version;}
+    if(this.lutRevision!==paletteRevision){
+      const p=new Uint8Array(256*4);for(let i=0;i<256;i++){p[i*4]=lut[i*3];p[i*4+1]=lut[i*3+1];p[i*4+2]=lut[i*3+2];p[i*4+3]=255;}
+      this.texture(1,this.colorTex,256,1,p);this.lutRevision=paletteRevision;
+    }
+    gl.viewport(0,0,n,n);gl.useProgram(this.program);gl.bindVertexArray(this.vao);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.dataTex);gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,this.colorTex);
+    gl.uniform1i(this.locations.material,0);gl.uniform1i(this.locations.paletteTex,1);
+    gl.uniform1f(this.locations.analyzer,(settings.analyzer??28)*Math.PI/180);
+    for(const key of ['retardance','contrast','dispersion','defects','light'])gl.uniform1f(this.locations[key],settings[key]);
+    gl.uniform2f(this.locations.texel,1/n,1/n);
+    gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,3);
+    if(gl.getError()!==gl.NO_ERROR)throw Error('WebGL2 optical draw failure');
+    return this.canvas;
+  }
+}
+
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -4134,6 +4344,8 @@ let luminosity = .62;
 let materialDepth=.74, materialBands=.55, materialLight=315, materialSpectral=.55, archiveReveal=.68;
 let materialRevision=0;
 let analyzerAngle=28,opticalRetardance=.65,polarizerContrast=.80,polarRevision=0;
+let spectralDispersion=.52,opticalDefects=.50,opticalTwist=.65,opticalBackend='auto';
+let spectralGPU=null,spectralError='';
 let editing = false;
 let recentPoint = null;
 let lastPaint = -Infinity;
@@ -4328,9 +4540,28 @@ function paintPhase(ctx, size) {
 function paintSpherulites(ctx,size){
   const f=world.spherulite;
   if(!f.active)return;
-  if(spherRenderVersion!==f.version||spherPaletteRevision!==paletteRevision||spherFinish!==finish||spherPolarRevision!==polarRevision||spherLuminosity!==luminosity){
-    const rendered=renderSpherulites(f,world,paletteLUT,{analyzer:analyzerAngle,retardance:opticalRetardance,contrast:polarizerContrast,light:luminosity,finish});
-    const img=spherCtx.createImageData(f.size,f.size);img.data.set(rendered.data);spherCtx.putImageData(img,0,0);
+  const spectral=finish==='spectral';
+  const shouldPaint=spherRenderVersion!==f.version||spherPaletteRevision!==paletteRevision||spherFinish!==finish||spherPolarRevision!==polarRevision||spherLuminosity!==luminosity;
+  const settings={analyzer:analyzerAngle,retardance:opticalRetardance,contrast:polarizerContrast,dispersion:spectralDispersion,defects:opticalDefects,light:luminosity};
+  if(shouldPaint){
+    let renderedOnGPU=false;
+    if(spectral && opticalBackend!=='cpu'){
+      try{
+        if(!spectralGPU)spectralGPU=new SpectralGPU(f.size,()=>document.createElement('canvas'));
+        const glCanvas=spectralGPU.render(f,paletteLUT,settings,paletteRevision);
+        spherCtx.clearRect(0,0,f.size,f.size);
+        spherCtx.drawImage(glCanvas,0,0,f.size,f.size);
+        spectralError='';renderedOnGPU=true;
+      }catch(err){
+        // Never show a black artwork on unsupported Safari hardware.
+        spectralError=String(err);spectralGPU=null;
+      }
+    }
+    if(!renderedOnGPU){
+      const painted=spectral?renderSpectralCPU(f,paletteLUT,settings):renderSpherulites(f,world,paletteLUT,{analyzer:analyzerAngle,retardance:opticalRetardance,contrast:polarizerContrast,light:luminosity,finish});
+      const img=spherCtx.createImageData(f.size,f.size);img.data.set(painted.data);spherCtx.putImageData(img,0,0);
+    }
+    if(spectral && $('opticalStatus'))$('opticalStatus').dataset.backend=renderedOnGPU?'webgl2':'canvas2d';
     spherRenderVersion=f.version;spherPaletteRevision=paletteRevision;spherFinish=finish;spherPolarRevision=polarRevision;spherLuminosity=luminosity;
   }
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(spherLayer,0,0,size,size);ctx.restore();
@@ -4364,7 +4595,7 @@ function drawScreen() {
     }
   }
   if(editing && recentPoint && activeTool !== 'seed') {
-    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':activeTool==='fracture'?'rgba(232,119,245,.88)':'rgba(129,244,203,.75)';
+    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':activeTool==='fracture'?'rgba(232,119,245,.88)':activeTool==='twist'?'rgba(67,224,250,.94)':'rgba(129,244,203,.75)';
     display.lineWidth=Math.max(1,size*.0013);
     display.setLineDash([5,5]);display.beginPath();
     display.arc(recentPoint.x/SIZE*size,recentPoint.y/SIZE*size,(activeTool==='fracture'?world.config.fractureWidth:world.config.brush)/SIZE*size,0,Math.PI*2);display.stroke();display.setLineDash([]);
@@ -4374,7 +4605,7 @@ function drawScreen() {
 function setTool(tool) {
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -4386,6 +4617,7 @@ function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
   else if(activeTool==='fracture')world.fracture(p.x,p.y);
+  else if(activeTool==='twist')world.spherulite.twistOptics(p.x,p.y,world.config.brush,opticalTwist);
   recentPoint=p;
 }
 crystalCanvas.addEventListener('pointerdown',ev=>{
@@ -4445,10 +4677,11 @@ $('randomPalette').addEventListener('click',()=>choosePalette(PALETTES[Math.floo
 $('shuffleStops').addEventListener('click',()=>changeStops(shuffleColors(activeStops)));
 $('randomColors').addEventListener('click',()=>changeStops(activeStops.map(()=>randomColor())));
 $('restorePalette').addEventListener('click',()=>changeStops(originalStops(palette)));
-function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish);$('polarizedControls').hidden=finish!=='polarized'; }
-$('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;phaseRenderVersion=-1;syncMineralControls();});
+function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish);$('polarizedControls').hidden=finish!=='polarized'&&finish!=='spectral'; }
+$('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;syncMineralControls();});
+$('opticalBackend').addEventListener('change',ev=>{opticalBackend=ev.target.value;spherRenderVersion=-1;});
 syncMineralControls();
-for(const [name,apply] of Object.entries({analyzerAngle:v=>analyzerAngle=v,opticalRetardance:v=>opticalRetardance=v/100,polarizerContrast:v=>polarizerContrast=v/100})){
+for(const [name,apply] of Object.entries({analyzerAngle:v=>analyzerAngle=v,opticalRetardance:v=>opticalRetardance=v/100,polarizerContrast:v=>polarizerContrast=v/100,spectralDispersion:v=>spectralDispersion=v/100,opticalDefects:v=>opticalDefects=v/100,opticalTwist:v=>opticalTwist=v/100})){
   $(name).addEventListener('input',ev=>{const v=Number(ev.target.value);apply(v);$(name+'-value').textContent=v+(name==='analyzerAngle'?'°':'%');polarRevision++;spherRenderVersion=-1;});
 }
 const mineralSliders={archiveReveal:v=>{archiveReveal=v/100},materialDepth:v=>{materialDepth=v/100},materialBands:v=>{materialBands=v/100},materialLight:v=>{materialLight=v},materialSpectral:v=>{materialSpectral=v/100}};
@@ -4526,7 +4759,7 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast}},renderSpherulites};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites};
 requestAnimationFrame(loop);
 
 </script>
