@@ -3,8 +3,17 @@
 
 A mathematical growth-art studio. Plant competing crystal colonies, melt and regrow material, grow advancing dendritic tips or diffusion-coupled crystalline fronts, and finish their structure with color and surface effects.
 
-**Latest playable build: Phase A.5 — Instability Garden.** The continuous phase-field now supports nutrient-biased interface destabilization and actual branching protrusions that become persistent solid-phase material. The three prior growth systems remain intact; this is a physics-inspired artistic hybrid, not a calibrated dendritic solidification model.
+**Latest playable build: Phase A.8 — CHROMATIC HERESY.** Four independently evolving crystal engines now coexist: tip dendrites, nutrient-driven cellular fronts, phase-field material and radial spherulite colonies with saved local optical orientation. All 199 original palettes are preserved.
 
+
+## A.8 — CHROMATIC HERESY / competing radial crystals
+
+- Plant **Spherulite Radial Silk**, **Rosette Concentric Spectrum**, or **Astral Spherulite Faceted Fans**. These are independent growing crystal types with genuinely different discrete morphology from the existing phase-field PDE or tip fronts.
+- Record each deposited cell's **radial fibril direction**, growth phase, age and grain ownership. When two grains meet, a persistent contact seam forms rather than one colony overwriting the other.
+- Growth sliders: accretion speed, ring rhythm and spiral disorder. The POLARIZED HERESY finish adds analyzer angle, color order and crossed-polarizer contrast without mutating the artwork.
+- **199 palettes** = 194 unmodified MATHEMAGICAL vault recipes plus 5 crystal palettes. Search, edit, shuffle, restore, and randomize remain; 12-color palettes retain all stops.
+- **New Seed / Refresh / Restart / Undo** all preserved. Standalone HTML remains self-contained with no external CDN or API.
+- Full detail: [A.8 technical notes](docs/PROTOTYPE_A8.md).
 
 ## A.6 — Mineral Flesh (material laboratory)
 
@@ -45,7 +54,7 @@ Run `npm test` to check the existing A.1–A.6 tests and the new A.7 history/fra
 
 - [Standalone HTML](standalone.html) — a complete offline browser/HTML-viewer build, no external scripts, server, subscription or secret keys needed.
 - Modular source runs from a folder with `python3 -m http.server 8080` or `npm run serve`. The JavaScript modules and CSS live in `src/` and `styles.css`.
-- `npm test` — 39 Node tests for growth-state persistence, deterministic reproduction, melting, regrowth, morphology identity, front deposition, and undo.
+- `npm test` — 63 Node tests for growth-state persistence, deterministic reproduction, melting, regrowth, morphology identity, front deposition, and undo.
 - `python3 scripts/build_standalone.py` — reassemble the dependency-free single HTML file from the current modular sources.
 - **No Netlify deployment is requested or triggered by the repository.**
 

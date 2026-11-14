@@ -12,7 +12,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / FRACTURE GARDENS</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / CHROMATIC HERESY</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -33,7 +33,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.7 · CRYSTAL ARCHAEOLOGY</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.8 · CHROMATIC HERESY</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -43,7 +43,7 @@
       <div class="panel active" id="panel-growth" role="tabpanel">
         <p class="panel-intro">Plant classic branching tips, nutrient-driven accretion fronts, or a new anisotropic PDE phase-field crystal. Each colony keeps its growth identity.</p>
         <label class="select-label" for="morphology">Anatomy for newly planted crystals</label>
-        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option><optgroup label="DIFFUSION-COUPLED FRONTS"><option value="facet">FOURFOLD FACET FANS</option><option value="skeletal">SIXFOLD SKELETAL FINGERS</option><option value="coral">MUTANT ACCRETION CORAL</option></optgroup><optgroup label="A.4 · ACTUAL PHASE-FIELD PDE"><option value="phase4">PHASE FIELD · FOURFOLD</option><option value="phase6">PHASE FIELD · SIXFOLD</option><option value="phase8">PHASE FIELD · EIGHTFOLD EXPERIMENT</option></optgroup></select>
+        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option><optgroup label="DIFFUSION-COUPLED FRONTS"><option value="facet">FOURFOLD FACET FANS</option><option value="skeletal">SIXFOLD SKELETAL FINGERS</option><option value="coral">MUTANT ACCRETION CORAL</option></optgroup><optgroup label="A.4 · ACTUAL PHASE-FIELD PDE"><option value="phase4">PHASE FIELD · FOURFOLD</option><option value="phase6">PHASE FIELD · SIXFOLD</option><option value="phase8">PHASE FIELD · EIGHTFOLD EXPERIMENT</option></optgroup><optgroup label="A.8 · CHROMATIC HERESY / RADIAL COLONIES"><option value="spherulite">SPHERULITE · RADIAL SILK</option><option value="rosette">ROSETTE · CONCENTRIC SPECTRUM</option><option value="starSpherulite">ASTRAL SPHERULITE · FACETED FANS</option></optgroup></select>
         <p class="control-note">This selects future colonies only. Existing crystals keep their own structure.</p>
         <div id="tipControls">
         <label class="range-label" for="frost">Microscopic frost needles <output id="frost-value">64%</output></label><input id="frost" type="range" min="0" max="100" value="64" step="1" />
@@ -69,6 +69,13 @@
           <label class="range-label" for="phaseCapillarity">Surface smoothing <output id="phaseCapillarity-value">52%</output></label><input id="phaseCapillarity" type="range" min="0" max="100" value="52" step="1" />
           <p class="control-note">Set instability to 0 for the earlier A.4 behavior. No reset occurs when adjusting these sliders; the changed conditions affect future growth. These are physics-inspired controls, not experimentally calibrated quantities.</p>
         </div>
+        <div id="spherControls" hidden>
+          <div class="info"><strong>CHROMATIC HERESY · RADIAL FIBRILS</strong><p>New crystalline filaments advance from the nucleation point, inherit a stored local fiber direction and compete with other grain fronts. At collision their boundaries remain persistent. Growth is not a phase-field PDE.</p></div>
+          <label class="range-label" for="spherGrowth">Radial accretion speed <output id="spherGrowth-value">65%</output></label><input id="spherGrowth" type="range" min="0" max="100" value="65" step="1" />
+          <label class="range-label" for="spherBands">Concentric growth rhythm <output id="spherBands-value">52%</output></label><input id="spherBands" type="range" min="0" max="100" value="52" step="1" />
+          <label class="range-label" for="spherWobble">Fibril spiral / disorder <output id="spherWobble-value">32%</output></label><input id="spherWobble" type="range" min="0" max="100" value="32" step="1" />
+          <p class="control-note">These controls affect new growth, not your older crystals or palette. Each spherulite cell retains its orientation and deposition time.</p>
+        </div>
         <div class="info"><strong>STRUCTURAL RULE</strong><p id="structureRule">New side-branches inherit their parent direction, then compete for dissolved material. Existing arms don't move or rotate.</p></div>
       </div>
       <div class="panel" id="panel-environment" role="tabpanel" hidden>
@@ -93,7 +100,7 @@
           <button id="restorePalette" type="button">↶ ORIGINAL COLORS</button>
         </div>
         <p class="control-note">All original color stops are preserved, including 12-color recipes. Editing a swatch changes only the appearance—not the crystals you've grown.</p>
-        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option><option value="mineral">MINERAL RELIEF · FACET LIGHT</option><option value="strata">STRATIFIED GHOST · GROWTH BANDS</option><option value="prism">PRISMATIC OXIDE · IRIDESCENCE</option><option value="obsidian">OBSIDIAN · DARK METALLURGY</option><option value="archive">CRYSTAL ARCHAEOLOGY · FOSSIL LAYERS</option></select>
+        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option><option value="mineral">MINERAL RELIEF · FACET LIGHT</option><option value="strata">STRATIFIED GHOST · GROWTH BANDS</option><option value="prism">PRISMATIC OXIDE · IRIDESCENCE</option><option value="obsidian">OBSIDIAN · DARK METALLURGY</option><option value="archive">CRYSTAL ARCHAEOLOGY · FOSSIL LAYERS</option><option value="polarized">POLARIZED HERESY · ORIENTATION COLOR</option></select>
         <div id="mineralControls" hidden>
           <div class="info"><strong>A.6 · MINERAL FLESH</strong><p>2.5D relief follows the actual growth silhouette. Interior bands come from the time each cell crystallized. Highlights change with grain orientation and lighting—no generic rainbow fog.</p></div>
           <label class="range-label" for="materialDepth">Facet relief <output id="materialDepth-value">74%</output></label><input id="materialDepth" type="range" min="0" max="100" value="74" step="1" />
@@ -101,6 +108,13 @@
           <label class="range-label" for="materialLight">Light direction <output id="materialLight-value">315°</output></label><input id="materialLight" type="range" min="0" max="360" value="315" step="1" />
           <label class="range-label" for="materialSpectral">Spectral color separation <output id="materialSpectral-value">55%</output></label><input id="materialSpectral" type="range" min="0" max="100" value="55" step="1" />
           <p class="control-note">Materials are real-state-derived artistic 2.5D projections, NOT physically measured birefringence or three-dimensional volumes. Change or restore any material without resetting growth.</p>
+        </div>
+        <div id="polarizedControls" hidden>
+          <div class="info"><strong>POLARIZED HERESY</strong><p>Crossed-polarizer-inspired shading uses each grown fibril’s stored director angle and ring position. Rotate the analyzer to reveal color bands without changing the crystal.</p></div>
+          <label class="range-label" for="analyzerAngle">Analyzer angle <output id="analyzerAngle-value">28°</output></label><input id="analyzerAngle" type="range" min="0" max="180" value="28" step="1" />
+          <label class="range-label" for="opticalRetardance">Optical path / color order <output id="opticalRetardance-value">65%</output></label><input id="opticalRetardance" type="range" min="0" max="100" value="65" step="1" />
+          <label class="range-label" for="polarizerContrast">Crossed polarizer contrast <output id="polarizerContrast-value">80%</output></label><input id="polarizerContrast" type="range" min="0" max="100" value="80" step="1" />
+          <p class="control-note">Stylized optics, NOT a measured birefringent retardation map. All 199 palettes remain available with editable original color stops.</p>
         </div>
         <label class="range-label" for="luminosity">Highlight strength <output id="luminosity-value">62%</output></label><input id="luminosity" type="range" min="0" max="100" value="62" step="1" />
         <div class="info"><strong>NO FAKE PHYSICS</strong><p>These are artistic structural finishes, not calibrated optical simulation. A.6 uses real phase geometry and deposition history for depth and color. True volumetric ray tracing and physically correct birefringence remain future work.</p></div>
@@ -117,12 +131,12 @@
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <div class="info"><strong>SPECIMEN CONTROL</strong><p>Use the three buttons beneath the artwork: NEW SEED plants a colony without clearing anything; REFRESH generates new crystals using your selected anatomy; RESTART replays this specimen’s saved starting seed. Destructive actions ask first and can be undone.</p></div>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div></div>
-        <div class="info"><strong>ENGINE STATUS</strong><p>Three stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div></div>
+        <div class="info"><strong>ENGINE STATUS</strong><p>Four stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>
   </main>
-  <footer class="foot">PHASE-FIELD MATHEMATICS · ACTUAL FRACTURES · PERSISTENT GENERATIONS · LOCAL ONLY</footer>
+  <footer class="foot">RADIAL FIBRILS · GRAIN BOUNDARIES · POLARIZED-LIGHT COLOR · LOCAL ONLY</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script type="module" src="./src/main.js"></script>

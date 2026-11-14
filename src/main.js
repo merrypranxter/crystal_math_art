@@ -1,7 +1,8 @@
-import { CrystalWorld, SIZE, FRONT_MODES, PHASE_MODES } from './growth.js';
+import { CrystalWorld, SIZE, FRONT_MODES, PHASE_MODES, SPHERULITE_MODES } from './growth.js';
 import { DEFAULT_COMPOSITION, startComposition, addRandomColony, freshSeed } from './compositions.js';
 import { PALETTES, PALETTE_MAP, basePalette, originalStops, hexToRgb, buildColorLUT, randomColor } from './palettes.js';
 import { renderMineral, MINERAL_FINISHES } from './mineral.js';
+import { renderSpherulites } from './spherulite.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -20,6 +21,7 @@ let finish = 'frost';
 let luminosity = .62;
 let materialDepth=.74, materialBands=.55, materialLight=315, materialSpectral=.55, archiveReveal=.68;
 let materialRevision=0;
+let analyzerAngle=28,opticalRetardance=.65,polarizerContrast=.80,polarRevision=0;
 let editing = false;
 let recentPoint = null;
 let lastPaint = -Infinity;
@@ -35,6 +37,10 @@ const layerCtx = layer.getContext('2d', { alpha:true });
 const phaseLayer=document.createElement('canvas');
 phaseLayer.width=phaseLayer.height=world.phase.size;
 const phaseCtx=phaseLayer.getContext('2d', {alpha:true});
+const spherLayer=document.createElement('canvas');
+spherLayer.width=spherLayer.height=world.spherulite.size;
+const spherCtx=spherLayer.getContext('2d',{alpha:true});
+let spherRenderVersion=-1,spherPaletteRevision=-1,spherFinish='',spherPolarRevision=-1,spherLuminosity=-1;
 let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1, phasePaletteRevision=-1, phaseMaterialRevision=-1;
 const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
 
@@ -49,6 +55,7 @@ function invalidatePalette() {
   paletteLUT=buildColorLUT(activeStops);
   paletteRevision++;
   phaseRenderVersion=-1;
+  spherRenderVersion=-1;
   forceFull=true;
 }
 function renderPalettePreview() {
@@ -206,6 +213,16 @@ function paintPhase(ctx, size) {
   }
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(phaseLayer,0,0,size,size);ctx.restore();
 }
+function paintSpherulites(ctx,size){
+  const f=world.spherulite;
+  if(!f.active)return;
+  if(spherRenderVersion!==f.version||spherPaletteRevision!==paletteRevision||spherFinish!==finish||spherPolarRevision!==polarRevision||spherLuminosity!==luminosity){
+    const rendered=renderSpherulites(f,world,paletteLUT,{analyzer:analyzerAngle,retardance:opticalRetardance,contrast:polarizerContrast,light:luminosity,finish});
+    const img=spherCtx.createImageData(f.size,f.size);img.data.set(rendered.data);spherCtx.putImageData(img,0,0);
+    spherRenderVersion=f.version;spherPaletteRevision=paletteRevision;spherFinish=finish;spherPolarRevision=polarRevision;spherLuminosity=luminosity;
+  }
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(spherLayer,0,0,size,size);ctx.restore();
+}
 function drawScreen() {
   const dpr=clamp(window.devicePixelRatio||1,1,2);
   const box=crystalCanvas.getBoundingClientRect();
@@ -223,6 +240,7 @@ function drawScreen() {
     world.newSegments=[];
   }
   paintPhase(display,size);
+  paintSpherulites(display,size);
   display.drawImage(layer,0,0,size,size);
   // Draw only active growth points; these glints move because the tips advance.
   if (playing && world.tips.length) {
@@ -287,17 +305,21 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
 function syncMorphologyControls() {
   const isFront=Object.hasOwn(FRONT_MODES,world.config.morphology);
   const isPhase=Object.hasOwn(PHASE_MODES,world.config.morphology);
-  $('tipControls').hidden=isFront||isPhase;
+  const isSpherulite=Object.hasOwn(SPHERULITE_MODES,world.config.morphology);
+  $('tipControls').hidden=isFront||isPhase||isSpherulite;
   $('frontControls').hidden=!isFront;
   $('phaseControls').hidden=!isPhase;
-  $('structureRule').textContent=isPhase
+  $('spherControls').hidden=!isSpherulite;
+  $('structureRule').textContent=isSpherulite
+    ? 'A separate radial-fibril front grows persistent material and local orientation. When colonies collide, contact seams survive. The colors follow those orientations; no physics state changes when you move the optical analyzer.'
+    : isPhase
     ? 'The solid fraction evolves by a phase-field PDE. A.5 instability emphasizes nutrient-fed protrusions against capillary smoothing, with fixed correlated heterogeneity. Existing boundaries remain real state.'
     : isFront ? 'Solid cells attach along existing crystal boundaries; concentration and orientation bias change which interface cells advance.'
     : 'New side-branches inherit their parent direction, then compete for dissolved material. Existing arms do not move or rotate.';
@@ -311,9 +333,12 @@ $('randomPalette').addEventListener('click',()=>choosePalette(PALETTES[Math.floo
 $('shuffleStops').addEventListener('click',()=>changeStops(shuffleColors(activeStops)));
 $('randomColors').addEventListener('click',()=>changeStops(activeStops.map(()=>randomColor())));
 $('restorePalette').addEventListener('click',()=>changeStops(originalStops(palette)));
-function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish); }
+function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish);$('polarizedControls').hidden=finish!=='polarized'; }
 $('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;phaseRenderVersion=-1;syncMineralControls();});
 syncMineralControls();
+for(const [name,apply] of Object.entries({analyzerAngle:v=>analyzerAngle=v,opticalRetardance:v=>opticalRetardance=v/100,polarizerContrast:v=>polarizerContrast=v/100})){
+  $(name).addEventListener('input',ev=>{const v=Number(ev.target.value);apply(v);$(name+'-value').textContent=v+(name==='analyzerAngle'?'°':'%');polarRevision++;spherRenderVersion=-1;});
+}
 const mineralSliders={archiveReveal:v=>{archiveReveal=v/100},materialDepth:v=>{materialDepth=v/100},materialBands:v=>{materialBands=v/100},materialLight:v=>{materialLight=v},materialSpectral:v=>{materialSpectral=v/100}};
 for(const [name,apply] of Object.entries(mineralSliders)){
   $(name).addEventListener('input',ev=>{
@@ -329,7 +354,7 @@ $('step').addEventListener('click',()=>{setPlaying(false);world.step();});
 $('undo').addEventListener('click',()=>{
   const entry=undoStack.pop();if(!entry)return;
   world.restore(entry.state);composition={...entry.composition};
-  $('undo').disabled=undoStack.length===0;forceFull=true;phaseRenderVersion=-1;updateCompositionLabel();
+  $('undo').disabled=undoStack.length===0;forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;updateCompositionLabel();
 });
 function plantNewSeed() {
   if(world.grains.length>=250)return;
@@ -341,7 +366,7 @@ function resetComposition(kind) {
   if(kind==='refresh')composition={seed:freshSeed(),layout:'randomized',morphology:world.config.morphology};
   // Restart retains original seed, original colony anatomy and position layout.
   startComposition(world,composition);
-  forceFull=true;phaseRenderVersion=-1;frameAccumulator=0;
+  forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;frameAccumulator=0;
   setPlaying(true);updateCompositionLabel();
 }
 let pendingReset='refresh';
@@ -364,7 +389,7 @@ $('save').addEventListener('click',async()=>{
   const button=$('save');button.disabled=true;button.textContent='RENDERING HIGH-RES SPECIMEN…';
   try{
     const size=2400,output=document.createElement('canvas');output.width=output.height=size;
-    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);paintPhase(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
+    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);paintPhase(ctx,size);paintSpherulites(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
     const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('PNG encode failed')),'image/png'));
     const link=document.createElement('a');const url=URL.createObjectURL(blob);
     link.href=url;link.download=`crystallization-apocalypse-${world.rngState.toString(16)}-${world.ticks}.png`;
@@ -376,7 +401,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;
@@ -389,5 +414,5 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast}},renderSpherulites};
 requestAnimationFrame(loop);
