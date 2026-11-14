@@ -1,4 +1,4 @@
-import { CrystalWorld, SIZE } from './growth.js';
+import { CrystalWorld, SIZE, FRONT_MODES } from './growth.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -167,11 +167,20 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
-$('morphology').addEventListener('change',ev=>{world.config.morphology=ev.target.value;});
+function syncMorphologyControls() {
+  const isFront=Object.hasOwn(FRONT_MODES,world.config.morphology);
+  $('tipControls').hidden=isFront;
+  $('frontControls').hidden=!isFront;
+  $('structureRule').textContent=isFront
+    ? 'Solid cells attach only along existing crystal boundaries. Nutrient supply, branching competition, and directional bias change which edge advances next. Existing material stays put.'
+    : 'New side-branches inherit their parent direction, then compete for dissolved material. Existing arms do not move or rotate.';
+}
+$('morphology').addEventListener('change',ev=>{world.config.morphology=ev.target.value;syncMorphologyControls();});
+syncMorphologyControls();
 $('palette').addEventListener('change',ev=>{palette=ev.target.value;forceFull=true;});
 $('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;});
 $('luminosity').addEventListener('input',ev=>{luminosity=Number(ev.target.value)/100;$('luminosity-value').textContent=ev.target.value+'%';forceFull=true;});
@@ -204,7 +213,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;

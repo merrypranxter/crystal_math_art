@@ -1,0 +1,20 @@
+from pathlib import Path
+import re
+p=Path(__file__).resolve().parent
+html=(p/'index.html').read_text()
+css=(p/'styles.css').read_text()
+front=(p/'src/front.js').read_text()
+growth=(p/'src/growth.js').read_text()
+main=(p/'src/main.js').read_text()
+front=re.sub(r'\bexport (const|class)\b',r'\1',front)
+front=re.sub(r'\bTAU\b','TAU_F',front)
+front=re.sub(r'\bclamp\b','clampFront',front)
+growth=growth.replace("import { AccretionFront, FRONT_MODES } from './front.js';",'')
+growth=growth.replace("export { FRONT_MODES } from './front.js';",'')
+growth=re.sub(r'\bexport (const|class)\b',r'\1',growth)
+growth=re.sub(r'\bclamp\b','clampGrowth',growth)
+main=re.sub(r"^import \{[^}]+\} from './growth.js';",'',main,flags=re.MULTILINE)
+html=html.replace('<link rel="stylesheet" href="./styles.css" />', '<style>\n'+css+'\n</style>')
+html=html.replace('<script type="module" src="./src/main.js"></script>', '<script>\n'+front+'\n'+growth+'\n'+main+'\n</script>')
+(p/'standalone.html').write_text(html)
+print('Standalone A.3:',len(html),'bytes')

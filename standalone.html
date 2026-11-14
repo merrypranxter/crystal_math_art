@@ -11,6 +11,8 @@
 
 .control-note{color:#8399aa;font-size:11px;line-height:1.6;margin:8px 0 2px}.metrics{grid-template-columns:repeat(2,1fr)}
 
+#tipControls[hidden],#frontControls[hidden]{display:none}
+
 </style>
 </head>
 <body>
@@ -32,7 +34,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.2</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.3</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -40,17 +42,24 @@
         <button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
-        <p class="panel-intro">Four distinct growth anatomies with independent seed identities. Frost needles form as real advancing daughter branches.</p>
+        <p class="panel-intro">Choose four branching anatomies or three diffusion-coupled solidification fronts. Each crystal keeps its original growth mode.</p>
         <label class="select-label" for="morphology">Anatomy for newly planted crystals</label>
-        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option></select>
+        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option><optgroup label="DIFFUSION-COUPLED FRONTS"><option value="facet">FOURFOLD FACET FANS</option><option value="skeletal">SIXFOLD SKELETAL FINGERS</option><option value="coral">MUTANT ACCRETION CORAL</option></optgroup></select>
         <p class="control-note">This selects future colonies only. Existing crystals keep their own structure.</p>
+        <div id="tipControls">
         <label class="range-label" for="frost">Microscopic frost needles <output id="frost-value">64%</output></label><input id="frost" type="range" min="0" max="100" value="64" step="1" />
         <label class="range-label" for="spread">Branching angle <output id="spread-value">86%</output></label><input id="spread" type="range" min="20" max="180" value="86" step="1" />
         <label class="range-label" for="speed">Simulation speed <output id="speed-value">3</output></label><input id="speed" type="range" min="1" max="9" value="3" step="1" />
         <label class="range-label" for="branching">Side branching <output id="branching-value">70%</output></label><input id="branching" type="range" min="0" max="100" value="70" step="1" />
         <label class="range-label" for="anisotropy">Crystal directionality <output id="anisotropy-value">82%</output></label><input id="anisotropy" type="range" min="0" max="100" value="82" step="1" />
         <label class="range-label" for="length">Growth reach <output id="length-value">100%</output></label><input id="length" type="range" min="50" max="170" value="100" step="5" />
-        <div class="info"><strong>STRUCTURAL RULE</strong><p>New side-branches inherit their parent direction, then compete for dissolved material. Existing arms don't move or rotate.</p></div>
+        </div>
+        <div id="frontControls" hidden>
+        <div class="info"><strong>A.3: LIVING GROWTH FRONT</strong><p>Facet Fans, Skeletal Fingers, and Accretion Coral deposit new solid cells along a changing nutrient-fed interface. Different math from the classic branch anatomies.</p></div>
+        <label class="range-label" for="instability">Growth-front instability <output id="instability-value">75%</output></label><input id="instability" type="range" min="0" max="100" value="75" step="1" />
+        <label class="range-label" for="faceting">Facet directional lock <output id="faceting-value">70%</output></label><input id="faceting" type="range" min="0" max="100" value="70" step="1" />
+        </div>
+        <div class="info"><strong>STRUCTURAL RULE</strong><p id="structureRule">New side-branches inherit their parent direction, then compete for dissolved material. Existing arms don't move or rotate.</p></div>
       </div>
       <div class="panel" id="panel-environment" role="tabpanel" hidden>
         <p class="panel-intro">Change the conditions of growth without resetting what already exists.</p>
@@ -71,8 +80,8 @@
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <button id="new" class="wide danger" type="button">✳ NEW COMPOSITION…</button>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div></div>
-        <div class="info"><strong>ENGINE STATUS</strong><p>Stateful CPU growth prototype with a diffusion-coupled nutrient field and anisotropic branching tips. It is <em>not yet</em> a calibrated phase-field or DLA solver.</p></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div></div>
+        <div class="info"><strong>ENGINE STATUS</strong><p>Two stateful growth families: branching tips and stochastic, diffusion-fed cellular fronts. Neither is a calibrated phase-field PDE or a full DLA solver. Wolfram checks are documented separately.</p></div>
       </div>
     </aside>
   </main>
@@ -81,11 +90,158 @@
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2>Start a new apocalypse?</h2><p>All current crystal branches and growth history will be replaced. UNDO can restore your previous specimen.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" value="reset" type="submit">YES, NEW CRYSTAL</button></div></form></dialog>
 <script>
 /**
+ * A.3 — stochastic diffusion-coupled interface accretion.
+ * Real persistent occupancy with attachment from a diffusing solute field.
+ * NOT a calibrated phase-field PDE, full DLA, or atomistic crystal solver.
+ * Screening comes from diffusion/solute depletion and power-law selection
+ * of locally available concentration at the advancing solid/liquid front.
+ */
+const FRONT_MODES = Object.freeze({
+  facet: Object.freeze({ axes: 4, kinetic: 3.6, compactness: 1.12, fingers: .46 }),
+  skeletal: Object.freeze({ axes: 6, kinetic: 5.5, compactness: .53, fingers: 1.70 }),
+  coral: Object.freeze({ axes: 0, kinetic: .65, compactness: .78, fingers: 1.34 }),
+});
+const TAU_F = Math.PI * 2;
+const clampFront = (v, a, b) => Math.max(a, Math.min(b, v));
+const DELTAS = Object.freeze([[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]]);
+
+class AccretionFront {
+  constructor(world) {
+    this.world = world;
+    this.candidates = new Map(); // solid-adjacent liquid cells -> grain ID
+    this.deposited = 0;
+  }
+  addNeighbors(x, y, grain) {
+    const w=this.world, n=w.size;
+    for(const [dx,dy] of DELTAS){
+      const px=x+dx, py=y+dy;
+      if(px<2||py<2||px>=n-2||py>=n-2) continue;
+      const i=py*n+px;
+      if(!w.crystal[i] && !this.candidates.has(i)) this.candidates.set(i,grain);
+    }
+  }
+  nucleate(x, y, grain) {
+    const w=this.world, ix=Math.round(x),iy=Math.round(y);
+    // A seed is solid state, rather than a visual sprite.
+    w.markCrystal(ix,iy,grain);
+    this.addNeighbors(ix,iy,grain);
+  }
+  /** Drop dangling links after a melt; deliberately preserve surviving fronts. */
+  rebuild() {
+    const w=this.world,n=w.size;
+    this.candidates.clear();
+    for(let y=2;y<n-2;y++) for(let x=2;x<n-2;x++) {
+      const grain=w.crystal[y*n+x];
+      if(grain && FRONT_MODES[w.grains[grain-1]?.morphology]) this.addNeighbors(x,y,grain);
+    }
+  }
+  /** Score an exposed liquid site; all existing material stays unchanged. */
+  score(i, grain) {
+    const w=this.world,n=w.size, m=FRONT_MODES[w.grains[grain-1]?.morphology];
+    if(!m||w.crystal[i]||w.heat[i]>.24) return 0;
+    const x=i%n,y=Math.floor(i/n),g=w.grains[grain-1];
+    let neighbors=0, competing=0, free=0, sumFree=0;
+    for(const [dx,dy] of DELTAS){
+      const j=(y+dy)*n+x+dx;
+      if(w.crystal[j]===grain) neighbors++;
+      else if(w.crystal[j]) competing++;
+      else { free++; sumFree+=w.nutrient[j]; }
+    }
+    if(neighbors===0 || competing>0) return 0;
+    const nutrient=w.nutrient[i];
+    if(nutrient<.015) return 0;
+    // The liquid concentration near the interface is a cheap proxy for flux;
+    // raised to a user-controlled exponent it accentuates protruding tips.
+    // It is NOT a numerically solved harmonic-measure density.
+    const flux=clampFront(.75*nutrient+.25*(free ? sumFree/free : 0),.001,1);
+    const instability=.65+w.config.instability*2.7;
+    const screening=Math.pow(flux,instability);
+    const angle=Math.atan2(y-g.y,x-g.x)-g.angle;
+    const alignment=m.axes ? Math.pow(.5+.5*Math.cos(m.axes*angle), m.kinetic) : .52+.14*Math.sin(angle*7 + grain);
+    const facet=clampFront(w.config.faceting,0,1);
+    const directional=(1-facet)*.72+facet*(.10+1.55*alignment);
+    // Low-neighbor, high-supply locations stay active as dendritic fingers;
+    // faceted species reward near-neighbor attachment for compact planes.
+    const exposed=(free/8);
+    const structural=(m.compactness*(neighbors/8)+m.fingers*exposed);
+    return screening*directional*(.3+structural)*clampFront(nutrient*1.75,.15,1);
+  }
+  advance() {
+    const w=this.world;
+    if(!this.candidates.size) return;
+    const n=w.size;
+    const modeCount=w.grains.filter(g=>!!FRONT_MODES[g.morphology]).length;
+    if(!modeCount) return;
+    // Prune occupied candidates so their stale entries do not grow unbounded.
+    if(w.ticks % 25 === 0) for(const i of this.candidates.keys()) {
+      if(w.crystal[i]) this.candidates.delete(i);
+    }
+    const sites=Array.from(this.candidates.entries());
+    const positions=new Map(sites.map(([i],at)=>[i,at]));
+    // Bounded stochastic tournament (not a scan of every pixel every frame).
+    // Sampling is deterministic for a given RNG seed and update sequence.
+    const deposits=Math.min(25,6+Math.floor(Math.sqrt(sites.length)/2));
+    for(let k=0;k<deposits;k++) {
+      let pick=-1,grain=0,best=0;
+      for(let j=0;j<Math.min(42,sites.length);j++) {
+        const entry=sites[Math.floor(w.rand()*sites.length)];
+        if(!entry)continue;
+        const [idx,owner]=entry;
+        const weight=this.score(idx,owner);
+        const value=weight*(.55+.9*w.rand());
+        if(value>best){best=value;pick=idx;grain=owner;}
+      }
+      if(pick<0 || best<=0)break;
+      this.candidates.delete(pick);
+      // Stop this site being selected a second time in this same step.
+      const selected=positions.get(pick);
+      if(selected!==undefined){
+        const last=sites[sites.length-1];
+        sites[selected]=last;
+        positions.set(last[0],selected);
+        sites.pop();positions.delete(pick);
+      }
+      if(w.crystal[pick])continue;
+      const x=pick%n,y=Math.floor(pick/n);
+      let parent=-1, parentDist=10;
+      for(const [dx,dy] of DELTAS){
+        const px=x+dx,py=y+dy;
+        if(px<1||py<1||px>=n-1||py>=n-1)continue;
+        const j=py*n+px;
+        if(w.crystal[j]!==grain)continue;
+        const distance=dx*dx+dy*dy;
+        if(distance<parentDist){parentDist=distance;parent=j;}
+      }
+      if(parent<0)continue;
+      const supply=w.nutrient[pick];
+      w.markCrystal(x,y,grain);
+      w.nutrient[pick]=0;
+      const s={x0:parent%n,y0:Math.floor(parent/n),x1:x,y1:y,
+        grain,level:parentDist>1?2:1,stamp:w.ticks,front:true};
+      w.segments.push(s);w.newSegments.push(s);
+      this.deposited++;
+      // Consume neighboring dissolved material; recovery is from diffusion.
+      for(const [dx,dy] of DELTAS){
+        const px=x+dx,py=y+dy,j=py*n+px;
+        if(!w.crystal[j])w.nutrient[j]=Math.max(0,w.nutrient[j]-.025*supply);
+      }
+      this.addNeighbors(x,y,grain);
+      // A front from another grain can approach but cannot cross occupied cells.
+      w.modified++;
+    }
+  }
+  snapshot() {return {candidates:Array.from(this.candidates.entries()),deposited:this.deposited};}
+  restore(s){this.candidates=new Map(s?.candidates||[]);this.deposited=s?.deposited||0;}
+}
+
+/**
  * Black Ice Cathedral — physics-inspired, resource-coupled branching crystal tips.
  * This is NOT a phase-field solver or a physical DLA solver. Tip motion, branching,
  * solid occupancy, competition for dissolved nutrient, melting and regrowth are
  * persistent state changes, not precomputed animation or shader-only movement.
  */
+
+
 const SIZE = 340;
 const ANATOMIES = Object.freeze({
   cathedral: Object.freeze({ axes: 6, length: 1.0, drift: .9, fork: 1.0, needle: .62, spread: 1.0 }),
@@ -101,7 +257,7 @@ class CrystalWorld {
   constructor(size = SIZE) {
     this.size = size;
     this.amount = size * size;
-    this.config = { speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, morphology: 'cathedral' };
+    this.config = { speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, morphology: 'cathedral' };
     this.randomize(357321);
   }
   randomize(seed) {
@@ -112,6 +268,7 @@ class CrystalWorld {
     this.heat = new Float32Array(this.amount);
     this.tips = [];
     this.grains = [];
+    this.front = new AccretionFront(this);
     this.segments = [];
     this.newSegments = [];
     this.ticks = 0;
@@ -128,8 +285,9 @@ class CrystalWorld {
   seed(x, y, angle, count, morphology = this.config.morphology) {
     // Anatomy is a property of this individual grain. Future UI changes do not
     // retroactively transform already-grown colonies.
-    morphology = Object.hasOwn(ANATOMIES, morphology) ? morphology : 'cathedral';
-    const anatomy = ANATOMIES[morphology];
+    morphology = (Object.hasOwn(ANATOMIES, morphology) || Object.hasOwn(FRONT_MODES, morphology)) ? morphology : 'cathedral';
+    const isFront=Object.hasOwn(FRONT_MODES, morphology);
+    const anatomy = isFront ? FRONT_MODES[morphology] : ANATOMIES[morphology];
     count ??= anatomy.axes || 5;
     x = clampGrowth(x, 3, this.size - 4);
     y = clampGrowth(y, 3, this.size - 4);
@@ -138,11 +296,14 @@ class CrystalWorld {
     const ori = angle ?? this.rand() * TAU;
     const grain = { id, x, y, angle: ori, seededAt: this.ticks, morphology, axes: anatomy.axes };
     this.grains.push(grain);
-    for (let i = 0; i < count; i++) {
-      const a = ori + TAU * i / count;
-      this.tips.push(this.makeTip(x, y, a, id, 0, this.rand() * 9));
+    if(isFront) this.front.nucleate(x,y,id);
+    else {
+      for (let i = 0; i < count; i++) {
+        const a = ori + TAU * i / count;
+        this.tips.push(this.makeTip(x, y, a, id, 0, this.rand() * 9));
+      }
+      this.markCrystal(x, y, id);
     }
-    this.markCrystal(x, y, id);
     this.modified++;
     return true;
   }
@@ -258,6 +419,7 @@ class CrystalWorld {
       survived.push(t);
     }
     this.tips = survived.concat(born);
+    this.front.advance();
     this.modified++;
   }
   diffuse() {
@@ -316,9 +478,10 @@ class CrystalWorld {
       const dd = (midx-x)**2 + (midy-y)**2;
       if (dd < r2) continue;
       left.push(s);
-      if (dd > minR2 && dd < maxR2 && s.level <= 2) rim.push(s);
+      if (dd > minR2 && dd < maxR2 && s.level <= 2 && ANATOMIES[this.grains[s.grain-1]?.morphology]) rim.push(s);
     }
     this.segments = left;
+    this.front.rebuild();
     // Surviving edge material becomes an exposed front, allowing regrowth.
     for (let k = 0; k < Math.min(12, rim.length); k++) {
       if (this.tips.length >= 1850 || rim.length === 0) break;
@@ -332,19 +495,19 @@ class CrystalWorld {
   }
   snapshot() {
     return { rngState:this.rngState, crystal:this.crystal.slice(),nutrient:this.nutrient.slice(), nutrientNext:this.nutrientNext.slice(),
-      heat:this.heat.slice(),tips:this.tips.map(cloneTip),grains:this.grains.map(x=>({...x})),segments:this.segments.map(x=>({...x})),ticks:this.ticks };
+      heat:this.heat.slice(),tips:this.tips.map(cloneTip),grains:this.grains.map(x=>({...x})),segments:this.segments.map(x=>({...x})),front:this.front.snapshot(),ticks:this.ticks };
   }
   restore(s) {
     this.rngState = s.rngState; this.crystal = s.crystal; this.nutrient = s.nutrient; this.nutrientNext = s.nutrientNext;
     this.heat = s.heat; this.tips = s.tips; this.grains = s.grains; this.segments = s.segments;
-    this.ticks = s.ticks; this.newSegments = []; this.fullRedraw = true; this.modified++;
+    this.ticks = s.ticks; this.front.restore(s.front); this.newSegments = []; this.fullRedraw = true; this.modified++;
   }
   stats() {
     let microSegments = 0;
     for (const s of this.segments) if (s.level >= 4) microSegments++;
     let crystalCount = 0;
     for (let i = 0; i < this.crystal.length; i++) if (this.crystal[i]) crystalCount++;
-    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks,microSegments };
+    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks,microSegments,frontDeposits:this.front.deposited,frontSites:this.front.candidates.size };
   }
 }
 
@@ -517,11 +680,20 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
-$('morphology').addEventListener('change',ev=>{world.config.morphology=ev.target.value;});
+function syncMorphologyControls() {
+  const isFront=Object.hasOwn(FRONT_MODES,world.config.morphology);
+  $('tipControls').hidden=isFront;
+  $('frontControls').hidden=!isFront;
+  $('structureRule').textContent=isFront
+    ? 'Solid cells attach only along existing crystal boundaries. Nutrient supply, branching competition, and directional bias change which edge advances next. Existing material stays put.'
+    : 'New side-branches inherit their parent direction, then compete for dissolved material. Existing arms do not move or rotate.';
+}
+$('morphology').addEventListener('change',ev=>{world.config.morphology=ev.target.value;syncMorphologyControls();});
+syncMorphologyControls();
 $('palette').addEventListener('change',ev=>{palette=ev.target.value;forceFull=true;});
 $('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;});
 $('luminosity').addEventListener('input',ev=>{luminosity=Number(ev.target.value)/100;$('luminosity-value').textContent=ev.target.value+'%';forceFull=true;});
@@ -554,7 +726,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;

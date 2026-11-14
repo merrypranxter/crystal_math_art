@@ -1,59 +1,60 @@
 # CRYSTALLIZATION APOCALYPSE
 ### A living laboratory for impossible crystalline matter
 
-**Project:** Mathematical crystal-growth art studio
-**Repository:** `merrypranxter/crystal_math_art`
-**Status:** **Black Ice Cathedral A.1 — runnable prototype.** Later crystal families remain research/design.
+A mathematical growth-art studio. Plant competing crystal colonies, melt and regrow material, grow advancing dendritic tips or diffusion-coupled crystalline fronts, and finish their structure with color and surface effects.
 
-A crystalline growth front should actually advance through an environment. Seeds nucleate, branches compete for solute, crystals melt and regrow, and the artwork remembers its own history.
+**Latest playable build: Phase A.3 — Crystal Anatomy Gone Wrong.** This is still a physics-inspired art prototype, not a scientifically calibrated crystallization simulator.
 
 ## Play / development
 
-- **Standalone, no dependencies:** save [standalone.html](standalone.html) and open it in a browser or HTML viewer. The CSS, model and UI are embedded; no CDN, deployment, server or paid API is required.
-- **Modular source:** open this repository as a local folder and serve it with `python3 -m http.server 8080` or `npm run serve`, then open `http://localhost:8080`.
-- **Tests:** with Node 20+, run `npm test`. Six tests cover real advancing segments, deterministic evolution, nutrient consumption, melting, regrowth, undo and new seeds.
-- **Do not deploy automatically.** Netlify deployment is deliberately deferred until the artist requests it.
+- [Standalone HTML](standalone.html) — a complete offline browser/HTML-viewer build, no external scripts, server, subscription or secret keys needed.
+- Modular source runs from a folder with `python3 -m http.server 8080` or `npm run serve`. The JavaScript modules and CSS live in `src/` and `styles.css`.
+- `npm test` — twenty Node tests for growth-state persistence, deterministic reproduction, melting, regrowth, morphology identity, front deposition, and undo.
+- `python3 scripts/build_standalone.py` — reassemble the dependency-free single HTML file from the current modular sources.
+- **No Netlify deployment is requested or triggered by the repository.**
 
-## A.1 controls
+## Seven genuine growth personalities
 
-**Canvas:** PLANT by tapping; MELT or FEED by dragging the artwork.
-**Transport:** Pause/resume, one simulation step, undo last edit.
-**GROWTH:** evolution speed, branching, sixfold directional preference, growth reach.
-**ENVIRONMENT:** nutrient diffusion, supply and brush radius.
-**FINISHES:** five palettes (including black ice and ivory) and three artistic surface treatments that do not reset the physics.
-**STUDIO:** explicit confirmation for New Composition (undoable), statistics, export a 2400 × 2400 PNG.
+**Branching tip engine (A.1–A.2)**
 
-The work-in-progress art has three seeded colonies by default. New structures grow incrementally. Changing material appearance never resets the material state.
+1. Sixfold Cathedral — ordered branching dendrites.
+2. Feathered Frost — bilateral frost needle structures.
+3. Eight-axis Starburst — radially locked crystallization.
+4. Wild Crystal — drifting asymmetric, branching crystals.
 
-## Scientific honesty
+**Diffusion-coupled cellular front engine (A.3)**
 
-The first proof uses **resource-limited, anisotropic branching tips** on a persistent material occupancy grid. A two-dimensional dissolved-material concentration field diffuses, is consumed by growth, and recovers from a boundary reservoir. Tips compete for supply; surviving structures can regrow after local thermal damage.
+5. Fourfold Facet Fans — fourfold kinetic attachment with fan-shaped crystalline branches.
+6. Sixfold Skeletal Fingers — slender angular competing fronts.
+7. Mutant Accretion Coral — irregular, diffusion-fed, finger-like interface deposition.
 
-This is a **physics-inspired growth approximation**, **not** a calibrated phase-field PDE solver, nor a mathematically exact DLA random-walker simulation. The finishes are stylized; physical birefringence and thin-film optics are reserved for later work. We will not call it physically accurate crystallization until that machinery exists.
+The two engines are structurally different: the first grows **tips and daughter branches**, the second attaches **solid cells along a persistent liquid-solid interface** by selecting nutrient-fed front sites with an orientation and screening heuristic. Each colony remembers its anatomy. The new front engine is not the full phase-field solver yet.
 
-## Planned proof families
+## Artist controls
 
-1. **Black Ice Cathedral — A.1 runnable prototype:** actual branching/competition/melting/regrowth. Next: high-frequency needlelet detail, secondary growth and a stronger facet/relief renderer.
-2. **Chromatic Heresy — planned:** oriented spherulitic colony growth, persistent grain boundaries and optical orientation.
-3. **Bismuth Necropolis — planned:** skeletal/faceted step-front growth, real terrace geometry and restrained interference finish.
-4. **Crystal Archaeology — research:** accumulated generational layers, growth history and sectional reveal.
+- **Touch:** PLANT adds a colony with the currently selected anatomy; MELT removes material in a brush radius, creating a heated area and surviving regrowth edges; FEED restores dissolved material.
+- **Growth:** select the future colony anatomy, then use only the relevant controls for that growth family. Current crystals never change morphology when a different seed type is selected.
+- **Environment:** diffusion, supply, heat/brush radius.
+- **Finishes:** five palettes and three decorative treatments. Changing finish never erases material history.
+- **Studio:** pause, step, undo, guarded New Composition, measurements and 2400 × 2400 PNG export.
 
-## Files
+## Science and limitations
 
-- [Modular physics engine](src/growth.js)
-- [UI and renderer](src/main.js)
-- [Responsive layout](styles.css)
-- [Standalone HTML build](standalone.html)
-- [Automated tests](tests/growth.test.mjs)
+- Real evolving **state**: occupied material, nutrient field, heated zones, per-grain identity and deterministic simulation RNG.
+- The four-neighbor concentration diffusion is bounded by a 0.24 parameter max to preserve a nonnegative explicit stencil; Wolfram checked its 0 ≤ d ≤ 0.25 convexity range.
+- A.3's nutrient-gradient proxy, orientation lock, and weighted growth tournament are **physics-inspired approximations**, not a solved harmonic measure, continuous phase-field PDE, true hopper facet kinetics, or fully three-dimensional crystal growth.
+- The display is still a 2D structural renderer. True Bismuth Necropolis terraces, sectioned growth memory, birefringence and volumetric optics are still work ahead.
+- Performance will need profiling on real iPhone Safari before releasing heavy multi-crystal works.
+
+## Project documents
+
+- [A.3 implementation and caveats](docs/PROTOTYPE_A3.md)
+- [A.2 morphology engine](docs/PROTOTYPE_A2.md)
+- [A.1 implementation](docs/PROTOTYPE_A1.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Research notebook](docs/RESEARCH.md)
-- [Prototype implementation notes](docs/PROTOTYPE_A1.md)
+- [Wolfram math integration](docs/WOLFRAM_CRYSTAL_MATH.md)
 
 ## Creative standards
 
-- Real, persistent mathematical growth instead of a shader cycling precomputed patterns.
-- Distinct growth mathematics for each later engine — not presets of the same design.
-- Strong monochrome silhouettes before optical fireworks.
-- Mobile-first direct manipulation and grouped settings.
-- Destructive actions ask before wiping art; new materials do not erase your work.
-- No paid APIs, backend, or automatic Netlify deploys for this phase.
+Wildly detailed growth and sharp forms first. Color and optical effects should amplify the structure, not hide mediocre geometry with generic sparkle or bloom. No secret keys in JavaScript or GitHub, no surprise resets, and no expensive deployment just to iterate.

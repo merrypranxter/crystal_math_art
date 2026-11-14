@@ -4,6 +4,8 @@
  * solid occupancy, competition for dissolved nutrient, melting and regrowth are
  * persistent state changes, not precomputed animation or shader-only movement.
  */
+import { AccretionFront, FRONT_MODES } from './front.js';
+export { FRONT_MODES } from './front.js';
 export const SIZE = 340;
 export const ANATOMIES = Object.freeze({
   cathedral: Object.freeze({ axes: 6, length: 1.0, drift: .9, fork: 1.0, needle: .62, spread: 1.0 }),
@@ -19,7 +21,7 @@ export class CrystalWorld {
   constructor(size = SIZE) {
     this.size = size;
     this.amount = size * size;
-    this.config = { speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, morphology: 'cathedral' };
+    this.config = { speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, morphology: 'cathedral' };
     this.randomize(357321);
   }
   randomize(seed) {
@@ -30,6 +32,7 @@ export class CrystalWorld {
     this.heat = new Float32Array(this.amount);
     this.tips = [];
     this.grains = [];
+    this.front = new AccretionFront(this);
     this.segments = [];
     this.newSegments = [];
     this.ticks = 0;
@@ -46,8 +49,9 @@ export class CrystalWorld {
   seed(x, y, angle, count, morphology = this.config.morphology) {
     // Anatomy is a property of this individual grain. Future UI changes do not
     // retroactively transform already-grown colonies.
-    morphology = Object.hasOwn(ANATOMIES, morphology) ? morphology : 'cathedral';
-    const anatomy = ANATOMIES[morphology];
+    morphology = (Object.hasOwn(ANATOMIES, morphology) || Object.hasOwn(FRONT_MODES, morphology)) ? morphology : 'cathedral';
+    const isFront=Object.hasOwn(FRONT_MODES, morphology);
+    const anatomy = isFront ? FRONT_MODES[morphology] : ANATOMIES[morphology];
     count ??= anatomy.axes || 5;
     x = clamp(x, 3, this.size - 4);
     y = clamp(y, 3, this.size - 4);
@@ -56,11 +60,14 @@ export class CrystalWorld {
     const ori = angle ?? this.rand() * TAU;
     const grain = { id, x, y, angle: ori, seededAt: this.ticks, morphology, axes: anatomy.axes };
     this.grains.push(grain);
-    for (let i = 0; i < count; i++) {
-      const a = ori + TAU * i / count;
-      this.tips.push(this.makeTip(x, y, a, id, 0, this.rand() * 9));
+    if(isFront) this.front.nucleate(x,y,id);
+    else {
+      for (let i = 0; i < count; i++) {
+        const a = ori + TAU * i / count;
+        this.tips.push(this.makeTip(x, y, a, id, 0, this.rand() * 9));
+      }
+      this.markCrystal(x, y, id);
     }
-    this.markCrystal(x, y, id);
     this.modified++;
     return true;
   }
@@ -176,6 +183,7 @@ export class CrystalWorld {
       survived.push(t);
     }
     this.tips = survived.concat(born);
+    this.front.advance();
     this.modified++;
   }
   diffuse() {
@@ -234,9 +242,10 @@ export class CrystalWorld {
       const dd = (midx-x)**2 + (midy-y)**2;
       if (dd < r2) continue;
       left.push(s);
-      if (dd > minR2 && dd < maxR2 && s.level <= 2) rim.push(s);
+      if (dd > minR2 && dd < maxR2 && s.level <= 2 && ANATOMIES[this.grains[s.grain-1]?.morphology]) rim.push(s);
     }
     this.segments = left;
+    this.front.rebuild();
     // Surviving edge material becomes an exposed front, allowing regrowth.
     for (let k = 0; k < Math.min(12, rim.length); k++) {
       if (this.tips.length >= 1850 || rim.length === 0) break;
@@ -250,18 +259,18 @@ export class CrystalWorld {
   }
   snapshot() {
     return { rngState:this.rngState, crystal:this.crystal.slice(),nutrient:this.nutrient.slice(), nutrientNext:this.nutrientNext.slice(),
-      heat:this.heat.slice(),tips:this.tips.map(cloneTip),grains:this.grains.map(x=>({...x})),segments:this.segments.map(x=>({...x})),ticks:this.ticks };
+      heat:this.heat.slice(),tips:this.tips.map(cloneTip),grains:this.grains.map(x=>({...x})),segments:this.segments.map(x=>({...x})),front:this.front.snapshot(),ticks:this.ticks };
   }
   restore(s) {
     this.rngState = s.rngState; this.crystal = s.crystal; this.nutrient = s.nutrient; this.nutrientNext = s.nutrientNext;
     this.heat = s.heat; this.tips = s.tips; this.grains = s.grains; this.segments = s.segments;
-    this.ticks = s.ticks; this.newSegments = []; this.fullRedraw = true; this.modified++;
+    this.ticks = s.ticks; this.front.restore(s.front); this.newSegments = []; this.fullRedraw = true; this.modified++;
   }
   stats() {
     let microSegments = 0;
     for (const s of this.segments) if (s.level >= 4) microSegments++;
     let crystalCount = 0;
     for (let i = 0; i < this.crystal.length; i++) if (this.crystal[i]) crystalCount++;
-    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks,microSegments };
+    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks,microSegments,frontDeposits:this.front.deposited,frontSites:this.front.candidates.size };
   }
 }
