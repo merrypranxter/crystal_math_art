@@ -15,6 +15,8 @@
  * nutrient exposure at the liquid-facing normal, persistent fine-scale
  * material heterogeneity, and reduced capillary smoothing. This is a
  * morphology experiment, NOT a calibrated Mullins-Sekerka stability solver.
+ * A.7 adds persistent excavated fractures and generation-aware recrystallization.
+ * These are explicitly artistic, NOT physically validated brittle fracture.
  * No shader or decorative animation creates the solid/liquid boundary.
  */
 export const PHASE_MODES = Object.freeze({
@@ -46,6 +48,9 @@ export class PhaseField {
     this.owner=new Uint8Array(this.phi.length);
     this.nextOwner=new Uint8Array(this.owner.length);
     this.birth=new Uint32Array(this.phi.length); // first solidification tick+1; 0 means liquid or never solidified
+    this.fossilBirth=new Uint32Array(this.phi.length); // last excavated generation's original birth
+    this.generation=new Uint16Array(this.phi.length); // 0 never solid, 1 original, 2+ recrystallized
+    this.scar=new Uint8Array(this.phi.length); // 255 open fissure, 1..120 sealed fossil scar
     this.deposited=0;
     this.active=false;
     this.version=0;
@@ -56,6 +61,56 @@ export class PhaseField {
     this.branchEvents=0;
   }
   index(x,y){return Math.floor(y)*this.size+Math.floor(x);}
+  markNewLayer(i){
+    if(!this.birth[i]){
+      this.birth[i]=this.world.ticks+1;
+      this.generation[i]=Math.min(65535,this.generation[i]+1);
+    }
+    if(this.scar[i]>=180)this.scar[i]=110; // new solid retains an archaeological seam
+  }
+  preserveLayer(i){
+    if(this.birth[i])this.fossilBirth[i]=this.birth[i];
+    this.birth[i]=0;
+  }
+  /** Draw a local, persistent fissure into the PHASE crystal. No other grains reset. */
+  fracture(x,y,worldRadius=7,branch=true){
+    const w=this.world,n=this.size,cx=x/this.scale,cy=y/this.scale;
+    const radius=Math.max(.75,worldRadius/this.scale);
+    const reach=Math.ceil(radius+1);
+    let cut=0;
+    for(let yy=Math.max(2,Math.floor(cy-reach)); yy<=Math.min(n-3,Math.ceil(cy+reach));yy++){
+      for(let xx=Math.max(2,Math.floor(cx-reach));xx<=Math.min(n-3,Math.ceil(cx+reach));xx++){
+        const i=yy*n+xx;
+        const jag=materialNoise(xx,yy,w.seedValue ^ 0x5f3759df,3)*.22;
+        const distance=Math.hypot(xx-cx,yy-cy);
+        if(distance>radius*(1+jag))continue;
+        const grain=this.owner[i];
+        if(!grain || this.phi[i]<.10)continue;
+        this.preserveLayer(i);
+        this.writeSolid(xx,yy,grain,false);
+        this.phi[i]=0;this.next[i]=0;this.owner[i]=0;this.nextOwner[i]=0;
+        this.scar[i]=255;
+        // Crystal dissolved back into its local nutrient reservoir.
+        const x0=Math.floor(xx*this.scale),y0=Math.floor(yy*this.scale);
+        for(let oy=0;oy<Math.ceil(this.scale);oy++)for(let ox=0;ox<Math.ceil(this.scale);ox++){
+          const px=x0+ox,py=y0+oy;
+          if(px>=1 && py>=1 && px<w.size-1 && py<w.size-1 && !w.crystal[py*w.size+px])
+            w.nutrient[py*w.size+px]=Math.max(w.nutrient[py*w.size+px],.82);
+        }
+        cut++;
+      }
+    }
+    if(cut){
+      this.sprouts=this.sprouts.filter(s=>this.phi[Math.round(s.y)*n+Math.round(s.x)]>.05);
+      this.active=true;this.version++;w.modified++;w.fullRedraw=true;
+      // Short offshoots are actual cut material, never decorative strokes.
+      if(branch && w.rand()<w.config.fractureSplinter*.66){
+        const a=w.rand()*Math.PI*2;
+        this.fracture(x+Math.cos(a)*worldRadius*1.15,y+Math.sin(a)*worldRadius*1.15,worldRadius*.67,false);
+      }
+    }
+    return cut;
+  }
   mainIndex(x,y){
     const w=this.world;
     return Math.min(w.size-2,Math.max(1,Math.floor(y*this.scale)))*w.size+
@@ -71,7 +126,7 @@ export class PhaseField {
       if(this.world.crystal[center]&&this.world.crystal[center]!==grain)continue;
       const v=r<=2?1:r<=2.7?.64:.13;
       if(this.phi[i]<v){this.phi[i]=v;this.owner[i]=grain;}
-      if(v>=.58){this.writeSolid(ix,iy,grain,true); if(!this.birth[i])this.birth[i]=this.world.ticks+1;}
+      if(v>=.58){this.writeSolid(ix,iy,grain,true); this.markNewLayer(i);}
     }
     this.active=true;this.version++;
   }
@@ -100,6 +155,7 @@ export class PhaseField {
     const instability=clamp(c.phaseInstability ?? 0,0,1);
     const wavelength=clamp(c.phaseWavelength ?? .50,0,1);
     const smoothing=clamp(c.phaseCapillarity ?? 1,0,1);
+    const healing=clamp(c.fractureHeal ?? .55,0,1);
     // Smaller capillary coefficient increases competition among existing
     // protrusions, while the correlated impurity field supplies perturbations.
     // Bounded well below explicit 9-point diffusion's conservative limit.
@@ -159,7 +215,12 @@ export class PhaseField {
         growthGain=clamp(1+instability*(-.74 + .27*disorder + .32*exposure +
           .28*(alignment-.5)),.08,1.8);
       }
-      const source=6*drive*nutrient*growthGain*v*(1-v);
+      // Open fractures are physical voids; at zero healing they do not silently close.
+      if(this.scar[i]>=180 && healing<.0001 && v<.58)continue;
+      const edgeSolid=Math.max(l,r,u,d);
+      const healingSource=(this.scar[i]>=180 && v<.58 && edgeSolid>.40)
+        ? healing*.28*edgeSolid*nutrient : 0;
+      const source=6*drive*nutrient*growthGain*v*(1-v)+healingSource;
       const dw=-2*barrier*v*(1-v)*(1-2*v);
       const heat=clamp(w.heat[main],0,1);
       const value=clamp(v + dt*mobility*(diffusion*stiffness*lap+dw+source)-.23*heat*v,0,1);
@@ -167,8 +228,8 @@ export class PhaseField {
       no[i]=q[i]?grain:0;
       if((v>=.58)!==(q[i]>=.58)){
         this.writeSolid(x,y,grain,q[i]>=.58);
-        if(q[i]>=.58){this.deposited++; if(!this.birth[i])this.birth[i]=w.ticks+1;}
-        else this.birth[i]=0;
+        if(q[i]>=.58){this.deposited++; this.markNewLayer(i);}
+        else this.preserveLayer(i);
         changed=true;
       }
       // Uptake is tied to positive change in solid fraction, not merely time.
@@ -255,7 +316,7 @@ export class PhaseField {
         this.phi[i]=.90;this.owner[i]=t.grain;
         this.writeSolid(ax,ay,t.grain,true);
         this.deposited++;
-        if(!this.birth[i])this.birth[i]=w.ticks+1;
+        this.markNewLayer(i);
       }
       const shoulders=[[1,0],[-1,0],[0,1],[0,-1]];
       for(const [dx,dy] of shoulders){
@@ -296,15 +357,19 @@ export class PhaseField {
       if((xx-cx)**2+(yy-cy)**2>rad*rad)continue;
       const i=yy*n+xx,grain=this.owner[i];
       if(grain){this.phi[i]=0;this.next[i]=0;this.owner[i]=0;this.nextOwner[i]=0;
-        this.birth[i]=0;this.writeSolid(xx,yy,grain,false);}
+        this.preserveLayer(i);this.writeSolid(xx,yy,grain,false);}
     }
     this.sprouts=this.sprouts.filter(t=>(t.x-cx)**2+(t.y-cy)**2>(rad+1)**2);
     this.version++;
   }
-  snapshot(){return {birth:this.birth.slice(),phi:this.phi.slice(),next:this.next.slice(),owner:this.owner.slice(),nextOwner:this.nextOwner.slice(),deposited:this.deposited,active:this.active,version:this.version,sprouts:this.sprouts.map(t=>({...t})),sproutedGrains:[...this.sproutedGrains],branchEvents:this.branchEvents};}
+  snapshot(){return {birth:this.birth.slice(),fossilBirth:this.fossilBirth.slice(),generation:this.generation.slice(),scar:this.scar.slice(),phi:this.phi.slice(),next:this.next.slice(),owner:this.owner.slice(),nextOwner:this.nextOwner.slice(),deposited:this.deposited,active:this.active,version:this.version,sprouts:this.sprouts.map(t=>({...t})),sproutedGrains:[...this.sproutedGrains],branchEvents:this.branchEvents};}
   restore(v){
     if(!v)return;
-    this.phi=v.phi.slice();this.birth=v.birth?v.birth.slice():new Uint32Array(this.phi.length);this.next=v.next.slice();this.owner=v.owner.slice();this.nextOwner=v.nextOwner.slice();
+    this.phi=v.phi.slice();this.birth=v.birth?v.birth.slice():new Uint32Array(this.phi.length);
+    this.fossilBirth=v.fossilBirth?v.fossilBirth.slice():new Uint32Array(this.phi.length);
+    this.generation=v.generation?v.generation.slice():new Uint16Array(this.phi.length);
+    this.scar=v.scar?v.scar.slice():new Uint8Array(this.phi.length);
+    this.next=v.next.slice();this.owner=v.owner.slice();this.nextOwner=v.nextOwner.slice();
     this.deposited=v.deposited;this.active=v.active;this.version=v.version+1;
     this.sprouts=(v.sprouts||[]).map(t=>({...t}));
     this.sproutedGrains=[...(v.sproutedGrains||[])];this.branchEvents=v.branchEvents||0;
@@ -312,6 +377,12 @@ export class PhaseField {
   stats(){
     let mass=0,occupied=0;
     for(const p of this.phi){mass+=p;if(p>=.58)occupied++;}
-    return {phaseMass:mass,phaseCells:occupied,phaseDeposits:this.deposited,phaseSprouts:this.sprouts.length,phaseBranches:this.branchEvents};
+    let openCracks=0,recrystallized=0,fossilCells=0;
+    for(let i=0;i<this.phi.length;i++){
+      if(this.scar[i]>=180 && this.phi[i]<.58)openCracks++;
+      if(this.generation[i]>=2 && this.birth[i])recrystallized++;
+      if(this.fossilBirth[i])fossilCells++;
+    }
+    return {phaseMass:mass,phaseCells:occupied,phaseDeposits:this.deposited,phaseSprouts:this.sprouts.length,phaseBranches:this.branchEvents,openCracks,recrystallized,fossilCells};
   }
 }

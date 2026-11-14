@@ -26,6 +26,15 @@ A mathematical growth-art studio. Plant competing crystal colonies, melt and reg
 - The inherited A.4 PDE controls (supersaturation, surface stiffness, interface mobility), `NEW SEED`, `REFRESH`, `RESTART`, `UNDO`, 199 palettes and color-stop editing remain.
 - This is **not** an exact Mullins–Sekerka solver: the fingers are a deliberately explicit growth-front assistance mechanism coupled to real phase-state material, not a physically calibrated free-boundary model. [A.5 implementation and limitations](docs/PROTOTYPE_A5.md).
 
+## A.7 — Crystal Archaeology & Fracture Gardens
+
+- **◇ FRACTURE:** drag directly over a phase-field crystal to physically remove crystal cells, creating persistent jagged excavations and optional side fractures. Earlier tip and discrete-front engines are not yet fractured by this tool.
+- **ARCHIVE tab:** fracture width, splintering, recrystallization rate, and layer-reveal intensity are grouped together. Zero crack healing keeps an open fissure; nonzero healing permits the phase-field interface to refill it from nearby material.
+- **CRYSTAL ARCHAEOLOGY material:** appearance-only visualization of old solidification timestamps, retained fossil growth, and regrown cell generations; all 199 palettes remain available.
+- **History-aware physics:** first deposition, excavation, and subsequent deposition have distinct timestamp and generation records. Undo restores the entire set.
+
+Run `npm test` to check the existing A.1–A.6 tests and the new A.7 history/fracture tests. Details: [docs/PROTOTYPE_A7.md](docs/PROTOTYPE_A7.md).
+
 ## A.4 — Phase Field laboratory
 
 **New:** an independently evolving continuous solid/liquid fraction field, solving a simplified Allen–Cahn-like reaction-diffusion PDE. Fourfold, sixfold and experimental eightfold symmetry are selectable for *newly planted* crystal grains. New controls alter supersaturation, orientation stiffness and interface mobility; other crystals remain intact. A sixfold phase grain is present in the default sample. A nine-point Laplacian reduces square-grid artifacts, and Wolfram validated the orientation surface-stiffness expression and safe parameter bounds.

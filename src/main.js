@@ -18,7 +18,7 @@ let paletteLUT = buildColorLUT(activeStops);
 let paletteRevision = 0;
 let finish = 'frost';
 let luminosity = .62;
-let materialDepth=.74, materialBands=.55, materialLight=315, materialSpectral=.55;
+let materialDepth=.74, materialBands=.55, materialLight=315, materialSpectral=.55, archiveReveal=.68;
 let materialRevision=0;
 let editing = false;
 let recentPoint = null;
@@ -182,7 +182,7 @@ function paintPhase(ctx, size) {
     const n=field.size;
     const img=phaseCtx.createImageData(n,n),data=img.data;
     if(MINERAL_FINISHES.includes(finish)){
-      const painted=renderMineral(field,world,paletteLUT,{finish,depth:materialDepth,bands:materialBands,lightAngle:materialLight,spectral:materialSpectral});
+      const painted=renderMineral(field,world,paletteLUT,{finish,depth:materialDepth,bands:materialBands,lightAngle:materialLight,spectral:materialSpectral,exposure:archiveReveal});
       data.set(painted.data);
     } else for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
       const i=y*n+x,v=field.phi[i],owner=field.owner[i];
@@ -234,17 +234,17 @@ function drawScreen() {
     }
   }
   if(editing && recentPoint && activeTool !== 'seed') {
-    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':'rgba(129,244,203,.75)';
+    display.strokeStyle=activeTool==='melt'?'rgba(255,143,135,.75)':activeTool==='fracture'?'rgba(232,119,245,.88)':'rgba(129,244,203,.75)';
     display.lineWidth=Math.max(1,size*.0013);
     display.setLineDash([5,5]);display.beginPath();
-    display.arc(recentPoint.x/SIZE*size,recentPoint.y/SIZE*size,world.config.brush/SIZE*size,0,Math.PI*2);display.stroke();display.setLineDash([]);
+    display.arc(recentPoint.x/SIZE*size,recentPoint.y/SIZE*size,(activeTool==='fracture'?world.config.fractureWidth:world.config.brush)/SIZE*size,0,Math.PI*2);display.stroke();display.setLineDash([]);
   }
   display.restore();
 }
 function setTool(tool) {
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -255,6 +255,7 @@ function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...com
 function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
+  else if(activeTool==='fracture')world.fracture(p.x,p.y);
   recentPoint=p;
 }
 crystalCanvas.addEventListener('pointerdown',ev=>{
@@ -271,7 +272,7 @@ crystalCanvas.addEventListener('pointermove',ev=>{
   if(activeTool!=='seed'){
     // Interpolate brush position to avoid gaps during fast drags.
     const prev=recentPoint||next, dist=Math.hypot(next.x-prev.x,next.y-prev.y);
-    const steps=Math.min(15,Math.max(1,Math.ceil(dist/(world.config.brush*.75))));
+    const steps=Math.min(15,Math.max(1,Math.ceil(dist/((activeTool==='fracture'?world.config.fractureWidth:world.config.brush)*.75))));
     for(let k=1;k<=steps;k++){let t=k/steps;doBrush({x:prev.x+(next.x-prev.x)*t,y:prev.y+(next.y-prev.y)*t});}
   }
   recentPoint=next;lastPaint=now;
@@ -286,7 +287,7 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
@@ -313,7 +314,7 @@ $('restorePalette').addEventListener('click',()=>changeStops(originalStops(palet
 function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish); }
 $('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;phaseRenderVersion=-1;syncMineralControls();});
 syncMineralControls();
-const mineralSliders={materialDepth:v=>{materialDepth=v/100},materialBands:v=>{materialBands=v/100},materialLight:v=>{materialLight=v},materialSpectral:v=>{materialSpectral=v/100}};
+const mineralSliders={archiveReveal:v=>{archiveReveal=v/100},materialDepth:v=>{materialDepth=v/100},materialBands:v=>{materialBands=v/100},materialLight:v=>{materialLight=v},materialSpectral:v=>{materialSpectral=v/100}};
 for(const [name,apply] of Object.entries(mineralSliders)){
   $(name).addEventListener('input',ev=>{
     const v=Number(ev.target.value);apply(v);
@@ -375,7 +376,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;

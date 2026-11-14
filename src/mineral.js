@@ -4,7 +4,7 @@
  * and the timestamp at which a cell first solidified. This module never changes
  * simulation state. It is ARTISTIC RELIEF/INTERFERENCE, not measured mineral optics.
  */
-export const MINERAL_FINISHES = Object.freeze(['mineral','strata','prism','obsidian']);
+export const MINERAL_FINISHES = Object.freeze(['mineral','strata','prism','obsidian','archive']);
 const PI2=Math.PI*2;
 const limit=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const hypot=Math.hypot;
@@ -48,11 +48,28 @@ export function renderMineral(field,world,paletteLUT,settings={}) {
   const light=(settings.lightAngle??310)*Math.PI/180;
   const lx=Math.cos(light),ly=Math.sin(light);
   const birth=field.birth||new Uint32Array(len);
+  const fossilBirth=field.fossilBirth||new Uint32Array(len);
+  const generation=field.generation||new Uint16Array(len);
+  const scar=field.scar||new Uint8Array(len);
+  const exposure=limit(settings.exposure??.68);
   const crystals=world.grains;
   let rendered=0,peakDepth=0;
   for(let y=2;y<n-2;y++)for(let x=2;x<n-2;x++){
     const i=y*n+x, alpha=limit(field.phi[i]), id=field.owner[i];
-    if(!id||alpha<.015)continue;
+    if(!id||alpha<.015){
+      // Archive view exposes the old buried crystal along an OPEN excavation.
+      // No new material is created here: only a translucent ghost projection.
+      if(finish==='archive' && scar[i] && fossilBirth[i]){
+        const neighbor=Math.max(field.phi[i-1],field.phi[i+1],field.phi[i-n],field.phi[i+n]);
+        const old=samplePalette(paletteLUT,(fossilBirth[i]*.007+generation[i]*.13)%1);
+        const edge=neighbor>.52?1:.20;
+        const k=i*4;
+        for(let c=0;c<3;c++)out[k+c]=Math.min(255,old[c]*(.22+.28*edge)+34*edge);
+        out[k+3]=Math.round(190*exposure*edge);
+        rendered++;
+      }
+      continue;
+    }
     const grain=crystals[id-1];
     if(!grain)continue;
     const ph=field.phi;
@@ -75,7 +92,8 @@ export function renderMineral(field,world,paletteLUT,settings={}) {
     const layer=grainAge*.075;
     const ring=.5+.5*Math.cos(layer*PI2);
     const paletteShift=bands*(ring-.5)*.28 + spectral*(face-.5)*.19;
-    const t=id*.161 + layer*.058 + paletteShift + (finish==='prism' ? spectral*(.42*face+.26*Math.sin(PI2*(height[i]*2.3+edgeAngle*.19))) : 0);
+    const archiveShift=finish==='archive' ? generation[i]*.135 + (fossilBirth[i]?fossilBirth[i]*.006:0) : 0;
+    const t=id*.161 + layer*.058 + paletteShift + archiveShift + (finish==='prism' ? spectral*(.42*face+.26*Math.sin(PI2*(height[i]*2.3+edgeAngle*.19))) : 0);
     let rgb=samplePalette(paletteLUT,t);
     const h=height[i], raised=limit(h*.80+.20,0,1);
     peakDepth=Math.max(peakDepth,h);
@@ -90,6 +108,12 @@ export function renderMineral(field,world,paletteLUT,settings={}) {
     } else if(finish==='obsidian'){
       shade=.055+.22*Math.pow(face,2);
       emission=.09+(.14+.74*spectral)*Math.pow(Math.max(0,face),9);
+    } else if(finish==='archive'){
+      // Chronology is measured by true solidification and previous deposition.
+      const ghost=fossilBirth[i]>0?1:0;
+      const layers=.50+.50*Math.cos((grainAge*.12+generation[i]*.82)*PI2);
+      shade=(.34+.49*face)*(.63+.37*layers)+.13*ghost*exposure;
+      emission=.08+.24*face+.23*(scar[i]/255)*exposure;
     }
     const k=i*4;
     for(let c=0;c<3;c++){
@@ -97,6 +121,12 @@ export function renderMineral(field,world,paletteLUT,settings={}) {
         + (finish==='obsidian' ? 145*spectral*Math.pow(silhouette,1.7) : 0);
       const lowlight=finish==='obsidian'?rgb[c]*.18:rgb[c];
       out[k+c]=limit(lowlight*shade+highlight+silhouette*(20+depth*40),0,255);
+    }
+    if(finish==='archive' && scar[i]){
+      const seam=scar[i]/255;
+      out[k]=limit(out[k]+74*seam*exposure,0,255);
+      out[k+1]=limit(out[k+1]+28*seam*exposure,0,255);
+      out[k+2]=limit(out[k+2]+97*seam*exposure,0,255);
     }
     out[k+3]=Math.round(255*limit(alpha*(.67+.30*depth)+silhouette*.19));
     rendered++;

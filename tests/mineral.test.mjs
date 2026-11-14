@@ -38,9 +38,9 @@ test('relief comes from actual solid fraction and has no height outside crystals
   assert.ok(r.height.some(v=>v>.25));
   for(let i=0;i<r.height.length;i++)if(w.phase.phi[i]<.001)assert.equal(r.height[i],0);
 });
-test('all four material finishes paint data without mutating the physics or RNG',()=>{
+test('all five material finishes paint data without mutating the physics or RNG',()=>{
   const w=make(),pre=snapshot(w),signatures=new Set();
-  assert.equal(MINERAL_FINISHES.length,4);
+  assert.equal(MINERAL_FINISHES.length,5);
   for(const finish of MINERAL_FINISHES){
     const out=renderMineral(w.phase,w,lut,{finish,depth:.8,bands:.8,spectral:.7,lightAngle:280});
     assert.equal(out.data.length,w.phase.phi.length*4);
