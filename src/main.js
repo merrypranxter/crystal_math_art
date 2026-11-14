@@ -1,4 +1,4 @@
-import { CrystalWorld, SIZE, FRONT_MODES } from './growth.js';
+import { CrystalWorld, SIZE, FRONT_MODES, PHASE_MODES } from './growth.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -23,6 +23,10 @@ let forceFull = true;
 const layer = document.createElement('canvas');
 layer.width = layer.height = SIZE * 3;
 const layerCtx = layer.getContext('2d', { alpha:true });
+const phaseLayer=document.createElement('canvas');
+phaseLayer.width=phaseLayer.height=world.phase.size;
+const phaseCtx=phaseLayer.getContext('2d', {alpha:true});
+let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1;
 const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
 
 function colors(grain, level) {
@@ -88,6 +92,33 @@ function paintBackdrop(ctx,size) {
   }
   ctx.restore();
 }
+function paintPhase(ctx, size) {
+  const field=world.phase;
+  if(!field.active)return;
+  if(phaseRenderVersion!==field.version||phasePalette!==palette||phaseFinish!==finish||phaseLuminosity!==luminosity){
+    const n=field.size;
+    const img=phaseCtx.createImageData(n,n),data=img.data;
+    for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+      const i=y*n+x,v=field.phi[i],owner=field.owner[i];
+      if(!owner||v<.025)continue;
+      const edge=clamp(Math.abs(field.phi[i-1]-field.phi[i+1])+Math.abs(field.phi[i-n]-field.phi[i+n]),0,1);
+      const rgb=colors(owner,0);
+      // Physically solved phase fractions give opacity/edges; these colors
+      // remain an explicitly *artistic*, orientation-agnostic optical finish.
+      const rim=finish==='glass' ? .79 : finish==='metal' ? .54 : .38;
+      const shine=clamp(edge*rim,0,.8),fog=.18+.72*v;
+      const idx=i*4;
+      for(let ch=0;ch<3;ch++){
+        const base=finish==='metal' ? rgb[ch]*.73 : rgb[ch];
+        data[idx+ch]=clamp(base*fog+255*shine*luminosity,0,255);
+      }
+      data[idx+3]=Math.round(clamp(v*.96+edge*.35,0,1)*255);
+    }
+    phaseCtx.putImageData(img,0,0);
+    phaseRenderVersion=field.version;phasePalette=palette;phaseFinish=finish;phaseLuminosity=luminosity;
+  }
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(phaseLayer,0,0,size,size);ctx.restore();
+}
 function drawScreen() {
   const dpr=clamp(window.devicePixelRatio||1,1,2);
   const box=crystalCanvas.getBoundingClientRect();
@@ -104,6 +135,7 @@ function drawScreen() {
     renderVersion=world.modified;
     world.newSegments=[];
   }
+  paintPhase(display,size);
   display.drawImage(layer,0,0,size,size);
   // Draw only active growth points; these glints move because the tips advance.
   if (playing && world.tips.length) {
@@ -167,16 +199,19 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
 function syncMorphologyControls() {
   const isFront=Object.hasOwn(FRONT_MODES,world.config.morphology);
-  $('tipControls').hidden=isFront;
+  const isPhase=Object.hasOwn(PHASE_MODES,world.config.morphology);
+  $('tipControls').hidden=isFront||isPhase;
   $('frontControls').hidden=!isFront;
-  $('structureRule').textContent=isFront
-    ? 'Solid cells attach only along existing crystal boundaries. Nutrient supply, branching competition, and directional bias change which edge advances next. Existing material stays put.'
+  $('phaseControls').hidden=!isPhase;
+  $('structureRule').textContent=isPhase
+    ? 'The solid fraction evolves by a two-dimensional phase-field PDE, with a double-well barrier, nutrient driving and positive orientation-dependent surface stiffness. No pre-drawn growth path.'
+    : isFront ? 'Solid cells attach along existing crystal boundaries; concentration and orientation bias change which interface cells advance.'
     : 'New side-branches inherit their parent direction, then compete for dissolved material. Existing arms do not move or rotate.';
 }
 $('morphology').addEventListener('change',ev=>{world.config.morphology=ev.target.value;syncMorphologyControls();});
@@ -201,7 +236,7 @@ $('save').addEventListener('click',async()=>{
   const button=$('save');button.disabled=true;button.textContent='RENDERING HIGH-RES SPECIMEN…';
   try{
     const size=2400,output=document.createElement('canvas');output.width=output.height=size;
-    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
+    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);paintPhase(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
     const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('PNG encode failed')),'image/png'));
     const link=document.createElement('a');const url=URL.createObjectURL(blob);
     link.href=url;link.download=`crystallization-apocalypse-${world.rngState.toString(16)}-${world.ticks}.png`;
@@ -213,7 +248,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;

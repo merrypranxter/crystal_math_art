@@ -34,7 +34,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.3</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.4</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -42,9 +42,9 @@
         <button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
-        <p class="panel-intro">Choose four branching anatomies or three diffusion-coupled solidification fronts. Each crystal keeps its original growth mode.</p>
+        <p class="panel-intro">Plant classic branching tips, nutrient-driven accretion fronts, or a new anisotropic PDE phase-field crystal. Each colony keeps its growth identity.</p>
         <label class="select-label" for="morphology">Anatomy for newly planted crystals</label>
-        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option><optgroup label="DIFFUSION-COUPLED FRONTS"><option value="facet">FOURFOLD FACET FANS</option><option value="skeletal">SIXFOLD SKELETAL FINGERS</option><option value="coral">MUTANT ACCRETION CORAL</option></optgroup></select>
+        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option><optgroup label="DIFFUSION-COUPLED FRONTS"><option value="facet">FOURFOLD FACET FANS</option><option value="skeletal">SIXFOLD SKELETAL FINGERS</option><option value="coral">MUTANT ACCRETION CORAL</option></optgroup><optgroup label="A.4 · ACTUAL PHASE-FIELD PDE"><option value="phase4">PHASE FIELD · FOURFOLD</option><option value="phase6">PHASE FIELD · SIXFOLD</option><option value="phase8">PHASE FIELD · EIGHTFOLD EXPERIMENT</option></optgroup></select>
         <p class="control-note">This selects future colonies only. Existing crystals keep their own structure.</p>
         <div id="tipControls">
         <label class="range-label" for="frost">Microscopic frost needles <output id="frost-value">64%</output></label><input id="frost" type="range" min="0" max="100" value="64" step="1" />
@@ -58,6 +58,13 @@
         <div class="info"><strong>A.3: LIVING GROWTH FRONT</strong><p>Facet Fans, Skeletal Fingers, and Accretion Coral deposit new solid cells along a changing nutrient-fed interface. Different math from the classic branch anatomies.</p></div>
         <label class="range-label" for="instability">Growth-front instability <output id="instability-value">75%</output></label><input id="instability" type="range" min="0" max="100" value="75" step="1" />
         <label class="range-label" for="faceting">Facet directional lock <output id="faceting-value">70%</output></label><input id="faceting" type="range" min="0" max="100" value="70" step="1" />
+        </div>
+        <div id="phaseControls" hidden>
+          <div class="info"><strong>A.4 · MOVING SOLID/LIQUID INTERFACE</strong><p>True evolving phase fractions from an Allen–Cahn-like PDE. The chemistry and orientation stiffness are simplified, not calibrated real-world freezing.</p></div>
+          <label class="range-label" for="phaseDrive">Supersaturation / driving force <output id="phaseDrive-value">70%</output></label><input id="phaseDrive" type="range" min="0" max="100" value="70" step="1" />
+          <label class="range-label" for="phaseStiffness">Orientation stiffness <output id="phaseStiffness-value">76%</output></label><input id="phaseStiffness" type="range" min="0" max="100" value="76" step="1" />
+          <label class="range-label" for="phaseMobility">Interface mobility <output id="phaseMobility-value">78%</output></label><input id="phaseMobility" type="range" min="0" max="100" value="78" step="1" />
+          <p class="control-note">Higher stiffness moves closer to the analytical faceting limit but never crosses into negative-stiffness instability. Existing crystals are preserved when these controls change.</p>
         </div>
         <div class="info"><strong>STRUCTURAL RULE</strong><p id="structureRule">New side-branches inherit their parent direction, then compete for dissolved material. Existing arms don't move or rotate.</p></div>
       </div>
@@ -80,12 +87,12 @@
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <button id="new" class="wide danger" type="button">✳ NEW COMPOSITION…</button>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div></div>
-        <div class="info"><strong>ENGINE STATUS</strong><p>Two stateful growth families: branching tips and stochastic, diffusion-fed cellular fronts. Neither is a calibrated phase-field PDE or a full DLA solver. Wolfram checks are documented separately.</p></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div></div>
+        <div class="info"><strong>ENGINE STATUS</strong><p>Three stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>
   </main>
-  <footer class="foot">PHYSICS-INSPIRED GROWTH · PERSISTENT MATERIAL HISTORY · LOCAL ONLY · NO PAID API</footer>
+  <footer class="foot">PHASE-FIELD MATHEMATICS · PERSISTENT MATERIAL HISTORY · LOCAL ONLY · NO PAID API</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2>Start a new apocalypse?</h2><p>All current crystal branches and growth history will be replaced. UNDO can restore your previous specimen.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" value="reset" type="submit">YES, NEW CRYSTAL</button></div></form></dialog>
 <script>
@@ -235,11 +242,176 @@ class AccretionFront {
 }
 
 /**
+ * A.4 experimental Allen–Cahn-like phase-field crystallization (2D, coarse-grid).
+ * The phase fraction phi evolves by an explicit finite-difference PDE:
+ *   phi_t = mobility * [kappa(theta) Laplacian(phi)
+ *          - 2*barrier*phi*(1-phi)*(1-2*phi)
+ *          + 6*drive*c*phi*(1-phi)] - melt*heat*phi.
+ * kappa(theta) uses a 9-point isotropic Laplacian and a positive,
+ * orientation-dependent stiffness factor
+ * 1 - (n^2-1)*epsilon*cos(n*theta) from gamma=1+epsilon*cos(n*theta).
+ * It is a *local-stiffness approximation*, not the complete variational
+ * derivative of anisotropic interfacial energy. The nutrient field comes
+ * from the legacy liquid transport model; this is NOT quantitatively
+ * calibrated solidification, thermal phase field or faithful 3D crystallography.
+ * No shader or decorative animation creates the solid/liquid boundary.
+ */
+const PHASE_MODES = Object.freeze({
+  phase4: Object.freeze({ axes: 4, name: 'FOURFOLD PHASE · SQUARE ICE' }),
+  phase6: Object.freeze({ axes: 6, name: 'SIXFOLD PHASE · SNOW CRYSTAL' }),
+  phase8: Object.freeze({ axes: 8, name: 'EIGHTFOLD PHASE · EXPERIMENTAL' }),
+});
+const clampPhase = (v,a,b) => Math.max(a,Math.min(b,v));
+class PhaseField {
+  constructor(world) {
+    this.world=world;
+    this.size=Math.ceil(world.size/2);
+    this.scale=world.size/this.size;
+    this.phi=new Float32Array(this.size*this.size);
+    this.next=new Float32Array(this.phi.length);
+    this.owner=new Uint8Array(this.phi.length);
+    this.nextOwner=new Uint8Array(this.owner.length);
+    this.deposited=0;
+    this.active=false;
+    this.version=0;
+  }
+  index(x,y){return Math.floor(y)*this.size+Math.floor(x);}
+  mainIndex(x,y){
+    const w=this.world;
+    return Math.min(w.size-2,Math.max(1,Math.floor(y*this.scale)))*w.size+
+      Math.min(w.size-2,Math.max(1,Math.floor(x*this.scale)));
+  }
+  nucleate(x,y,grain){
+    const n=this.size;
+    const cx=Math.round(x/this.scale),cy=Math.round(y/this.scale);
+    for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+      const ix=cx+dx,iy=cy+dy, r=Math.hypot(dx,dy);
+      if(ix<2||iy<2||ix>=n-2||iy>=n-2||r>3)continue;
+      const i=iy*n+ix, center=this.mainIndex(ix,iy);
+      if(this.world.crystal[center]&&this.world.crystal[center]!==grain)continue;
+      const v=r<=2?1:r<=2.7?.64:.13;
+      if(this.phi[i]<v){this.phi[i]=v;this.owner[i]=grain;}
+      if(v>=.58)this.writeSolid(ix,iy,grain,true);
+    }
+    this.active=true;this.version++;
+  }
+  // The coarse phase field maps to occupancy in each underlying 2x2 block.
+  writeSolid(x,y,grain,solid){
+    const w=this.world, s=w.size;
+    const x0=Math.floor(x*this.scale),y0=Math.floor(y*this.scale);
+    const x1=Math.min(s-1,Math.ceil((x+1)*this.scale));
+    const y1=Math.min(s-1,Math.ceil((y+1)*this.scale));
+    for(let yy=y0;yy<y1;yy++)for(let xx=x0;xx<x1;xx++){
+      const i=yy*s+xx;
+      if(solid){
+        if(!w.crystal[i]||w.crystal[i]===grain){w.crystal[i]=grain;w.nutrient[i]=0;}
+      } else if(w.crystal[i]===grain) w.crystal[i]=0;
+    }
+  }
+  /** Explicit phase-field integration; no effect if no phase seeds exist. */
+  advance(){
+    if(!this.active)return;
+    const w=this.world,n=this.size, p=this.phi, q=this.next;
+    const owner=this.owner, no=this.nextOwner;
+    const c=w.config;
+    const mobility=clampPhase(c.phaseMobility,0,1);
+    const strength=.92*clampPhase(c.phaseStiffness,0,1);
+    const drive=1.25*clampPhase(c.phaseDrive,0,1);
+    const diffusion=.18, barrier=.50, dt=.42;
+    q.fill(0);no.fill(0);
+    let changed=false;
+    for(let y=2;y<n-2;y++)for(let x=2;x<n-2;x++){
+      const i=y*n+x;
+      const v=p[i],l=p[i-1],r=p[i+1],u=p[i-n],d=p[i+n];
+      if(v+l+r+u+d<.00001)continue;
+      let grain=owner[i];
+      if(!grain){
+        let best=0;
+        const j0=i-1,j1=i+1,j2=i-n,j3=i+n;
+        if(p[j0]>best){best=p[j0];grain=owner[j0];}
+        if(p[j1]>best){best=p[j1];grain=owner[j1];}
+        if(p[j2]>best){best=p[j2];grain=owner[j2];}
+        if(p[j3]>best){best=p[j3];grain=owner[j3];}
+      }
+      if(!grain)continue;
+      const g=w.grains[grain-1];
+      if(!g||!PHASE_MODES[g.morphology])continue;
+      const main=this.mainIndex(x,y);
+      if(w.crystal[main]&&w.crystal[main]!==grain) continue;
+      const folds=PHASE_MODES[g.morphology].axes;
+      // Gradient direction is the local interface normal (zero inside a grain).
+      // Nine-point isotropic Laplacian and Sobel-like normal reduce
+      // spurious diamond/square artifacts from the Cartesian grid.
+      const ul=p[i-n-1],ur=p[i-n+1],dl=p[i+n-1],dr=p[i+n+1];
+      const gx=(2*(r-l)+(ur+dr)-(ul+dl))/4;
+      const gy=(2*(d-u)+(dl+dr)-(ul+ur))/4;
+      const cosTerm=(gx*gx+gy*gy>1e-9)
+        ? Math.cos(folds*(Math.atan2(gy,gx)-g.angle)) : 0;
+      const stiffness=1-strength*cosTerm; // bounded [.08,1.92], positive.
+      const lap=(4*(l+r+u+d)+ul+ur+dl+dr-20*v)/6;
+      const nutrient=clampPhase(w.nutrient[main],0,1);
+      const source=6*drive*nutrient*v*(1-v);
+      const dw=-2*barrier*v*(1-v)*(1-2*v);
+      const heat=clampPhase(w.heat[main],0,1);
+      const value=clampPhase(v + dt*mobility*(diffusion*stiffness*lap+dw+source)-.23*heat*v,0,1);
+      q[i]=value<.00001?0:value;
+      no[i]=q[i]?grain:0;
+      if((v>=.58)!==(q[i]>=.58)){
+        this.writeSolid(x,y,grain,q[i]>=.58);
+        if(q[i]>=.58)this.deposited++;
+        changed=true;
+      }
+      // Uptake is tied to positive change in solid fraction, not merely time.
+      if(q[i]>v){
+        const consumed=clampPhase((q[i]-v)*.8,0,.5);
+        if(consumed) {
+          const sy=Math.floor(main/w.size), sx=main%w.size;
+          for(let dy=0;dy<2;dy++)for(let dx=0;dx<2;dx++){
+            const target=(sy+dy)*w.size+sx+dx;
+            if(target<w.amount&&!w.crystal[target])w.nutrient[target]=Math.max(0,w.nutrient[target]-consumed);
+          }
+        }
+      }
+    }
+    this.phi=q;this.next=p;
+    this.owner=no;this.nextOwner=owner;
+    this.version++;
+    if(changed)w.modified++;
+  }
+  /** Melt is a real phase change. Other seeds outside the brush are untouched. */
+  melt(x,y,r){
+    const n=this.size,cx=x/this.scale,cy=y/this.scale,rad=r/this.scale;
+    const minX=Math.max(2,Math.floor(cx-rad)),maxX=Math.min(n-3,Math.ceil(cx+rad));
+    const minY=Math.max(2,Math.floor(cy-rad)),maxY=Math.min(n-3,Math.ceil(cy+rad));
+    for(let yy=minY;yy<=maxY;yy++)for(let xx=minX;xx<=maxX;xx++){
+      if((xx-cx)**2+(yy-cy)**2>rad*rad)continue;
+      const i=yy*n+xx,grain=this.owner[i];
+      if(grain){this.phi[i]=0;this.next[i]=0;this.owner[i]=0;this.nextOwner[i]=0;
+        this.writeSolid(xx,yy,grain,false);}
+    }
+    this.version++;
+  }
+  snapshot(){return {phi:this.phi.slice(),next:this.next.slice(),owner:this.owner.slice(),nextOwner:this.nextOwner.slice(),deposited:this.deposited,active:this.active,version:this.version};}
+  restore(v){
+    if(!v)return;
+    this.phi=v.phi.slice();this.next=v.next.slice();this.owner=v.owner.slice();this.nextOwner=v.nextOwner.slice();
+    this.deposited=v.deposited;this.active=v.active;this.version=v.version+1;
+  }
+  stats(){
+    let mass=0,occupied=0;
+    for(const p of this.phi){mass+=p;if(p>=.58)occupied++;}
+    return {phaseMass:mass,phaseCells:occupied,phaseDeposits:this.deposited};
+  }
+}
+
+/**
  * Black Ice Cathedral — physics-inspired, resource-coupled branching crystal tips.
  * This is NOT a phase-field solver or a physical DLA solver. Tip motion, branching,
  * solid occupancy, competition for dissolved nutrient, melting and regrowth are
  * persistent state changes, not precomputed animation or shader-only movement.
  */
+
+
 
 
 const SIZE = 340;
@@ -257,7 +429,7 @@ class CrystalWorld {
   constructor(size = SIZE) {
     this.size = size;
     this.amount = size * size;
-    this.config = { speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, morphology: 'cathedral' };
+    this.config = { phaseDrive:.7, phaseStiffness:.76, phaseMobility:.78, speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, morphology: 'cathedral' };
     this.randomize(357321);
   }
   randomize(seed) {
@@ -269,6 +441,7 @@ class CrystalWorld {
     this.tips = [];
     this.grains = [];
     this.front = new AccretionFront(this);
+    this.phase = new PhaseField(this);
     this.segments = [];
     this.newSegments = [];
     this.ticks = 0;
@@ -285,9 +458,10 @@ class CrystalWorld {
   seed(x, y, angle, count, morphology = this.config.morphology) {
     // Anatomy is a property of this individual grain. Future UI changes do not
     // retroactively transform already-grown colonies.
-    morphology = (Object.hasOwn(ANATOMIES, morphology) || Object.hasOwn(FRONT_MODES, morphology)) ? morphology : 'cathedral';
+    morphology = (Object.hasOwn(ANATOMIES, morphology) || Object.hasOwn(FRONT_MODES, morphology) || Object.hasOwn(PHASE_MODES, morphology)) ? morphology : 'cathedral';
     const isFront=Object.hasOwn(FRONT_MODES, morphology);
-    const anatomy = isFront ? FRONT_MODES[morphology] : ANATOMIES[morphology];
+    const isPhase=Object.hasOwn(PHASE_MODES, morphology);
+    const anatomy = isFront ? FRONT_MODES[morphology] : isPhase ? PHASE_MODES[morphology] : ANATOMIES[morphology];
     count ??= anatomy.axes || 5;
     x = clampGrowth(x, 3, this.size - 4);
     y = clampGrowth(y, 3, this.size - 4);
@@ -297,6 +471,7 @@ class CrystalWorld {
     const grain = { id, x, y, angle: ori, seededAt: this.ticks, morphology, axes: anatomy.axes };
     this.grains.push(grain);
     if(isFront) this.front.nucleate(x,y,id);
+    else if(isPhase) this.phase.nucleate(x,y,id);
     else {
       for (let i = 0; i < count; i++) {
         const a = ori + TAU * i / count;
@@ -332,6 +507,7 @@ class CrystalWorld {
     this.seed(n * .46, n * .50, -.20, undefined, 'cathedral');
     this.seed(n * .79, n * .22, .32, undefined, 'feather');
     this.seed(n * .20, n * .80, -.09, undefined, 'wild');
+    this.seed(n * .72, n * .69, .14, undefined, 'phase6');
     for (let i = 0; i < 15; i++) this.step();
   }
   step() {
@@ -420,6 +596,7 @@ class CrystalWorld {
     }
     this.tips = survived.concat(born);
     this.front.advance();
+    this.phase.advance();
     this.modified++;
   }
   diffuse() {
@@ -482,6 +659,7 @@ class CrystalWorld {
     }
     this.segments = left;
     this.front.rebuild();
+    this.phase.melt(x,y,r);
     // Surviving edge material becomes an exposed front, allowing regrowth.
     for (let k = 0; k < Math.min(12, rim.length); k++) {
       if (this.tips.length >= 1850 || rim.length === 0) break;
@@ -495,19 +673,19 @@ class CrystalWorld {
   }
   snapshot() {
     return { rngState:this.rngState, crystal:this.crystal.slice(),nutrient:this.nutrient.slice(), nutrientNext:this.nutrientNext.slice(),
-      heat:this.heat.slice(),tips:this.tips.map(cloneTip),grains:this.grains.map(x=>({...x})),segments:this.segments.map(x=>({...x})),front:this.front.snapshot(),ticks:this.ticks };
+      heat:this.heat.slice(),tips:this.tips.map(cloneTip),grains:this.grains.map(x=>({...x})),segments:this.segments.map(x=>({...x})),front:this.front.snapshot(),phase:this.phase.snapshot(),ticks:this.ticks };
   }
   restore(s) {
     this.rngState = s.rngState; this.crystal = s.crystal; this.nutrient = s.nutrient; this.nutrientNext = s.nutrientNext;
     this.heat = s.heat; this.tips = s.tips; this.grains = s.grains; this.segments = s.segments;
-    this.ticks = s.ticks; this.front.restore(s.front); this.newSegments = []; this.fullRedraw = true; this.modified++;
+    this.ticks = s.ticks; this.front.restore(s.front); this.phase.restore(s.phase); this.newSegments = []; this.fullRedraw = true; this.modified++;
   }
   stats() {
     let microSegments = 0;
     for (const s of this.segments) if (s.level >= 4) microSegments++;
     let crystalCount = 0;
     for (let i = 0; i < this.crystal.length; i++) if (this.crystal[i]) crystalCount++;
-    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks,microSegments,frontDeposits:this.front.deposited,frontSites:this.front.candidates.size };
+    return { grains:this.grains.length,tips:this.tips.length,segments:this.segments.length,coverage:100*crystalCount/this.amount,ticks:this.ticks,microSegments,frontDeposits:this.front.deposited,frontSites:this.front.candidates.size,...this.phase.stats() };
   }
 }
 
@@ -536,6 +714,10 @@ let forceFull = true;
 const layer = document.createElement('canvas');
 layer.width = layer.height = SIZE * 3;
 const layerCtx = layer.getContext('2d', { alpha:true });
+const phaseLayer=document.createElement('canvas');
+phaseLayer.width=phaseLayer.height=world.phase.size;
+const phaseCtx=phaseLayer.getContext('2d', {alpha:true});
+let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1;
 const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
 
 function colors(grain, level) {
@@ -601,6 +783,33 @@ function paintBackdrop(ctx,size) {
   }
   ctx.restore();
 }
+function paintPhase(ctx, size) {
+  const field=world.phase;
+  if(!field.active)return;
+  if(phaseRenderVersion!==field.version||phasePalette!==palette||phaseFinish!==finish||phaseLuminosity!==luminosity){
+    const n=field.size;
+    const img=phaseCtx.createImageData(n,n),data=img.data;
+    for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+      const i=y*n+x,v=field.phi[i],owner=field.owner[i];
+      if(!owner||v<.025)continue;
+      const edge=clamp(Math.abs(field.phi[i-1]-field.phi[i+1])+Math.abs(field.phi[i-n]-field.phi[i+n]),0,1);
+      const rgb=colors(owner,0);
+      // Physically solved phase fractions give opacity/edges; these colors
+      // remain an explicitly *artistic*, orientation-agnostic optical finish.
+      const rim=finish==='glass' ? .79 : finish==='metal' ? .54 : .38;
+      const shine=clamp(edge*rim,0,.8),fog=.18+.72*v;
+      const idx=i*4;
+      for(let ch=0;ch<3;ch++){
+        const base=finish==='metal' ? rgb[ch]*.73 : rgb[ch];
+        data[idx+ch]=clamp(base*fog+255*shine*luminosity,0,255);
+      }
+      data[idx+3]=Math.round(clamp(v*.96+edge*.35,0,1)*255);
+    }
+    phaseCtx.putImageData(img,0,0);
+    phaseRenderVersion=field.version;phasePalette=palette;phaseFinish=finish;phaseLuminosity=luminosity;
+  }
+  ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(phaseLayer,0,0,size,size);ctx.restore();
+}
 function drawScreen() {
   const dpr=clamp(window.devicePixelRatio||1,1,2);
   const box=crystalCanvas.getBoundingClientRect();
@@ -617,6 +826,7 @@ function drawScreen() {
     renderVersion=world.modified;
     world.newSegments=[];
   }
+  paintPhase(display,size);
   display.drawImage(layer,0,0,size,size);
   // Draw only active growth points; these glints move because the tips advance.
   if (playing && world.tips.length) {
@@ -680,16 +890,19 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
 function syncMorphologyControls() {
   const isFront=Object.hasOwn(FRONT_MODES,world.config.morphology);
-  $('tipControls').hidden=isFront;
+  const isPhase=Object.hasOwn(PHASE_MODES,world.config.morphology);
+  $('tipControls').hidden=isFront||isPhase;
   $('frontControls').hidden=!isFront;
-  $('structureRule').textContent=isFront
-    ? 'Solid cells attach only along existing crystal boundaries. Nutrient supply, branching competition, and directional bias change which edge advances next. Existing material stays put.'
+  $('phaseControls').hidden=!isPhase;
+  $('structureRule').textContent=isPhase
+    ? 'The solid fraction evolves by a two-dimensional phase-field PDE, with a double-well barrier, nutrient driving and positive orientation-dependent surface stiffness. No pre-drawn growth path.'
+    : isFront ? 'Solid cells attach along existing crystal boundaries; concentration and orientation bias change which interface cells advance.'
     : 'New side-branches inherit their parent direction, then compete for dissolved material. Existing arms do not move or rotate.';
 }
 $('morphology').addEventListener('change',ev=>{world.config.morphology=ev.target.value;syncMorphologyControls();});
@@ -714,7 +927,7 @@ $('save').addEventListener('click',async()=>{
   const button=$('save');button.disabled=true;button.textContent='RENDERING HIGH-RES SPECIMEN…';
   try{
     const size=2400,output=document.createElement('canvas');output.width=output.height=size;
-    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
+    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);paintPhase(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
     const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('PNG encode failed')),'image/png'));
     const link=document.createElement('a');const url=URL.createObjectURL(blob);
     link.href=url;link.download=`crystallization-apocalypse-${world.rngState.toString(16)}-${world.ticks}.png`;
@@ -726,7 +939,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;

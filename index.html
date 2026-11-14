@@ -27,7 +27,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.3</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.4</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -35,9 +35,9 @@
         <button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
-        <p class="panel-intro">Choose four branching anatomies or three diffusion-coupled solidification fronts. Each crystal keeps its original growth mode.</p>
+        <p class="panel-intro">Plant classic branching tips, nutrient-driven accretion fronts, or a new anisotropic PDE phase-field crystal. Each colony keeps its growth identity.</p>
         <label class="select-label" for="morphology">Anatomy for newly planted crystals</label>
-        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option><optgroup label="DIFFUSION-COUPLED FRONTS"><option value="facet">FOURFOLD FACET FANS</option><option value="skeletal">SIXFOLD SKELETAL FINGERS</option><option value="coral">MUTANT ACCRETION CORAL</option></optgroup></select>
+        <select id="morphology"><option value="cathedral">SIXFOLD CATHEDRAL</option><option value="feather">FEATHERED FROST</option><option value="starburst">EIGHT-AXIS STARBURST</option><option value="wild">WILD CRYSTAL / NO LOCKED AXES</option><optgroup label="DIFFUSION-COUPLED FRONTS"><option value="facet">FOURFOLD FACET FANS</option><option value="skeletal">SIXFOLD SKELETAL FINGERS</option><option value="coral">MUTANT ACCRETION CORAL</option></optgroup><optgroup label="A.4 · ACTUAL PHASE-FIELD PDE"><option value="phase4">PHASE FIELD · FOURFOLD</option><option value="phase6">PHASE FIELD · SIXFOLD</option><option value="phase8">PHASE FIELD · EIGHTFOLD EXPERIMENT</option></optgroup></select>
         <p class="control-note">This selects future colonies only. Existing crystals keep their own structure.</p>
         <div id="tipControls">
         <label class="range-label" for="frost">Microscopic frost needles <output id="frost-value">64%</output></label><input id="frost" type="range" min="0" max="100" value="64" step="1" />
@@ -51,6 +51,13 @@
         <div class="info"><strong>A.3: LIVING GROWTH FRONT</strong><p>Facet Fans, Skeletal Fingers, and Accretion Coral deposit new solid cells along a changing nutrient-fed interface. Different math from the classic branch anatomies.</p></div>
         <label class="range-label" for="instability">Growth-front instability <output id="instability-value">75%</output></label><input id="instability" type="range" min="0" max="100" value="75" step="1" />
         <label class="range-label" for="faceting">Facet directional lock <output id="faceting-value">70%</output></label><input id="faceting" type="range" min="0" max="100" value="70" step="1" />
+        </div>
+        <div id="phaseControls" hidden>
+          <div class="info"><strong>A.4 · MOVING SOLID/LIQUID INTERFACE</strong><p>True evolving phase fractions from an Allen–Cahn-like PDE. The chemistry and orientation stiffness are simplified, not calibrated real-world freezing.</p></div>
+          <label class="range-label" for="phaseDrive">Supersaturation / driving force <output id="phaseDrive-value">70%</output></label><input id="phaseDrive" type="range" min="0" max="100" value="70" step="1" />
+          <label class="range-label" for="phaseStiffness">Orientation stiffness <output id="phaseStiffness-value">76%</output></label><input id="phaseStiffness" type="range" min="0" max="100" value="76" step="1" />
+          <label class="range-label" for="phaseMobility">Interface mobility <output id="phaseMobility-value">78%</output></label><input id="phaseMobility" type="range" min="0" max="100" value="78" step="1" />
+          <p class="control-note">Higher stiffness moves closer to the analytical faceting limit but never crosses into negative-stiffness instability. Existing crystals are preserved when these controls change.</p>
         </div>
         <div class="info"><strong>STRUCTURAL RULE</strong><p id="structureRule">New side-branches inherit their parent direction, then compete for dissolved material. Existing arms don't move or rotate.</p></div>
       </div>
@@ -73,12 +80,12 @@
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <button id="new" class="wide danger" type="button">✳ NEW COMPOSITION…</button>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div></div>
-        <div class="info"><strong>ENGINE STATUS</strong><p>Two stateful growth families: branching tips and stochastic, diffusion-fed cellular fronts. Neither is a calibrated phase-field PDE or a full DLA solver. Wolfram checks are documented separately.</p></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div></div>
+        <div class="info"><strong>ENGINE STATUS</strong><p>Three stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>
   </main>
-  <footer class="foot">PHYSICS-INSPIRED GROWTH · PERSISTENT MATERIAL HISTORY · LOCAL ONLY · NO PAID API</footer>
+  <footer class="foot">PHASE-FIELD MATHEMATICS · PERSISTENT MATERIAL HISTORY · LOCAL ONLY · NO PAID API</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2>Start a new apocalypse?</h2><p>All current crystal branches and growth history will be replaced. UNDO can restore your previous specimen.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" value="reset" type="submit">YES, NEW CRYSTAL</button></div></form></dialog>
 <script type="module" src="./src/main.js"></script>
