@@ -7,6 +7,7 @@ import { renderSpherulites } from './spherulite.js';
 import { renderSpectralCPU, SpectralGPU } from './optics.js';
 import { CrystalBodyGPU } from './body3d.js';
 import { BREEDING_PRESETS, normalizeGenome, captureVolumeGenome, breedThreeParents, plantOffspring, describeGenome } from './breeding.js';
+import { createSiblingRecipes, evaluateSibling, nurseryPixels, exportNursery, importNursery } from './nursery.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -73,6 +74,7 @@ function invalidatePalette() {
   spherRenderVersion=-1;
   volumeRenderVersion=-1;
   forceFull=true;
+  repaintNurseryThumbnails();
 }
 function renderPalettePreview() {
   const area=$('palettePreview');area.replaceChildren();
@@ -468,6 +470,7 @@ $('bodyResetCamera').addEventListener('click',()=>{bodySettings.yaw=20*Math.PI/1
 for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool));
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{
   currentTab=b.dataset.tab;
+  document.body.classList.toggle('nursery-mode',currentTab==='nursery');
   if(currentTab==='breeding')refreshBreedingSources();
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
@@ -567,6 +570,151 @@ $('breedImport').addEventListener('change',async ev=>{
   }catch(err){$('breedStatus').textContent='Could not import DNA: '+err.message;}
   ev.target.value='';
 });
+// A.15 · MUTATION NURSERY: 3D sibling trials are detached from the live world.
+// Only a deliberate PLANT changes the main crystal; the kept archive survives
+// Refresh/Restart until the user exports or imports a curated family.
+let nurseryGeneration=1,nurserySerial=0,nurseryRecords=[],nurseryBusy=false;
+function nurseryLabel(){
+  $('nurseryCountLabel').textContent=`${nurseryRecords.length} specimens · ${nurseryRecords.filter(r=>r.kept).length} kept · generation ${nurseryGeneration}`;
+}
+function paintNurseryCube(ctx,pts,rgb,shade,scale){
+  const p=pts.map(([x,y,z])=>[(x-y)*scale,(x+y)*.48*scale-z*.89*scale]);
+  ctx.beginPath();ctx.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i++)ctx.lineTo(p[i][0],p[i][1]);ctx.closePath();
+  const c=rgb.map(v=>Math.round(Math.min(255,v*shade+8)));
+  ctx.fillStyle=`rgb(${c.join(',')})`;ctx.fill();
+  ctx.strokeStyle='rgba(1,8,22,.26)';ctx.lineWidth=.36;ctx.stroke();
+}
+function drawNurseryIsometric(canvas,record){
+  const cloud=record.preview.cloud||[];
+  if(!cloud.length)return false;
+  const n=record.preview.size,dim=220;canvas.width=dim;canvas.height=dim;
+  const ctx=canvas.getContext('2d');ctx.fillStyle='#03080d';ctx.fillRect(0,0,dim,dim);
+  const grad=ctx.createRadialGradient(dim*.53,dim*.42,2,dim*.50,dim*.5,dim*.62);
+  grad.addColorStop(0,'#152333');grad.addColorStop(1,'#03070c');ctx.fillStyle=grad;ctx.fillRect(0,0,dim,dim);
+  const scale=dim/(n*2.80);ctx.save();ctx.translate(dim/2,dim*.53);
+  for(let k=0;k<cloud.length;k+=5){
+    const x=cloud[k]-n/2,y=cloud[k+1]-n/2,z=cloud[k+2]-n/2,g=cloud[k+3],age=cloud[k+4];
+    const t=((g*.183+age*.0022+(cloud[k+2]/n)*.14)%1+1)%1;
+    const at=Math.floor(t*255)*3;
+    const rgb=[paletteLUT[at],paletteLUT[at+1],paletteLUT[at+2]];
+    // Exposed facets of REAL voxels; faces are shaded by their orientation.
+    const x0=x+.5,y0=y+.5,z0=z+.5;
+    paintNurseryCube(ctx,[[x0,y0,z0+1],[x0+1,y0,z0+1],[x0+1,y0+1,z0+1],[x0,y0+1,z0+1]],rgb,1.08,scale);
+    paintNurseryCube(ctx,[[x0+1,y0,z0],[x0+1,y0+1,z0],[x0+1,y0+1,z0+1],[x0+1,y0,z0+1]],rgb,.57,scale);
+    paintNurseryCube(ctx,[[x0,y0+1,z0],[x0+1,y0+1,z0],[x0+1,y0+1,z0+1],[x0,y0+1,z0+1]],rgb,.76,scale);
+  }
+  ctx.restore();return true;
+}
+function repaintNurseryThumbnails(){
+  for(const canvas of document.querySelectorAll('[data-nursery-id]')){
+    const record=nurseryRecords.find(r=>r.id===canvas.dataset.nurseryId);
+    if(!record)continue;
+    try{
+      if(drawNurseryIsometric(canvas,record))continue;
+      const pixels=nurseryPixels(record.preview,paletteLUT),n=pixels.width;
+      canvas.width=n;canvas.height=n;
+      const ctx=canvas.getContext('2d');ctx.putImageData(new ImageData(pixels.data,n,n),0,0);
+    }catch(err){console.error('Nursery preview failed',err);}
+  }
+}
+function renderNursery(){
+  const grid=$('nurseryGallery');grid.replaceChildren();
+  for(const record of nurseryRecords){
+    const card=document.createElement('article');card.className='nursery-card'+(record.kept?' kept':'');
+    const canvas=document.createElement('canvas');canvas.className='nursery-photo';canvas.dataset.nurseryId=record.id;canvas.setAttribute('aria-label',`3D trial projection for ${record.id}`);card.appendChild(canvas);
+    const title=document.createElement('div');title.className='nursery-label';title.textContent=`GEN ${record.generation} · ${record.id}`;card.appendChild(title);
+    const facts=document.createElement('div');facts.className='nursery-facts';facts.textContent=`${record.metrics.cells.toLocaleString()} VOXELS · ${record.metrics.depth} Z-LAYERS · ROUGH ${(record.metrics.roughness*100).toFixed(0)}%`;card.appendChild(facts);
+    const genes=document.createElement('div');genes.className='nursery-gene';genes.setAttribute('aria-label',`Needle, octahedral and coral cells: ${record.metrics.genes.join(', ')}`);
+    const total=Math.max(1,record.metrics.genes.reduce((a,b)=>a+b,0));
+    for(const number of record.metrics.genes){const bar=document.createElement('span');bar.style.width=(number/total*100).toFixed(1)+'%';genes.appendChild(bar);}
+    card.appendChild(genes);
+    const actions=document.createElement('div');actions.className='nursery-actions';
+    const keep=document.createElement('button');keep.type='button';keep.className='nursery-keep';keep.textContent=record.kept?'★ KEPT · RELEASE':'☆ KEEP FAVORITE';
+    keep.addEventListener('click',()=>{record.kept=!record.kept;renderNursery();});actions.appendChild(keep);
+    const live=document.createElement('button');live.type='button';live.className='nursery-live';live.textContent='✳ PLANT';live.title='Implant the selected DNA in your LIVE world';
+    live.addEventListener('click',()=>plantNurseryChild(record));actions.appendChild(live);
+    for(let i=0;i<3;i++){
+      const b=document.createElement('button');b.type='button';b.textContent='PARENT '+String.fromCharCode(65+i);b.title='Promote this grown phenotype to main breeding parent '+String.fromCharCode(65+i);
+      b.addEventListener('click',()=>{
+        breedParents[i]=normalizeGenome(record.phenotype);renderBreeding();
+        $('nurseryStatus').textContent=`${record.id} promoted to Parent ${String.fromCharCode(65+i)}. No material changed.`;
+      });actions.appendChild(b);
+    }
+    card.appendChild(actions);grid.appendChild(card);
+  }
+  nurseryLabel();repaintNurseryThumbnails();
+}
+function plantNurseryChild(record){
+  if(world.grains.length>=250){$('nurseryStatus').textContent='Colony limit reached. Use Refresh first.';return null;}
+  saveUndo();const child=plantOffspring(world,record.recipe);
+  if(!child){undoStack.pop();$('undo').disabled=undoStack.length===0;$('nurseryStatus').textContent='Could not plant this sibling in the current artwork.';return null;}
+  childSequence++;refreshBreedingSources();renderBreeding();updateCompositionLabel();
+  forceFull=true;volumeRenderVersion=-1;
+  $('nurseryStatus').textContent=`Planted ${record.id} as grain ${child.grainId}. Its live environment may change the trial geometry.`;
+  return child;
+}
+async function growNurseryBatch(){
+  if(nurseryBusy)return;
+  if(nurseryRecords.length>=36 && nurseryRecords.every(r=>r.kept)){$('nurseryStatus').textContent='Shelf full (36 kept specimens). Export your archive before making more.';return;}
+  nurseryBusy=true;const button=$('nurseryGenerate');button.disabled=true;
+  const wasPlaying=playing;setPlaying(false);
+  try{
+    const count=Number($('nurseryCount').value),steps=Number($('nurserySteps').value),variation=Number($('nurseryVariation').value)/100;
+    // Clone parent specimens and controls at launch; subsequent UI touches can't
+    // corrupt the batch in progress. A shared trial seed keeps tests comparable.
+    const batchSeed=(composition.seed^Math.imul(++nurserySerial,0x9e3779b9))>>>0;
+    const settings=breedingSettings();
+    const candidates=createSiblingRecipes(breedParents.map(p=>({...p,laws:[...p.laws],angles:[...p.angles]})),settings.weights,
+      {count,variation,mutation:settings.mutation,crossover:settings.crossover,seed:batchSeed});
+    const sharedWorldSeed=(composition.seed^0x9e37abcc)>>>0;
+    for(let i=0;i<candidates.length;i++){
+      $('nurseryStatus').textContent=`Growing sibling ${i+1}/${count} · generation ${nurseryGeneration}…`;
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      const recipe=candidates[i],trial=evaluateSibling(recipe,{steps,worldSeed:sharedWorldSeed});
+      const record={id:`G${nurseryGeneration}-${nurserySerial}-${i+1}`,generation:nurseryGeneration,kept:false,recipe, ...trial};
+      nurseryRecords.push(record);
+      // Retire oldest unkept trials first. Never discard a kept specimen.
+      while(nurseryRecords.length>36){const k=nurseryRecords.findIndex(r=>!r.kept);if(k<0)break;nurseryRecords.splice(k,1);}
+      renderNursery();
+    }
+    $('nurseryStatus').textContent=`${count} actual 3D sibling trials finished. Compare their growth, keep favorites, or plant their DNA in the artwork.`;
+  }catch(error){$('nurseryStatus').textContent='Nursery trial failed: '+error.message;console.error(error);}
+  finally{nurseryBusy=false;button.disabled=false;setPlaying(wasPlaying);}
+}
+function nextNurseryGeneration(){
+  if(nurseryBusy)return false;
+  const favorites=nurseryRecords.filter(r=>r.kept).slice(-3);
+  if(favorites.length!==3){$('nurseryStatus').textContent='KEEP at least three siblings first. The newest three kept specimens become the next parents.';return false;}
+  breedParents=favorites.map(r=>normalizeGenome({...r.phenotype,name:`G${r.generation} ${r.id} · GROWN PHENOTYPE`}));
+  nurseryGeneration++;renderBreeding();
+  $('nurseryStatus').textContent=`Generation ${nurseryGeneration} ready: ${favorites.map(r=>r.id).join(' + ')}. Press GROW A SIBLING BATCH to raise their descendants.`;
+  nurseryLabel();return true;
+}
+$('nurseryGenerate').addEventListener('click',growNurseryBatch);
+$('nurseryVariation').addEventListener('input',ev=>{$('nurseryVariation-value').textContent=ev.target.value+'%';});
+$('nurseryNext').addEventListener('click',nextNurseryGeneration);
+$('nurseryExport').addEventListener('click',()=>{
+  const archive=exportNursery(nurseryRecords,nurseryGeneration);
+  if(!archive.specimens.length){$('nurseryStatus').textContent='KEEP at least one specimen before exporting.';return;}
+  const blob=new Blob([JSON.stringify(archive)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`crystal-nursery-gen-${nurseryGeneration}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+  $('nurseryStatus').textContent=`Saved ${archive.specimens.length} kept specimens and generation ${nurseryGeneration} as a portable JSON archive.`;
+});
+$('nurseryImport').addEventListener('change',async ev=>{
+  const file=ev.target.files?.[0];if(!file)return;
+  try{
+    if(file.size>1800000)throw Error('Nursery JSON exceeds 1.8 MB');
+    const incoming=importNursery(JSON.parse(await file.text()));
+    const ids=new Set(nurseryRecords.map(r=>r.id));
+    const novel=incoming.specimens.filter(r=>!ids.has(r.id));
+    if(novel.length+nurseryRecords.length>36)throw Error('Gallery capacity is 36. Export or release older favorites first. No specimens changed.');
+    nurseryRecords.push(...novel);nurseryGeneration=Math.max(nurseryGeneration,incoming.generation);renderNursery();
+    $('nurseryStatus').textContent=`Imported ${novel.length} curated specimens. Current scene, existing favorites and palettes unchanged.`;
+  }catch(err){$('nurseryStatus').textContent='Import failed: '+err.message;}
+  ev.target.value='';
+});
+renderNursery();
+
 function currentMutation(){
   return {primary:world.config.mutationPrimary,partner:world.config.mutationPartner,
     mix:world.config.mutationMix,rotation:world.config.mutationRotation};
@@ -716,6 +864,7 @@ function loop(now){
 }
 // Named for test harnesses: no private user data or external connections.
 window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},
+  get nursery(){return {generation:nurseryGeneration,busy:nurseryBusy,records:nurseryRecords.map(r=>({id:r.id,kept:r.kept,metrics:{...r.metrics},recipe:{...r.recipe}}))}},growNurseryBatch,nextNurseryGeneration,
   get mutation(){return {...currentMutation(),...world.volume.stats()};},
   mutateAllFronts,enableBody,get breeding(){return {parents:breedParents.map(g=>({...g,laws:[...g.laws],angles:[...g.angles]})),preview:buildOffspringRecipe(),hybrids:world.volume.hybrids.size}},breedAndPlant,refreshBreedingSources};
 requestAnimationFrame(loop);

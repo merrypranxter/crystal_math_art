@@ -1,6 +1,8 @@
 # CRYSTALLIZATION APOCALYPSE
 
-**Latest playable version: A.14 — Three-Parent Crystal Breeding Chamber.** Capture actual grown 3D mineral phenotypes into A/B/C parent slots, blend their growth laws and axis orientations, plant a mixed child, then breed its descendants. All 199 palettes and old growth tools remain. See [A.14 technical notes](docs/PROTOTYPE_A14.md).
+**Latest: A.15 — MUTATION NURSERY.** Grow four or six offspring in real independent 3D mini-simulations, compare material shapes and genetic tissue ratios, KEEP favorites, promote any child into a breeding parent, and breed your newest three kept phenotypes into the next generation. The NURSERY tab adds portable JSON import/export and palette-aware thumbnails. The existing breeding/physics tools and all 199 palettes are preserved. See [A.15 technical notes](docs/PROTOTYPE_A15.md).
+
+**Prior stage: A.14 — Three-Parent Crystal Breeding Chamber.** Capture actual grown 3D mineral phenotypes into A/B/C parent slots, blend their growth laws and axis orientations, plant a mixed child, then breed its descendants. All 199 palettes and old growth tools remain. See [A.14 technical notes](docs/PROTOTYPE_A14.md).
 ### A living MATHEMAGICAL laboratory for impossible crystalline matter
 
 **Latest: A.13 — MINERAL MUTATION CHAMBER**, with inheritable, per-voxel crystal growth laws within the independently growing 3D volume.
@@ -18,7 +20,7 @@ The independently evolving 3D crystal volume now stores a separate **growth law,
 - Under FINISHES you'll find **all 199 palettes**: the 194-entry source MATHEMAGICAL palette vault plus five crystal originals, with full original stops, randomization, shuffle, edit, and restoration.
 - **STUDIO** provides a high-resolution 2400×2400 PNG of the 3D or 2D view and colony statistics.
 
-For modular development, run `python3 -m http.server 8080` or `npm run serve` locally. To rebuild the self-contained page, run `python3 scripts/build_standalone.py`. Check the math with `npm test` (**110 tests** including the new mutation suite).
+For modular development, run `python3 -m http.server 8080` or `npm run serve` locally. To rebuild the self-contained page, run `python3 scripts/build_standalone.py`. Check the math with `npm test` (includes A.15 nursery regression tests).
 
 ## Growth engines
 

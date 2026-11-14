@@ -66,3 +66,27 @@
 #panel-breeding .breed-import{display:flex;align-items:center;justify-content:center;border:1px solid #56747d;border-radius:6px;cursor:pointer;color:#d6eef6}
 #panel-breeding .breed-import input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 @media(max-width:730px){#panel-breeding .breeding-parent{padding:7px 5px}#panel-breeding .breeding-parents{gap:4px}#panel-breeding .breed-gene{grid-template-columns:76px minmax(0,1fr) 29px}}
+
+/* A.15 — sibling gallery is visible and usable on narrow phones. */
+#panel-nursery .nursery-toolbar{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+#panel-nursery .nursery-toolbar button,#panel-nursery .nursery-import{flex:1 1 120px;min-height:39px;padding:10px 7px;font-size:10px;text-align:center}
+#panel-nursery .nursery-import{border:1px solid #446a74;border-radius:7px;color:#b6e5eb;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+#panel-nursery .nursery-import input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+#panel-nursery #nurseryStatus{border-left:2px solid #db8eff;padding:6px 0 6px 10px}
+#panel-nursery .nursery-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+#panel-nursery .nursery-card{border:1px solid #334a5c;border-radius:10px;overflow:hidden;background:linear-gradient(145deg,#162332,#0b1420);min-width:0}
+#panel-nursery .nursery-card.kept{border-color:#db9fff;box-shadow:inset 0 0 0 1px #8351a1}
+#panel-nursery .nursery-photo{background:#02070b;width:100%;aspect-ratio:1/1;display:block;image-rendering:auto}
+#panel-nursery .nursery-label{font:700 10px/1.5 ui-monospace,monospace;color:#d4e9f2;padding:7px 7px 0;overflow-wrap:anywhere}
+#panel-nursery .nursery-facts{font:600 9px/1.5 ui-monospace,monospace;color:#8cadbc;padding:4px 7px}
+#panel-nursery .nursery-gene{display:flex;height:7px;overflow:hidden;margin:6px 7px;border-radius:5px;background:#152332}
+#panel-nursery .nursery-gene span:nth-child(1){background:#55cfde}#panel-nursery .nursery-gene span:nth-child(2){background:#f1b871}#panel-nursery .nursery-gene span:nth-child(3){background:#b67aff}
+#panel-nursery .nursery-actions{padding:5px 7px 8px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+#panel-nursery .nursery-actions button{padding:8px 2px;font-size:9px;min-height:31px;letter-spacing:0;overflow-wrap:anywhere}
+#panel-nursery .nursery-actions .nursery-keep{grid-column:span 2;border-color:#8360a5;color:#f3c9ff}
+#panel-nursery .nursery-actions .nursery-live{grid-column:span 1;color:#aff2e2}
+@media(min-width:1150px){#panel-nursery .nursery-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:390px){#panel-nursery .nursery-gallery{gap:5px}#panel-nursery .nursery-actions button{font-size:8px;padding:7px 2px}#panel-nursery .nursery-label{font-size:9px}}
+
+/* Compact pinned specimen only while comparing siblings on phones. */
+@media(max-width:730px){body.nursery-mode .viewport .stage{height:176px;min-height:176px}body.nursery-mode .viewport .toolbox{display:none}body.nursery-mode .viewport .specimen-actions{display:none}body.nursery-mode .viewport .stage-head{padding:8px}body.nursery-mode .viewport .stage-bottom{padding:8px}}
