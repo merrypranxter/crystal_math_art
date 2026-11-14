@@ -1,8 +1,15 @@
-## A.16 — Selective Evolution
+## A.16 — Selective Evolution (prior phase)
 
 The Mutation Nursery can now **score actual 3D-grown shapes** and breed toward artist-chosen objectives: needles, branching, enclosed caverns, asymmetry and novelty. It measures real occupied voxels using exposed-face geometry, flood-filled interior voids and 3-axis reflection mismatch, then ranks siblings under editable goal weights. **KEEP TOP THREE** is nondestructive; **EVOLVE NEXT GENERATION** uses their actually grown phenotypes as parents. A.15 archives without 3D shape metrics remain importable but unscored. See [A.16 details](docs/PROTOTYPE_A16.md).
 
 # CRYSTALLIZATION APOCALYPSE
+
+## A.17 — Evolutionary Ecosystems (latest)
+
+Three genetically distinct mineral colonies now grow in **one shared 3D nutrient habitat**, where they compete for genuinely empty voxels. The new ECOSYSTEM tab offers real isometric occupied-voxel views, measured contact faces, contested frontiers, nutrient starvation, seasons, next-generation selection, and intentional adoption into the existing BREEDING and live-art systems. The artist controls resource scarcity; the simulated material is never secretly modified by a shader. No web service or Netlify deployment is necessary.
+
+The full **199 palettes** remain (194 original MATHEMAGICAL + 5 crystal), including full-stop editing, randomizer and shuffle. See [A.17 docs](docs/PROTOTYPE_A17.md).
+
 
 **Latest: A.15 — MUTATION NURSERY.** Grow four or six offspring in real independent 3D mini-simulations, compare material shapes and genetic tissue ratios, KEEP favorites, promote any child into a breeding parent, and breed your newest three kept phenotypes into the next generation. The NURSERY tab adds portable JSON import/export and palette-aware thumbnails. The existing breeding/physics tools and all 199 palettes are preserved. See [A.15 technical notes](docs/PROTOTYPE_A15.md).
 

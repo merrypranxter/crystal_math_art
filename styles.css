@@ -103,3 +103,22 @@
 #panel-nursery .nursery-score small{font:500 9px/1.5 ui-monospace,monospace;color:#9bb9ce;display:block}
 #panel-nursery .nursery-card.evolution-best{border-color:#b4f0c7;box-shadow:inset 0 0 0 1px #4b9979}
 #panel-nursery .nursery-card.evolution-best .nursery-score{color:#b1ffce}
+
+/* A.17: 3D competition lab lives beside Nursery and remains mobile-readable. */
+#panel-ecosystem .eco-controls{background:linear-gradient(145deg,#162536,#101b2c);border:1px solid #476575;border-radius:11px;padding:12px;margin:13px 0}
+#panel-ecosystem .eco-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:14px}
+#panel-ecosystem .eco-toolbar button{min-height:43px;padding:9px 5px;font-size:10px;overflow-wrap:anywhere}
+#panel-ecosystem #ecoStatus{border-left:2px solid #8dffdf;padding:8px 0 8px 10px}
+#panel-ecosystem .eco-canvas{display:block;width:100%;max-width:420px;aspect-ratio:1;background:#03080f;border:1px solid #53677a;border-radius:12px;margin:12px auto;object-fit:contain}
+#panel-ecosystem .eco-metrics{font:600 10px/1.8 ui-monospace,monospace;color:#9dc6cb;overflow-wrap:anywhere}
+#panel-ecosystem .eco-lineages{display:grid;grid-template-columns:1fr;gap:7px;margin:12px 0}
+#panel-ecosystem .eco-lineage{border:1px solid #3b5066;border-radius:9px;padding:9px;background:linear-gradient(140deg,#192337,#101a28)}
+#panel-ecosystem .eco-lineage-label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;font:600 10px/1.5 ui-monospace,monospace;color:#d5f6fa;margin-bottom:8px}
+#panel-ecosystem .eco-lineage-label span{color:#9ab6c9}
+#panel-ecosystem .eco-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+#panel-ecosystem .eco-actions button{font-size:9px;padding:8px 3px;min-height:38px;overflow-wrap:anywhere}
+#panel-ecosystem .eco-actions button:last-child{grid-column:span 1;color:#afe4ae}
+@media(max-width:730px){body.nursery-mode .viewport .stage{height:152px;min-height:152px}#panel-ecosystem .eco-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Ecosystem's 3D specimen viewer must never be occluded by the pinned live canvas. */
+@media(max-width:730px){body.ecosystem-mode .viewport{position:relative;top:auto;z-index:1}body.ecosystem-mode .viewport .stage{height:152px;min-height:152px}}

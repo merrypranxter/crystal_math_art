@@ -12,7 +12,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / SELECTIVE EVOLUTION</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / EVOLUTIONARY ECOSYSTEMS</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -33,12 +33,12 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.16 · SELECTIVE EVOLUTION</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.17 · EVOLUTIONARY ECOSYSTEMS</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
         <button data-tab="material" role="tab" aria-selected="false">FINISHES</button><button data-tab="archaeology" role="tab" aria-selected="false">ARCHIVE</button>
-        <button data-tab="mutation" role="tab" aria-selected="false">MUTATION</button><button data-tab="breeding" role="tab" aria-selected="false">BREEDING</button><button data-tab="nursery" role="tab" aria-selected="false">NURSERY</button>
+        <button data-tab="mutation" role="tab" aria-selected="false">MUTATION</button><button data-tab="breeding" role="tab" aria-selected="false">BREEDING</button><button data-tab="nursery" role="tab" aria-selected="false">NURSERY</button><button data-tab="ecosystem" role="tab" aria-selected="false">ECOSYSTEM</button>
         <button data-tab="body" role="tab" aria-selected="false">BODY 3D</button><button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
@@ -210,6 +210,19 @@
         <div id="nurseryGallery" class="nursery-gallery" aria-label="Simulated 3D sibling comparison"></div>
         <div class="info"><strong>ONE TRIAL IS ONE REAL SIMULATION</strong><p>Each card is a real 3D growth trial, not an AI image or a preset. All siblings use the same environment and seed, with differing inherited recipes. Thumbnails are 2D projections of their 3D voxels, recolored with the current palette. KEEP saves a candidate in this session; EXPORT saves your kept specimens between sessions. A planted child may grow differently in your main artwork because its environment differs.</p></div>
       </div>
+      <div class="panel" id="panel-ecosystem" role="tabpanel" hidden>
+        <p class="panel-intro">A.17 · Three crystal bloodlines compete inside ONE shared 3D nutrient volume. Their fronts fight for the same cells, cannot overwrite occupied rock, and deplete a common fuel field. Their grown survivors can found the next generation.</p>
+        <div class="eco-controls">
+          <label class="range-label" for="ecoScarcity">Shared nutrient scarcity <output id="ecoScarcity-value">60%</output></label><input id="ecoScarcity" type="range" min="0" max="100" step="5" value="60"/>
+          <label class="range-label" for="ecoSteps">Steps per season <output id="ecoSteps-value">36 steps</output></label><input id="ecoSteps" type="range" min="12" max="96" step="12" value="36"/>
+          <div class="eco-toolbar"><button id="ecoNew" class="primary" type="button">✳ NEW SHARED HABITAT</button><button id="ecoSeason" type="button">▶ ADVANCE SEASON</button><button id="ecoEvolve" type="button">🧬 EVOLVE SURVIVORS</button><button id="ecoExport" type="button">↓ EXPORT ECOLOGY REPORT</button></div>
+          <p id="ecoStatus" class="control-note" role="status" aria-live="polite">Choose genomes in BREEDING, then grow a shared habitat. Every bloodline uses the same nutrient field and cannot overwrite another's occupied voxels.</p>
+        </div>
+        <canvas id="ecoCanvas" class="eco-canvas" aria-label="Actual 3D occupied voxels of three competing crystal bloodlines, projected isometrically"></canvas>
+        <p id="ecoMetrics" class="eco-metrics">NO HABITAT YET · START A SHARED WORLD</p>
+        <div id="ecoLineages" class="eco-lineages" aria-label="Bloodline competition results"></div>
+        <div class="info"><strong>ONE HABITAT, THREE GROWTH LAWS</strong><p>The habitat is a real, bounded 3D simulation with nutrient diffusion and competing fronts. A contested site can belong to only one crystal. Face contacts are measured from occupied voxels, not drawn as an effect. EVOLVE SURVIVORS captures the actual developed genes and builds three descendant recipes; the old season's measured history stays in the report. This is deliberately an artistic ecology approximation, not calibrated thermodynamics or natural selection. The live artwork is untouched unless you choose PLANT SURVIVOR.</p></div>
+      </div>
       <div class="panel" id="panel-body" role="tabpanel" hidden>
   <p class="panel-intro">A real triangulated crystal body: genuinely 3D solidification for volumetric specimens, with the older 2D growth bodies preserved as extrusions. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
   <div class="info"><strong>3D VOLUMETRIC SPECIMENS</strong><p>For the new volume growth species, the geometry comes from individual 3D cells, not an extruded 2D outline. The 2D preview uses a real volumetric projection or a chosen Z-slice if WebGL2 is unavailable.</p></div>
@@ -241,7 +254,7 @@
       </div>
     </aside>
   </main>
-  <footer class="foot">SELECTIVE EVOLUTION · 3D GROWTH TRIALS · 199 PALETTES</footer>
+  <footer class="foot">EVOLUTIONARY ECOSYSTEMS · SHARED 3D GROWTH · 199 PALETTES</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script type="module" src="./src/main.js"></script>

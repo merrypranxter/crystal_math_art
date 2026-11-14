@@ -113,13 +113,32 @@
 #panel-nursery .nursery-card.evolution-best{border-color:#b4f0c7;box-shadow:inset 0 0 0 1px #4b9979}
 #panel-nursery .nursery-card.evolution-best .nursery-score{color:#b1ffce}
 
+/* A.17: 3D competition lab lives beside Nursery and remains mobile-readable. */
+#panel-ecosystem .eco-controls{background:linear-gradient(145deg,#162536,#101b2c);border:1px solid #476575;border-radius:11px;padding:12px;margin:13px 0}
+#panel-ecosystem .eco-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:14px}
+#panel-ecosystem .eco-toolbar button{min-height:43px;padding:9px 5px;font-size:10px;overflow-wrap:anywhere}
+#panel-ecosystem #ecoStatus{border-left:2px solid #8dffdf;padding:8px 0 8px 10px}
+#panel-ecosystem .eco-canvas{display:block;width:100%;max-width:420px;aspect-ratio:1;background:#03080f;border:1px solid #53677a;border-radius:12px;margin:12px auto;object-fit:contain}
+#panel-ecosystem .eco-metrics{font:600 10px/1.8 ui-monospace,monospace;color:#9dc6cb;overflow-wrap:anywhere}
+#panel-ecosystem .eco-lineages{display:grid;grid-template-columns:1fr;gap:7px;margin:12px 0}
+#panel-ecosystem .eco-lineage{border:1px solid #3b5066;border-radius:9px;padding:9px;background:linear-gradient(140deg,#192337,#101a28)}
+#panel-ecosystem .eco-lineage-label{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;font:600 10px/1.5 ui-monospace,monospace;color:#d5f6fa;margin-bottom:8px}
+#panel-ecosystem .eco-lineage-label span{color:#9ab6c9}
+#panel-ecosystem .eco-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+#panel-ecosystem .eco-actions button{font-size:9px;padding:8px 3px;min-height:38px;overflow-wrap:anywhere}
+#panel-ecosystem .eco-actions button:last-child{grid-column:span 1;color:#afe4ae}
+@media(max-width:730px){body.nursery-mode .viewport .stage{height:152px;min-height:152px}#panel-ecosystem .eco-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Ecosystem's 3D specimen viewer must never be occluded by the pinned live canvas. */
+@media(max-width:730px){body.ecosystem-mode .viewport{position:relative;top:auto;z-index:1}body.ecosystem-mode .viewport .stage{height:152px;min-height:152px}}
+
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / SELECTIVE EVOLUTION</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / EVOLUTIONARY ECOSYSTEMS</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -140,12 +159,12 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.16 · SELECTIVE EVOLUTION</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.17 · EVOLUTIONARY ECOSYSTEMS</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
         <button data-tab="material" role="tab" aria-selected="false">FINISHES</button><button data-tab="archaeology" role="tab" aria-selected="false">ARCHIVE</button>
-        <button data-tab="mutation" role="tab" aria-selected="false">MUTATION</button><button data-tab="breeding" role="tab" aria-selected="false">BREEDING</button><button data-tab="nursery" role="tab" aria-selected="false">NURSERY</button>
+        <button data-tab="mutation" role="tab" aria-selected="false">MUTATION</button><button data-tab="breeding" role="tab" aria-selected="false">BREEDING</button><button data-tab="nursery" role="tab" aria-selected="false">NURSERY</button><button data-tab="ecosystem" role="tab" aria-selected="false">ECOSYSTEM</button>
         <button data-tab="body" role="tab" aria-selected="false">BODY 3D</button><button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
@@ -317,6 +336,19 @@
         <div id="nurseryGallery" class="nursery-gallery" aria-label="Simulated 3D sibling comparison"></div>
         <div class="info"><strong>ONE TRIAL IS ONE REAL SIMULATION</strong><p>Each card is a real 3D growth trial, not an AI image or a preset. All siblings use the same environment and seed, with differing inherited recipes. Thumbnails are 2D projections of their 3D voxels, recolored with the current palette. KEEP saves a candidate in this session; EXPORT saves your kept specimens between sessions. A planted child may grow differently in your main artwork because its environment differs.</p></div>
       </div>
+      <div class="panel" id="panel-ecosystem" role="tabpanel" hidden>
+        <p class="panel-intro">A.17 · Three crystal bloodlines compete inside ONE shared 3D nutrient volume. Their fronts fight for the same cells, cannot overwrite occupied rock, and deplete a common fuel field. Their grown survivors can found the next generation.</p>
+        <div class="eco-controls">
+          <label class="range-label" for="ecoScarcity">Shared nutrient scarcity <output id="ecoScarcity-value">60%</output></label><input id="ecoScarcity" type="range" min="0" max="100" step="5" value="60"/>
+          <label class="range-label" for="ecoSteps">Steps per season <output id="ecoSteps-value">36 steps</output></label><input id="ecoSteps" type="range" min="12" max="96" step="12" value="36"/>
+          <div class="eco-toolbar"><button id="ecoNew" class="primary" type="button">✳ NEW SHARED HABITAT</button><button id="ecoSeason" type="button">▶ ADVANCE SEASON</button><button id="ecoEvolve" type="button">🧬 EVOLVE SURVIVORS</button><button id="ecoExport" type="button">↓ EXPORT ECOLOGY REPORT</button></div>
+          <p id="ecoStatus" class="control-note" role="status" aria-live="polite">Choose genomes in BREEDING, then grow a shared habitat. Every bloodline uses the same nutrient field and cannot overwrite another's occupied voxels.</p>
+        </div>
+        <canvas id="ecoCanvas" class="eco-canvas" aria-label="Actual 3D occupied voxels of three competing crystal bloodlines, projected isometrically"></canvas>
+        <p id="ecoMetrics" class="eco-metrics">NO HABITAT YET · START A SHARED WORLD</p>
+        <div id="ecoLineages" class="eco-lineages" aria-label="Bloodline competition results"></div>
+        <div class="info"><strong>ONE HABITAT, THREE GROWTH LAWS</strong><p>The habitat is a real, bounded 3D simulation with nutrient diffusion and competing fronts. A contested site can belong to only one crystal. Face contacts are measured from occupied voxels, not drawn as an effect. EVOLVE SURVIVORS captures the actual developed genes and builds three descendant recipes; the old season's measured history stays in the report. This is deliberately an artistic ecology approximation, not calibrated thermodynamics or natural selection. The live artwork is untouched unless you choose PLANT SURVIVOR.</p></div>
+      </div>
       <div class="panel" id="panel-body" role="tabpanel" hidden>
   <p class="panel-intro">A real triangulated crystal body: genuinely 3D solidification for volumetric specimens, with the older 2D growth bodies preserved as extrusions. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
   <div class="info"><strong>3D VOLUMETRIC SPECIMENS</strong><p>For the new volume growth species, the geometry comes from individual 3D cells, not an extruded 2D outline. The 2D preview uses a real volumetric projection or a chosen Z-slice if WebGL2 is unavailable.</p></div>
@@ -348,7 +380,7 @@
       </div>
     </aside>
   </main>
-  <footer class="foot">SELECTIVE EVOLUTION · 3D GROWTH TRIALS · 199 PALETTES</footer>
+  <footer class="foot">EVOLUTIONARY ECOSYSTEMS · SHARED 3D GROWTH · 199 PALETTES</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script>
@@ -5780,6 +5812,130 @@ function validateShape(shape){
   safe.spans=[...spans];return safe;
 }
 
+/** A.17 Evolutionary Ecosystems: THREE separate heritable mineral bloodlines
+ * growing in ONE shared 3D nutrient volume. Their fronts contest the same
+ * empty voxels, and the volume's global nutrient solver couples all lineages.
+ * Species/fitness language is artistic; this is not calibrated ecology.
+ */
+
+const ECOSYSTEM_SCHEMA='mathemagical-crystal-ecosystem/v1';
+const clampEco=(x,a,b)=>Math.max(a,Math.min(b,x));
+const uintEco=v=>(Number(v)>>>0)||1;
+const cloneEco=x=>JSON.parse(JSON.stringify(x));
+const POSITIONS=Object.freeze([[.39,.41,46],[.61,.41,46],[.50,.63,46]]);
+
+/** True 6-face touching grain contacts, plus 26-neighbor contested frontiers. */
+function ecosystemMetrics(volume){
+  const n=volume.size,owner=volume.owner,counts=[0,0,0],touch=[0,0,0];
+  let contacts=0,scarce=0,available=0;
+  for(let z=2;z<n-2;z++)for(let y=2;y<n-2;y++)for(let x=2;x<n-2;x++){
+    const i=volume.index(x,y,z),id=owner[i];
+    if(id>0 && id<=3){counts[id-1]++;
+      for(const j of [i+1,i+n,i+volume.area])if(owner[j]&&owner[j]!==id){contacts++;touch[id-1]++;if(owner[j]<=3)touch[owner[j]-1]++;}
+    }else if(!id){available++;if(volume.nutrient[i]<.3)scarce++;}
+  }
+  let contested=0;const frontierByLineage=[0,0,0];
+  for(const contenders of volume.frontier.values()){
+    if(contenders.size>1)contested++;
+    for(const grain of contenders)if(grain>0&&grain<=3)frontierByLineage[grain-1]++;
+  }
+  return {counts,contacts,contactsByLineage:touch,frontierByLineage,contested,starvedFraction:available?scarce/available:0,
+    freeCells:available,occupied:counts.reduce((a,b)=>a+b,0)};
+}
+
+/** Up to 3,000 exposed 3D cells, preserving owner identity in the projection. */
+function ecosystemCloud(volume){
+  const n=volume.size,cloud=[];
+  for(let z=2;z<n-2;z++)for(let y=2;y<n-2;y++)for(let x=2;x<n-2;x++){
+    const i=volume.index(x,y,z),id=volume.owner[i];if(!id)continue;
+    if([i+1,i+n,i+volume.area].every(j=>volume.owner[j]===id))continue;
+    cloud.push([x,y,z,id,volume.gene[i],volume.birth[i]%256]);
+  }
+  cloud.sort((a,b)=>(a[0]+a[1]+a[2])-(b[0]+b[1]+b[2]));
+  const stride=Math.max(1,Math.ceil(cloud.length/3000));
+  return cloud.filter((_,i)=>i%stride===0).flat();
+}
+
+/** Fixed spatial arrangement; every bloodline shares the same environment. */
+function startEcosystem(recipes,{seed=112358,scarcity=.6,steps=0,generation=1}={}){
+  if(!Array.isArray(recipes)||recipes.length!==3)throw Error('Ecosystem needs three genomic bloodlines');
+  const dna=recipes.map(r=>({...cloneEco(r),...normalizeGenome(r)}));
+  const world=new CrystalWorld(172);world.randomize(uintEco(seed));
+  world.config.volumeGrowth=.80;
+  world.config.volumeDiffusion=.12;
+  world.config.volumeSupply=.04+(1-clampEco(scarcity,0,1))*.77;
+  world.config.volumeBranches=.57;
+  const initialFuel=1-.46*clampEco(scarcity,0,1);
+  world.volume.nutrient.fill(initialFuel);world.volume.nextNutrient.fill(initialFuel);
+  const modes=['volumeNeedle','volumeOcta','volumeCoral'];
+  for(let i=0;i<3;i++){
+    const genome=dna[i],mode=modes[genome.laws.indexOf(Math.max(...genome.laws))];
+    const [sx,sy,depth]=POSITIONS[i];
+    world.config.volumeSeedDepth=depth;
+    if(!world.seed(world.size*sx,world.size*sy,genome.angles[i]||0,undefined,mode))throw Error('Could not seed ecosystem lineage '+(i+1));
+    if(!world.volume.imprintHybrid(i+1,{...genome,seed:(uintEco(genome.seed)||uintEco(seed+i*73856093))>>>0,
+       mutation:clampEco(Number(genome.mutation)||.11,0,1),crossover:clampEco(Number(genome.crossover)||.24,0,1),
+       parents:[{name:genome.name}]}) )throw Error('Could not imprint lineages');
+  }
+  const session={world,recipes:dna,generation,seed:uintEco(seed),scarcity:clampEco(scarcity,0,1),seasons:0,history:[]};
+  if(steps)advanceEcosystem(session,steps);
+  return session;
+}
+function advanceEcosystem(session,steps=24){
+  if(!Number.isInteger(steps)||steps<1||steps>160)throw Error('Season length must be 1–160 steps');
+  for(let i=0;i<steps;i++)session.world.step();
+  session.seasons++;
+  const metrics=ecosystemMetrics(session.world.volume);
+  session.history.push({generation:session.generation,season:session.seasons,ticks:session.world.ticks,...cloneEco(metrics)});
+  if(session.history.length>30)session.history.shift();
+  return metrics;
+}
+function ecosystemStatus(session){
+  const vol=session.world.volume,m=ecosystemMetrics(vol);
+  const samples=Array.from({length:3},(_,i)=>captureVolumeGenome(vol,i+1));
+  return {generation:session.generation,season:session.seasons,ticks:session.world.ticks,
+    ...m,samples,cloud:ecosystemCloud(vol),size:vol.size};
+}
+/** What survives an ecosystem season actually becomes the next generation's DNA.
+ * We retain three extant lines, but weight contributions by measured occupancy
+ * and favor diversity in crossover to avoid collapsing into a single cloneEco.
+ * A dead lineage cannot be resurrected from its former recipe.
+ */
+function nextEcosystemGeneration(session){
+  if(session.seasons<1)throw Error('Run at least one season before selecting offspring');
+  const state=ecosystemStatus(session);
+  const survivors=state.samples.map((g,i)=>g?{...g,original:i}:null).filter(Boolean);
+  if(survivors.length<2)throw Error('At least two surviving lineages are needed to breed');
+  // Occupied mass matters, but the number of exposed legal growth sites also
+  // measures a lineage's capacity to survive the next nutrient-limited season.
+  // Round-robin deposition budgets make raw voxel counts nearly equal early on.
+  const maxFront=Math.max(1,...state.frontierByLineage);
+  const f=state.counts.map((c,i)=>Math.sqrt(c)*(.5+.5*state.frontierByLineage[i]/maxFront));
+  const total=Math.max(1,f.reduce((a,b)=>a+b,0));
+  const ranked=[0,1,2].sort((a,b)=>state.counts[b]-state.counts[a]);
+  const next=[];
+  for(let child=0;child<3;child++){
+    const parentOrder=[ranked[child%ranked.length],ranked[(child+1)%ranked.length],ranked[(child+2)%ranked.length]];
+    const parents=parentOrder.map(index=>state.samples[index]||survivors[0]);
+    const weights=parentOrder.map((index,k)=>10+100*(f[index]/total)+(k===0?35:0));
+    const seed=(session.seed^Math.imul(session.generation+1,0x9e3779b1)^Math.imul(child+1,0x85ebca6b))>>>0||1;
+    next.push({...breedThreeParents(parents,weights,{mutation:.12+child*.055,crossover:.38+child*.09,seed}),
+      name:`ECOSYSTEM G${session.generation+1} · DESCENDANT ${child+1}`});
+  }
+  const successor=startEcosystem(next,{seed:session.seed,scarcity:session.scarcity,generation:session.generation+1});
+  successor.history=[...session.history,{event:'selection',generation:session.generation,counts:state.counts,
+    parents:state.samples.map(s=>s?.name||null)}].slice(-30);
+  return successor;
+}
+function exportEcosystem(session){
+  const state=ecosystemStatus(session);
+  return {schema:ECOSYSTEM_SCHEMA,generation:session.generation,seed:session.seed,
+    scarcity:session.scarcity,seasons:session.seasons,ticks:state.ticks,
+    recipes:session.recipes.map(cloneEco),survivors:state.samples.map(s=>s?cloneEco(s):null),
+    metrics:{counts:state.counts,frontierByLineage:state.frontierByLineage,contacts:state.contacts,contested:state.contested,
+      starvedFraction:state.starvedFraction},history:session.history.map(cloneEco)};
+}
+
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -5847,6 +6003,7 @@ function invalidatePalette() {
   volumeRenderVersion=-1;
   forceFull=true;
   repaintNurseryThumbnails();
+  if(ecosystemSession)renderEcosystem();
 }
 function renderPalettePreview() {
   const area=$('palettePreview');area.replaceChildren();
@@ -6242,7 +6399,8 @@ $('bodyResetCamera').addEventListener('click',()=>{bodySettings.yaw=20*Math.PI/1
 for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool));
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{
   currentTab=b.dataset.tab;
-  document.body.classList.toggle('nursery-mode',currentTab==='nursery');
+  document.body.classList.toggle('nursery-mode',currentTab==='nursery'||currentTab==='ecosystem');
+  document.body.classList.toggle('ecosystem-mode',currentTab==='ecosystem');
   if(currentTab==='breeding')refreshBreedingSources();
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
@@ -6342,6 +6500,100 @@ $('breedImport').addEventListener('change',async ev=>{
   }catch(err){$('breedStatus').textContent='Could not import DNA: '+err.message;}
   ev.target.value='';
 });
+// A.17 · THREE bloodlines sharing ONE real 3D nutrient volume. This scene is
+// intentionally separate from the live artwork until the artist chooses PLANT.
+let ecosystemSession=null,ecosystemBusy=false,ecosystemSerial=0;
+function ecoColor(id,gene,age,z,n){
+  const offset=[0,.32,.67][Math.max(0,Math.min(2,id-1))];
+  const t=((offset+gene*.053+age*.0017+z/n*.085)%1+1)%1;
+  const k=Math.floor(t*255)*3;
+  return [paletteLUT[k],paletteLUT[k+1],paletteLUT[k+2]];
+}
+function renderEcosystem(){
+  const canvas=$('ecoCanvas'),ctx=canvas.getContext('2d');
+  const d=360;canvas.width=canvas.height=d;
+  ctx.fillStyle='#03080f';ctx.fillRect(0,0,d,d);
+  const bg=ctx.createRadialGradient(d*.52,d*.43,1,d*.5,d*.54,d*.68);
+  bg.addColorStop(0,'#233547');bg.addColorStop(1,'#03070e');ctx.fillStyle=bg;ctx.fillRect(0,0,d,d);
+  const rows=$('ecoLineages');rows.replaceChildren();
+  if(!ecosystemSession){$('ecoMetrics').textContent='NO HABITAT YET · START A SHARED WORLD';return;}
+  const status=ecosystemStatus(ecosystemSession),cloud=status.cloud,n=status.size;
+  const unit=d/(n*2.28);
+  ctx.save();ctx.translate(d*.50,d*.53);
+  for(let q=0;q<cloud.length;q+=6){
+    const x=cloud[q]-n/2,y=cloud[q+1]-n/2,z=cloud[q+2]-n/2;
+    const id=cloud[q+3],gene=cloud[q+4],age=cloud[q+5];
+    const rgb=ecoColor(id,gene,age,cloud[q+2],n);
+    const center=[(x-y)*unit,(x+y)*unit*.48-z*unit*.88];
+    const cube=[[0,-.9],[.84,-.42],[.84,.52],[0,.94],[-.84,.52],[-.84,-.42]];
+    const face=(points,shade)=>{
+      ctx.beginPath();ctx.moveTo(center[0]+cube[points[0]][0]*unit*.55,center[1]+cube[points[0]][1]*unit*.55);
+      for(let j=1;j<points.length;j++)ctx.lineTo(center[0]+cube[points[j]][0]*unit*.55,center[1]+cube[points[j]][1]*unit*.55);
+      ctx.closePath();ctx.fillStyle=`rgb(${rgb.map(v=>Math.min(255,Math.round(v*shade+7))).join(',')})`;ctx.fill();
+    };
+    face([0,1,5],1.13);face([5,4,3,0],.62);face([0,3,2,1],.90);
+  }
+  ctx.restore();
+  $('ecoMetrics').textContent=`GEN ${status.generation} · SEASON ${status.season} · ${status.ticks} STEPS · ${status.occupied.toLocaleString()} VOXELS · ${status.contacts} REAL CONTACT FACES · ${status.contested} CONTESTED FRONTIER SITES · ${(status.starvedFraction*100).toFixed(0)}% STARVED SPACE`;
+  for(let i=0;i<3;i++){
+    const row=document.createElement('div');row.className='eco-lineage';
+    const label=document.createElement('div');label.className='eco-lineage-label';
+    const strong=document.createElement('strong');strong.textContent=`BLOODLINE ${String.fromCharCode(65+i)}`;
+    const span=document.createElement('span');span.textContent=` ${status.counts[i].toLocaleString()} VOXELS · ${status.contactsByLineage[i]} CONTACTS · ${status.frontierByLineage[i]} OPEN FRONTS`;
+    label.append(strong,span);row.appendChild(label);
+    const actions=document.createElement('div');actions.className='eco-actions';
+    for(let parent=0;parent<3;parent++){
+      const button=document.createElement('button');button.type='button';button.textContent='→ PARENT '+String.fromCharCode(65+parent);button.disabled=!status.samples[i];
+      button.addEventListener('click',()=>{breedParents[parent]=normalizeGenome(status.samples[i]);renderBreeding();$('ecoStatus').textContent=`Bloodline ${String.fromCharCode(65+i)} adopted as breeding Parent ${String.fromCharCode(65+parent)}. Live artwork unchanged.`;});
+      actions.appendChild(button);
+    }
+    const plant=document.createElement('button');plant.type='button';plant.textContent='✳ PLANT SURVIVOR';plant.disabled=!status.samples[i];
+    plant.addEventListener('click',()=>{
+      if(world.grains.length>=250){$('ecoStatus').textContent='Main canvas has reached its colony limit.';return;}
+      const dna=status.samples[i];const recipe={...dna,seed:(ecosystemSession.seed^Math.imul(i+1,0x85ebca6b))>>>0,crossover:.27,mutation:.12};
+      saveUndo();const child=plantOffspring(world,recipe);
+      if(!child){undoStack.pop();$('undo').disabled=!undoStack.length;$('ecoStatus').textContent='No clear planting space in the live artwork.';return;}
+      forceFull=true;volumeRenderVersion=-1;updateCompositionLabel();refreshBreedingSources();renderBreeding();
+      $('ecoStatus').textContent=`Planted living Bloodline ${String.fromCharCode(65+i)} as grain ${child.grainId}. Its new environment may change its growth.`;
+    });actions.appendChild(plant);
+    row.append(label,actions);rows.appendChild(row);
+  }
+}
+function ecoButtons(disabled){ecosystemBusy=disabled;for(const id of ['ecoNew','ecoSeason','ecoEvolve','ecoExport'])$(id).disabled=disabled;}
+async function ecosystemAction(kind){
+  if(ecosystemBusy)return;
+  const wasPlaying=playing;setPlaying(false);ecoButtons(true);
+  try{
+    $('ecoStatus').textContent=`${kind==='new'?'Establishing the habitat':kind==='evolve'?'Selecting surviving parents':'Advancing the shared nutrient world'}…`;
+    await new Promise(resolve=>requestAnimationFrame(resolve));
+    if(kind==='new'||!ecosystemSession){
+      const seed=(composition.seed^Math.imul(++ecosystemSerial,0x9e3779b1))>>>0||1;
+      const parents=breedParents.map(x=>({...x,laws:[...x.laws],angles:[...x.angles]}));
+      ecosystemSession=startEcosystem(parents,{seed,scarcity:Number($('ecoScarcity').value)/100});
+    }else if(kind==='evolve')ecosystemSession=nextEcosystemGeneration(ecosystemSession);
+    const stepCount=Number($('ecoSteps').value);
+    const metrics=advanceEcosystem(ecosystemSession,stepCount);
+    renderEcosystem();
+    $('ecoStatus').textContent=`Generation ${ecosystemSession.generation}, season ${ecosystemSession.seasons} complete. Three independent bloodlines competed in ONE shared nutrient field: ${metrics.contacts} occupied-face collisions and ${metrics.contested} currently contested fronts.`;
+  }catch(error){$('ecoStatus').textContent='Ecosystem error: '+error.message;console.error(error);}
+  finally{ecoButtons(false);setPlaying(wasPlaying);}
+}
+$('ecoNew').addEventListener('click',()=>ecosystemAction('new'));
+$('ecoSeason').addEventListener('click',()=>ecosystemAction('season'));
+$('ecoEvolve').addEventListener('click',()=>ecosystemAction('evolve'));
+$('ecoScarcity').addEventListener('input',ev=>{
+  const value=Number(ev.target.value);$('ecoScarcity-value').textContent=value+'%';
+  if(ecosystemSession){ecosystemSession.scarcity=value/100;ecosystemSession.world.config.volumeSupply=.04+(1-value/100)*.77;}
+});
+$('ecoSteps').addEventListener('input',ev=>{$('ecoSteps-value').textContent=ev.target.value+' steps';});
+$('ecoExport').addEventListener('click',()=>{
+  if(!ecosystemSession){$('ecoStatus').textContent='Grow a shared habitat before exporting a report.';return;}
+  const report=exportEcosystem(ecosystemSession);const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`crystal-ecosystem-gen${report.generation}.json`;
+  document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1200);
+  $('ecoStatus').textContent='Exported portable lineage recipes, measured competition, and seasonal history. Full voxel arrays are deliberately excluded.';
+});
+
 // A.15 · MUTATION NURSERY: 3D sibling trials are detached from the live world.
 // Only a deliberate PLANT changes the main crystal; the kept archive survives
 // Refresh/Restart until the user exports or imports a curated family.
