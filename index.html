@@ -12,7 +12,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / THE THIRD DIMENSION</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / METAMORPHOSIS</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -23,7 +23,7 @@
       </div>
       <div class="bottom-bar">
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
-        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
+        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve real fractures in phase-field and 3D volume crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
       </div>
       <div class="specimen-actions" aria-label="Crystal lifecycle actions">
         <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
@@ -33,7 +33,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.11 · VOLUMETRIC CRYSTALS</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.12 · CRYSTAL METAMORPHOSIS</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -53,6 +53,10 @@
           <label class="range-label" for="volumeDiffusion">3D nutrient diffusion <output id="volumeDiffusion-value">12%</output></label><input id="volumeDiffusion" type="range" min="0" max="16" value="12" step="1" />
           <label class="range-label" for="volumeSupply">3D nutrient recovery <output id="volumeSupply-value">40%</output></label><input id="volumeSupply" type="range" min="0" max="100" value="40" step="1" />
           <label class="range-label" for="volumeSeedDepth">Depth of newly planted seeds <output id="volumeSeedDepth-value">50%</output></label><input id="volumeSeedDepth" type="range" min="0" max="100" value="50" step="1" />
+          <div class="info"><strong>A.12 · INTERNAL 3D FRACTURE</strong><p>Choose ◇ FRACTURE and drag the crystal. The cut is a real sheared tunnel centered at the selected Z layer, not a texture. Change 2D inspection to Z-SLICE to see the interior. Newly deposited rock remembers that it is a later generation.</p></div>
+          <label class="range-label" for="volumeFractureDepth">Fracture layer · Z depth <output id="volumeFractureDepth-value">50%</output></label><input id="volumeFractureDepth" type="range" min="0" max="100" value="50" step="1" />
+          <label class="range-label" for="volumeFractureReach">Fracture reach through the volume <output id="volumeFractureReach-value">70%</output></label><input id="volumeFractureReach" type="range" min="0" max="100" value="70" step="1" />
+          <label class="range-label" for="volumeHealing">Crystal regrowth in old cuts <output id="volumeHealing-value">65%</output></label><input id="volumeHealing" type="range" min="0" max="100" value="65" step="1" />
         </div>
         <div id="tipControls">
         <label class="range-label" for="frost">Microscopic frost needles <output id="frost-value">64%</output></label><input id="frost" type="range" min="0" max="100" value="64" step="1" />
@@ -138,7 +142,7 @@
         <label class="range-label" for="fractureSplinter">Splintering / side fissures <output id="fractureSplinter-value">38%</output></label><input id="fractureSplinter" type="range" min="0" max="100" value="38" step="1" />
         <label class="range-label" for="fractureHeal">Recrystallization along cracks <output id="fractureHeal-value">55%</output></label><input id="fractureHeal" type="range" min="0" max="100" value="55" step="1" />
         <label class="range-label" for="archiveReveal">Reveal old mineral generations <output id="archiveReveal-value">68%</output></label><input id="archiveReveal" type="range" min="0" max="100" value="68" step="1" />
-        <div class="info"><strong>ARCHAEOLOGY LENS</strong><p>Select “CRYSTAL ARCHAEOLOGY” under FINISHES to see past deposition ghosts, generation-dependent bands and illuminated scars. Painting a fracture changes physics; revealing layers only changes how they look. Fractures currently work in the three phase-field anatomies.</p></div>
+        <div class="info"><strong>ARCHAEOLOGY LENS</strong><p>Select “CRYSTAL ARCHAEOLOGY” under FINISHES to see past deposition ghosts, generation-dependent bands and illuminated scars. Painting a fracture changes physics; revealing layers only changes how they look. Fractures work in both phase-field and 3D volume crystals; 3D mineral cuts can regrow as later generations.</p></div>
       </div>
       <div class="panel" id="panel-body" role="tabpanel" hidden>
   <p class="panel-intro">A real triangulated crystal body: genuinely 3D solidification for volumetric specimens, with the older 2D growth bodies preserved as extrusions. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
@@ -147,6 +151,8 @@
   <label class="range-label" for="volumeSlice">Volume cross-section depth <output id="volumeSlice-value">50%</output></label><input id="volumeSlice" type="range" min="0" max="100" value="50" step="1" />
   <button class="wide primary" id="bodyToggle" type="button" aria-pressed="false">◈ ENABLE 3D BODY VIEW</button>
   <div class="info"><strong id="bodyStatus">3D preview disabled · 2D stage unchanged</strong><p>Choose ORBIT 3D beneath the canvas to drag the camera. Pinch with two fingers to zoom. Switch off to return to the untouched 2D view.</p></div>
+  <label class="select-label" for="bodySurface">3D volume surface topology</label><select id="bodySurface"><option value="facets">SHARP · CRYSTALLINE VOXEL FACETS</option><option value="smooth">MELTED GLASS · SMOOTH ISOSURFACE</option></select>
+  <label class="range-label" for="bodyOpticalPath">Thickness-driven color absorption <output id="bodyOpticalPath-value">45%</output></label><input id="bodyOpticalPath" type="range" min="0" max="100" value="45" step="1" />
   <label class="range-label" for="bodyDepth">True extrusion thickness <output id="bodyDepth-value">72%</output></label><input id="bodyDepth" type="range" min="0" max="100" value="72" step="1" />
   <label class="range-label" for="bodyAngle">Camera orbit / yaw <output id="bodyAngle-value">20°</output></label><input id="bodyAngle" type="range" min="-180" max="180" value="20" step="1" />
   <label class="range-label" for="bodyTilt">Camera tilt <output id="bodyTilt-value">38°</output></label><input id="bodyTilt" type="range" min="0" max="82" value="38" step="1" />
@@ -158,13 +164,13 @@
   <label class="range-label" for="bodyTransparency">Crystal translucency <output id="bodyTransparency-value">12%</output></label><input id="bodyTransparency" type="range" min="0" max="100" value="12" step="1" />
   <label class="select-label" for="bodyDetail">Mesh detail / mobile performance</label><select id="bodyDetail"><option value="fast">FAST · LIGHTWEIGHT</option><option value="balanced" selected>BALANCED · DEFAULT</option><option value="fine">FINE · MORE FACETS</option></select>
   <button id="bodyResetCamera" type="button" class="wide">↶ RESET CAMERA ONLY</button>
-  <p class="control-note">The original 2D species have genuine top triangles and extruded walls. New A.11 species instead grow their own solid cells in x/y/z: exposed voxel surfaces and outward facet normals are extracted from that actual 3D occupancy. Color and lighting use real normals and stored growth history. Refraction and transparency are approximate GPU materials, not physically traced light paths. No extra packages, network, or API keys.</p>
+  <p class="control-note">Smooth isosurfaces are generated by marching tetrahedra over a locally averaged 3D density. Thickness coloring uses Beer–Lambert-inspired channel attenuation from the actual volume's Z-column thickness (not path-traced refraction). The original 2D species have genuine top triangles and extruded walls. New A.11 species instead grow their own solid cells in x/y/z: exposed voxel surfaces and outward facet normals are extracted from that actual 3D occupancy. Color and lighting use real normals and stored growth history. Refraction and transparency are approximate GPU materials, not physically traced light paths. No extra packages, network, or API keys.</p>
 </div>
       <div class="panel" id="panel-studio" role="tabpanel" hidden>
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately. The PNG export captures the live 3D body when WebGL2 is available; otherwise it captures the 2D volume projection or selected Z-slice.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <div class="info"><strong>SPECIMEN CONTROL</strong><p>Use the three buttons beneath the artwork: NEW SEED plants a colony without clearing anything; REFRESH generates new crystals using your selected anatomy; RESTART replays this specimen’s saved starting seed. Destructive actions ask first and can be undone.</p></div>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div><div><b id="volumeScarMetric">0</b><span>3D FRACTURE VOXELS</span></div><div><b id="volumeRegrowMetric">0</b><span>RECRYSTALLIZED VOXELS</span></div></div>
         <div class="info"><strong>ENGINE STATUS</strong><p>Four stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>

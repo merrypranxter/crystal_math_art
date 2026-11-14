@@ -28,7 +28,7 @@ let analyzerAngle=28,opticalRetardance=.65,polarizerContrast=.80,polarRevision=0
 let spectralDispersion=.52,opticalDefects=.50,opticalTwist=.65,opticalBackend='auto';
 let spectralGPU=null,spectralError='';
 let bodyEnabled=false,bodyGPU=null,bodyError='';
-const bodySettings={depth:.72,yaw:20*Math.PI/180,tilt:38*Math.PI/180,zoom:.73,
+const bodySettings={surface:'facets',opticalPath:.45,depth:.72,yaw:20*Math.PI/180,tilt:38*Math.PI/180,zoom:.73,
   lightAngle:315,dispersion:.60,bands:.52,absorption:.28,transparency:.12,detail:'balanced'};
 const bodyPointers=new Map();let bodyPinchDistance=0;
 let editing = false;
@@ -324,7 +324,7 @@ function setTool(tool) {
   if(tool==='orbit'&&!bodyEnabled && !enableBody())return;
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAW A REAL CRACK THROUGH PHASE OR 3D ROCK · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -335,7 +335,15 @@ function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...com
 function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
-  else if(activeTool==='fracture')world.fracture(p.x,p.y);
+  else if(activeTool==='fracture'){
+    world.fracture(p.x,p.y);
+    if(world.volume.active&&volumeView!=='slice'){
+      volumeView='slice';$('volumeView').value='slice';
+      volumeSlice=world.config.volumeFractureDepth;
+      $('volumeSlice').value=volumeSlice;
+      $('volumeSlice-value').textContent=volumeSlice+'%';volumeRenderVersion=-1;
+    }
+  }
   else if(activeTool==='twist')world.spherulite.twistOptics(p.x,p.y,world.config.brush,opticalTwist);
   recentPoint=p;
 }
@@ -406,6 +414,8 @@ function enableBody(){
 }
 $('volumeView').addEventListener('change',ev=>{volumeView=ev.target.value;volumeRenderVersion=-1;});
 $('volumeSlice').addEventListener('input',ev=>{volumeSlice=Number(ev.target.value);$('volumeSlice-value').textContent=volumeSlice+'%';volumeRenderVersion=-1;});
+$('bodySurface').addEventListener('change',ev=>{bodySettings.surface=ev.target.value;if(bodyGPU)bodyGPU.lastGeometry=-1;});
+$('bodyOpticalPath').addEventListener('input',ev=>{bodySettings.opticalPath=Number(ev.target.value)/100;$('bodyOpticalPath-value').textContent=ev.target.value+'%';});
 $('bodyToggle').addEventListener('click',()=>{
   if(bodyEnabled){bodyEnabled=false;$('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');$('bodyStatus').textContent='3D preview disabled · 2D stage preserved';if(activeTool==='orbit')setTool('seed');}
   else enableBody();
@@ -429,7 +439,7 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={volumeGrowth:{value:v=>v+'%',transform:v=>v/100},volumeFacets:{value:v=>v+'%',transform:v=>v/100},volumeBranches:{value:v=>v+'%',transform:v=>v/100},volumeDiffusion:{value:v=>v+'%',transform:v=>v/100},volumeSupply:{value:v=>v+'%',transform:v=>v/100},volumeSeedDepth:{value:v=>v+'%',transform:v=>v},fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={volumeFractureDepth:{value:v=>v+'%',transform:v=>v},volumeFractureReach:{value:v=>v+'%',transform:v=>v/100},volumeHealing:{value:v=>v+'%',transform:v=>v/100},volumeGrowth:{value:v=>v+'%',transform:v=>v/100},volumeFacets:{value:v=>v+'%',transform:v=>v/100},volumeBranches:{value:v=>v+'%',transform:v=>v/100},volumeDiffusion:{value:v=>v+'%',transform:v=>v/100},volumeSupply:{value:v=>v+'%',transform:v=>v/100},volumeSeedDepth:{value:v=>v+'%',transform:v=>v},fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
@@ -537,7 +547,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.volumeCells>0 ? s.volumeCells.toLocaleString()+' 3D VOXELS · '+s.volumeDepthSlices+' Z-LAYERS' : s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();$('volumeMetric').textContent=s.volumeCells.toLocaleString();$('volumeZMetric').textContent=s.volumeDepthSlices.toLocaleString();$('volumeFrontMetric').textContent=s.volumeFrontier.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();$('volumeMetric').textContent=s.volumeCells.toLocaleString();$('volumeZMetric').textContent=s.volumeDepthSlices.toLocaleString();$('volumeFrontMetric').textContent=s.volumeFrontier.toLocaleString();$('volumeScarMetric').textContent=s.volumeScars.toLocaleString();$('volumeRegrowMetric').textContent=s.volumeRegrown.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;

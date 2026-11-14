@@ -17,7 +17,7 @@ const TAU_BODY = Math.PI * 2;
 const boundBody = (v,a,b) => Math.max(a,Math.min(b,v));
 
 /** Derive a real 3D surface and boundary walls from ALL four growth families. */
-export function buildCrystalMesh(world,{depth=.72,detail='balanced'}={}){
+export function buildCrystalMesh(world,{depth=.72,detail='balanced',surface='facets'}={}){
   const step=detail==='fine'?2:detail==='fast'?6:4;
   const grid=Math.ceil(world.size/step),count=grid*grid;
   const id=new Uint8Array(count),density=new Float32Array(count);
@@ -118,13 +118,13 @@ export function buildCrystalMesh(world,{depth=.72,detail='balanced'}={}){
   }
   // A.11: append independent three-dimensional voxel growth. The old 2D
   // extrusion remains fully reversible and is unchanged for non-volume art.
-  const volume=world.volume?.active?buildVolumeMesh(world.volume,{depth}):null;
+  const volume=world.volume?.active?(surface==='smooth'?buildSmoothVolumeMesh(world.volume,{depth}):buildVolumeMesh(world.volume,{depth})):null;
   const oldVertices=verts.length,combined=new Float32Array(oldVertices+(volume?.vertices.length||0));
   combined.set(verts);
   if(volume)combined.set(volume.vertices,oldVertices);
   return {vertices:combined,stride:9,grid,step,occupied,topTriangles,wallTriangles,bottomTriangles,
     volumeVoxels:volume?.voxels||0,volumeFaces:volume?.exposedFaces||0,volumeTriangles:volume?.triangles||0,
-    triangles:combined.length/27,depth,detail,heights:height,owners:id};
+    triangles:combined.length/27,depth,detail,surface,heights:height,owners:id};
 }
 
 /** Real Z-resolved 3D mesh: six exposed faces per occupied voxel, with angular
@@ -134,6 +134,7 @@ export function buildVolumeMesh(volume,{depth=.72}={}){
   const n=volume.size, a=volume.area;
   const vertices=[];let exposedFaces=0,grainBoundaries=0;
   const paletteTone=(g,age,z)=>((g*.167 + age*.0032 + z/n*.18)%1+1)%1;
+  const thickness=volumeThickness(volume);
   function triangle(v0,v1,v2,pigment,history,band){
     const u=[v1[0]-v0[0],v1[1]-v0[1],v1[2]-v0[2]],v=[v2[0]-v0[0],v2[1]-v0[1],v2[2]-v0[2]];
     let nx=u[1]*v[2]-u[2]*v[1],ny=u[2]*v[0]-u[0]*v[2],nz=u[0]*v[1]-u[1]*v[0];
@@ -154,7 +155,8 @@ export function buildVolumeMesh(volume,{depth=.72}={}){
     const center=[(x+.5)/n*2-1,1-(y+.5)/n*2,((z+.5)/n*2-1)*(.82+.17*depth)];
     const r=1/n;
     const corners=[[-r,r,-r],[r,r,-r],[r,-r,-r],[-r,-r,-r],[-r,r,r],[r,r,r],[r,-r,r],[-r,-r,r]].map(c=>[center[0]+c[0],center[1]+c[1],center[2]+c[2]*(.82+.17*depth)]);
-    const tone=paletteTone(g,volume.birth[i],z),history=(volume.birth[i]*.009)%1,band=z/n;
+    const tone=paletteTone(g,volume.birth[i],z)+(volume.generation?.[i]||0)*.097;
+    const history=(volume.birth[i]*.009)%1,band=thickness[y*n+x];
     for(const side of sides){
       const xx=x+side.d[0],yy=y+side.d[1],zz=z+side.d[2];
       const neighbor=volume.owner[zz*a+yy*n+xx];
@@ -170,6 +172,97 @@ export function buildVolumeMesh(volume,{depth=.72}={}){
     }
   }
   return {vertices:new Float32Array(vertices),voxels,exposedFaces,grainBoundaries,triangles:vertices.length/27};
+}
+
+
+/** Number of voxels encountered along the actual occupied Z column.
+ * This is a geometry-derived optical-path PROXY, not a view-dependent ray trace.
+ * The result is stable under camera orbit and regenerates only with the mesh. */
+export function volumeThickness(volume){
+  const n=volume.size,area=volume.area,out=new Float32Array(area);
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    let count=0;
+    for(let z=0;z<n;z++)if(volume.owner[z*area+y*n+x])count++;
+    out[y*n+x]=Math.min(1,count/(n*.62));
+  }
+  return out;
+}
+
+/** Marching tetrahedra over a smooth scalar field extracted from real solid voxels.
+ * Unlike voxel-quads, this produces interpolated vertices and continuous normals.
+ * It does not move or modify any material in the simulation. Six tetrahedra
+ * per cube guarantee a deterministic, crack-free decomposition of a shared grid.
+ * The threshold is tuned to retain thin one-cell branches; this is NOT a new PDE.
+ */
+export function buildSmoothVolumeMesh(volume,{depth=.72}={}){
+  const n=volume.size,a=volume.area,count=volume.count;
+  const data=volume.owner,field=new Float32Array(count),thick=volumeThickness(volume);
+  const value=(x,y,z)=>data[z*a+y*n+x]?1:0;
+  for(let z=1;z<n-1;z++)for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+    const i=z*a+y*n+x;
+    field[i]=(4*value(x,y,z)+value(x-1,y,z)+value(x+1,y,z)+value(x,y-1,z)+value(x,y+1,z)+value(x,y,z-1)+value(x,y,z+1))/10;
+  }
+  const gradients=new Float32Array(count*3);
+  for(let z=1;z<n-1;z++)for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+    const i=z*a+y*n+x;
+    gradients[i*3]=field[i-1]-field[i+1];
+    gradients[i*3+1]=field[i-n]-field[i+n];
+    gradients[i*3+2]=field[i-a]-field[i+a];
+  }
+  const CUBE=[[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+  const TETRA=[[0,5,1,6],[0,1,2,6],[0,2,3,6],[0,3,7,6],[0,7,4,6],[0,4,5,6]];
+  const verts=[],iso=.32,scaleZ=.82+.17*depth;
+  let occupied=0;for(const g of data)if(g)occupied++;
+  const src=(index)=>{
+    const z=Math.floor(index/a),y=Math.floor((index%a)/n),x=index%n;
+    return [x,y,z];
+  };
+  function crossing(A,B,coordinate){
+    const va=field[A],vb=field[B], t=Math.abs(vb-va)<1e-9?.5:(iso-va)/(vb-va);
+    const pos=[coordinate[A][0]+(coordinate[B][0]-coordinate[A][0])*t,coordinate[A][1]+(coordinate[B][1]-coordinate[A][1])*t,coordinate[A][2]+(coordinate[B][2]-coordinate[A][2])*t];
+    let nx=gradients[A*3]+(gradients[B*3]-gradients[A*3])*t;
+    let ny=gradients[A*3+1]+(gradients[B*3+1]-gradients[A*3+1])*t;
+    let nz=gradients[A*3+2]+(gradients[B*3+2]-gradients[A*3+2])*t;
+    let m=Math.hypot(nx,ny,nz);if(m<1e-8){nx=0;ny=0;nz=1;m=1;}
+    // y is inverted in world coordinates, so the gradient y needs inversion.
+    return {p:[pos[0]/n*2-1,1-pos[1]/n*2,(pos[2]/n*2-1)*scaleZ],n:[nx/m,-ny/m,nz/m]};
+  }
+  function triangle(v0,v1,v2,pigment,history,band){
+    const a=v0.p,b=v1.p,c=v2.p,u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+    const cross=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+    const target=[v0.n[0]+v1.n[0]+v2.n[0],v0.n[1]+v1.n[1]+v2.n[1],v0.n[2]+v1.n[2]+v2.n[2]];
+    if(cross[0]*target[0]+cross[1]*target[1]+cross[2]*target[2]<0){const t=v1;v1=v2;v2=t;}
+    for(const point of [v0,v1,v2])verts.push(...point.p,...point.n,pigment,history,band);
+  }
+  for(let z=1;z<n-2;z++)for(let y=1;y<n-2;y++)for(let x=1;x<n-2;x++){
+    const coords=CUBE.map(([dx,dy,dz])=>[x+dx,y+dy,z+dz]);
+    const ids=coords.map(([xx,yy,zz])=>zz*a+yy*n+xx);
+    const vals=ids.map(i=>field[i]);
+    if(Math.min(...vals)>=iso||Math.max(...vals)<iso)continue;
+    // Pick the dominant real grain in the tetra-cube (not fabricated identity).
+    let grain=0,age=0,maxVal=-1,generation=0;
+    for(const i of ids)if(data[i]&&field[i]>maxVal){maxVal=field[i];grain=data[i];age=volume.birth[i];generation=volume.generation?.[i]||0;}
+    if(!grain)continue;
+    const tone=((grain*.167+age*.0032+z/n*.18+generation*.097)%1+1)%1;
+    const history=((age*.009)%1+1)%1,band=thick[y*n+x];
+    const lattice=Object.fromEntries(ids.map((i,k)=>[i,coords[k]]));
+    const make=(ia,ib)=>crossing(ids[ia],ids[ib],lattice);
+    // Split each tetra into one or two triangles by its four signed corner values.
+    for(const tet of TETRA){
+      const inside=tet.filter(i=>vals[i]>=iso),outside=tet.filter(i=>vals[i]<iso);
+      if(inside.length===0||outside.length===0)continue;
+      if(inside.length===1||inside.length===3){
+        const center=(inside.length===1?inside:outside)[0],rest=inside.length===1?outside:inside;
+        const pts=rest.map(r=>make(center,r));
+        triangle(pts[0],pts[1],pts[2],tone,history,band);
+      }else{
+        const aa=make(inside[0],outside[0]),bb=make(inside[0],outside[1]),cc=make(inside[1],outside[0]),dd=make(inside[1],outside[1]);
+        triangle(aa,bb,cc,tone,history,band);
+        triangle(cc,bb,dd,tone,history,band);
+      }
+    }
+  }
+  return {vertices:new Float32Array(verts),voxels:occupied,exposedFaces:0,grainBoundaries:0,triangles:verts.length/27,surface:'smooth'};
 }
 
 const VERT_BODY=`#version 300 es
@@ -195,7 +288,7 @@ precision highp float;
 in vec3 vNormal,vPigment,vPosition;
 out vec4 frag;
 uniform sampler2D uPalette;
-uniform float uLightAngle,uAbsorption,uDispersion,uTransparency,uLayerBands,uYaw,uTilt;
+uniform float uLightAngle,uAbsorption,uDispersion,uTransparency,uLayerBands,uYaw,uTilt,uOpticalPath;
 const float TAU=6.28318530718;
 void main(){
   vec3 n=normalize(vNormal);
@@ -214,8 +307,13 @@ void main(){
     texture(uPalette,vec2(base,.5)).g,
     texture(uPalette,vec2(fract(base+shift),.5)).b
   );
+  // Volume pigment.z encodes geometrically measured Z-column filling fraction.
+  // Color-selective exponential attenuation is Beer-Lambert-inspired only:
+  // no multiple scattering, caustic ray marching, or physical IOR calibration.
+  float opticalThickness=clamp(vPigment.z,0.,1.);
+  vec3 transmission=exp(-uOpticalPath*opticalThickness*vec3(.35,.90,1.65));
   float shading=(.20+.83*diffuse)*dark;
-  vec3 color=pigment*shading+vec3(.74,.84,1.)*(spec*.52+rim*(.11+.5*uDispersion));
+  vec3 color=pigment*shading*transmission+vec3(.74,.84,1.)*(spec*.52+rim*(.11+.5*uDispersion));
   color+=pigment*(.18*layer);
   float opacity=1.-uTransparency*(.22+.4*rim);
   frag=vec4(clamp(color,0.,1.),clamp(opacity,.31,1.));
@@ -243,20 +341,20 @@ export class CrystalBodyGPU{
     for(const [location,size,offset] of [[0,3,0],[1,3,12],[2,3,24]]){
       gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset);
     }
-    this.paletteTexture=gl.createTexture();this.lastPalette=-1;this.lastGeometry=-1;this.lastDetail='';this.lastDepth=-1;
+    this.paletteTexture=gl.createTexture();this.lastPalette=-1;this.lastGeometry=-1;this.lastDetail='';this.lastDepth=-1;this.lastSurface='';
     this.vertices=0;this.triangles=0;this.status='ready';this.mesh=null;this.lost=false;
-    this.uniforms=Object.fromEntries(['uPalette','uYaw','uTilt','uZoom','uLightAngle','uAbsorption','uDispersion','uTransparency','uLayerBands'].map(k=>[k,gl.getUniformLocation(this.program,k)]));
+    this.uniforms=Object.fromEntries(['uPalette','uYaw','uTilt','uZoom','uLightAngle','uAbsorption','uDispersion','uTransparency','uLayerBands','uOpticalPath'].map(k=>[k,gl.getUniformLocation(this.program,k)]));
     this.canvas.addEventListener('webglcontextlost',ev=>{ev.preventDefault();this.lost=true;});
   }
   updateGeometry(world,settings={},now=0){
     const geometryVersion=world.modified;
-    if(this.lastGeometry===geometryVersion&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth)return;
+    if(this.lastGeometry===geometryVersion&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth&&this.lastSurface===settings.surface)return;
     // Limit mesh rebuilding for continuously growing worlds on older iPhones.
-    if(this.lastGeometry!==-1&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth&&now-this.lastBuildAt<145)return;
+    if(this.lastGeometry!==-1&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth&&this.lastSurface===settings.surface&&now-this.lastBuildAt<(settings.surface==='smooth'?800:145))return;
     const mesh=buildCrystalMesh(world,settings);
     const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,this.vbo);gl.bufferData(gl.ARRAY_BUFFER,mesh.vertices,gl.DYNAMIC_DRAW);
     this.mesh=mesh;this.vertices=mesh.vertices.length/9;this.triangles=mesh.triangles;
-    this.lastGeometry=geometryVersion;this.lastDetail=settings.detail;this.lastDepth=settings.depth;this.lastBuildAt=now;
+    this.lastGeometry=geometryVersion;this.lastDetail=settings.detail;this.lastDepth=settings.depth;this.lastSurface=settings.surface;this.lastBuildAt=now;
   }
   updatePalette(lut,revision){
     if(this.lastPalette===revision)return;
@@ -290,6 +388,7 @@ export class CrystalBodyGPU{
     gl.uniform1f(this.uniforms.uDispersion,settings.dispersion??.6);
     gl.uniform1f(this.uniforms.uTransparency,settings.transparency??.12);
     gl.uniform1f(this.uniforms.uLayerBands,settings.bands??.52);
+    gl.uniform1f(this.uniforms.uOpticalPath,settings.opticalPath??.45);
     gl.drawArrays(gl.TRIANGLES,0,this.vertices);
     if(gl.getError()!==gl.NO_ERROR)throw Error('Crystal Body GL draw error');
     return this.canvas;

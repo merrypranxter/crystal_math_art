@@ -26,6 +26,9 @@ export class VolumeField {
     this.nutrient=new Float32Array(this.count).fill(1);
     this.nextNutrient=new Float32Array(this.count).fill(1);
     this.birth=new Uint32Array(this.count);
+    this.fossilBirth=new Uint32Array(this.count); // previous mineral generation
+    this.generation=new Uint16Array(this.count); // how often this voxel refilled
+    this.scar=new Uint8Array(this.count); // cut rock; visible in slice mode
     this.frontier=new Map();
     this.deposited=0;
     this.version=0;
@@ -51,6 +54,8 @@ export class VolumeField {
     if(this.owner[i])return false;
     this.owner[i]=grain;
     this.birth[i]=this.world.ticks+1;
+    if(this.fossilBirth[i])this.generation[i]=Math.min(65535,this.generation[i]+1);
+    this.scar[i]=0;
     this.nutrient[i]=0;
     this.frontier.delete(i);
     this.addNeighbors(x,y,z,grain);
@@ -111,7 +116,9 @@ export class VolumeField {
       if(this.valid(xx,yy,zz)&&this.owner[this.index(xx,yy,zz)]===grain)aligned++;
     }
     const detached=aligned===0?.56:1;
-    return Math.max(0,fuel*(.37+.23*Math.min(4,aligned))*detached*anisotropy*turbulence);
+    // A.12 damaged mineral surfaces act as energetic reattachment sites.
+    const scarAttract=this.scar[i]?1+clampV(this.world.config.volumeHealing??.65,0,1)*1.4:1;
+    return Math.max(0,fuel*(.37+.23*Math.min(4,aligned))*detached*anisotropy*turbulence*scarAttract);
   }
   advance(){
     if(!this.active)return;
@@ -145,6 +152,38 @@ export class VolumeField {
     }
     if(changed)this.world.modified++;
   }
+  /** Actual three-axis, finite-depth fracture: removes occupied voxels.
+   * Touch X/Y locates the cut, selected Z determines its center, reach sets
+   * depth. The shear displaces the channel across Z. No image overlay involved.
+   * Every removed voxel retains its previous birth for later recrystallization.
+   */
+  fractureShear(x,y,r,zPercent=50,reach=.65){
+    const n=this.size, px=x/this.scale,py=y/this.scale;
+    const z0=clampV(Math.round(zPercent/100*(n-1)),2,n-3);
+    const halfExtent=Math.max(1,Math.round((.08+clampV(reach,0,1)*.37)*n));
+    const rr=Math.max(.6,r/this.scale);
+    let removed=0;
+    for(let z=Math.max(2,z0-halfExtent);z<=Math.min(n-3,z0+halfExtent);z++){
+      const depth=(z-z0)/halfExtent;
+      const cx=px+depth*(.8+rr*.65),cy=py-depth*(.6+rr*.50);
+      // Crystalline shear: a narrow fissure with deterministic side splinters.
+      const splinter=.20*(this.world.config.volumeBranches??.5)*Math.sin(z*1.73+px*.23);
+      const rad=rr*(.42+.26*(1-Math.abs(depth))+splinter);
+      for(let yy=Math.max(2,Math.floor(cy-rad-1));yy<=Math.min(n-3,Math.ceil(cy+rad+1));yy++)
+      for(let xx=Math.max(2,Math.floor(cx-rad-1));xx<=Math.min(n-3,Math.ceil(cx+rad+1));xx++){
+        if((xx-cx)**2+(yy-cy)**2>rad*rad)continue;
+        const i=this.index(xx,yy,z);
+        if(!this.owner[i])continue;
+        this.fossilBirth[i]=this.birth[i];
+        this.scar[i]=255;
+        this.owner[i]=0;this.birth[i]=0;
+        this.nutrient[i]=.92;
+        removed++;
+      }
+    }
+    if(removed){this.deposited=Math.max(0,this.deposited-removed);this.rebuild();this.world.modified++;}
+    return removed;
+  }
   meltColumn(x,y,r){
     const px=x/this.scale,py=y/this.scale,rr=r/this.scale,rr2=rr*rr;
     let removed=0;
@@ -177,16 +216,24 @@ export class VolumeField {
     return this.owner.slice(z*this.area,(z+1)*this.area);
   }
   stats(){
+    let scars=0,regrown=0;
+    for(let i=0;i<this.count;i++){
+      if(this.scar[i]&&!this.owner[i])scars++;
+      if(this.generation[i]>0&&this.owner[i])regrown++;
+    }
     let cells=0,slabs=new Set();let minZ=this.size,maxZ=-1;
     for(let i=0;i<this.owner.length;i++)if(this.owner[i]){
       cells++;const z=Math.floor(i/this.area);slabs.add(z);minZ=Math.min(minZ,z);maxZ=Math.max(maxZ,z);
     }
-    return {volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0};
+    return {volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0,volumeScars:scars,volumeRegrown:regrown};
   }
-  snapshot(){return {owner:this.owner.slice(),nutrient:this.nutrient.slice(),nextNutrient:this.nextNutrient.slice(),birth:this.birth.slice(),frontier:[...this.frontier].map(([i,ids])=>[i,[...ids]]),deposited:this.deposited,version:this.version,active:this.active};}
+  snapshot(){return {owner:this.owner.slice(),nutrient:this.nutrient.slice(),nextNutrient:this.nextNutrient.slice(),birth:this.birth.slice(),fossilBirth:this.fossilBirth.slice(),generation:this.generation.slice(),scar:this.scar.slice(),frontier:[...this.frontier].map(([i,ids])=>[i,[...ids]]),deposited:this.deposited,version:this.version,active:this.active};}
   restore(state){
     if(!state)return;
     this.owner=state.owner.slice();this.nutrient=state.nutrient.slice();this.nextNutrient=state.nextNutrient.slice();this.birth=state.birth.slice();
+    this.fossilBirth=state.fossilBirth?.slice()||new Uint32Array(this.count);
+    this.generation=state.generation?.slice()||new Uint16Array(this.count);
+    this.scar=state.scar?.slice()||new Uint8Array(this.count);
     this.frontier=new Map(state.frontier.map(([i,ids])=>[i,new Set(ids)]));
     this.deposited=state.deposited;this.version=state.version+1;this.active=state.active;
   }
@@ -207,8 +254,20 @@ export function renderVolumeProjection(volume,lut,{view='projection',slice=50,br
       if(!id)continue;
       occupied++;if(frontZ<0){frontZ=z;grain=id;birth=volume.birth[i];}backZ=z;
     }
-    if(!occupied)continue;
-    const pigment=((grain*.173 + birth*.0041 + (backZ-frontZ)*.026)%1+1)%1;
+    if(!occupied){
+      if(view==='slice'){
+        const j=volume.index(x,y,zSlice);
+        if(volume.scar[j]&&volume.fossilBirth[j]){
+          const t=((volume.fossilBirth[j]*.009+volume.generation[j]*.13)%1+1)%1;
+          const color=Math.floor(t*255)*3,q=(y*n+x)*4;
+          for(let c=0;c<3;c++)pixels[q+c]=Math.min(255,lut[color+c]*.42+35);
+          pixels[q+3]=185;
+        }
+      }
+      continue;
+    }
+    const site=volume.index(x,y,view==='slice'?zSlice:frontZ);
+    const pigment=((grain*.173 + birth*.0041 + (backZ-frontZ)*.026 + (volume.generation[site]||0)*.09)%1+1)%1;
     const k=Math.floor(pigment*255)*3,q=(y*n+x)*4;
     const shade=(.40+.52*clampV(brightness,0,1))*(.72+.28*Math.min(1,occupied/8));
     for(let c=0;c<3;c++)pixels[q+c]=clampV(lut[k+c]*shade+20*Math.min(1,occupied/10),0,255);

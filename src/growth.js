@@ -27,7 +27,7 @@ export class CrystalWorld {
   constructor(size = SIZE) {
     this.size = size;
     this.amount = size * size;
-    this.config = { phaseDrive:.7, phaseStiffness:.76, phaseMobility:.78, phaseInstability:.72, phaseWavelength:.66, phaseCapillarity:.52, fractureWidth:7, fractureSplinter:.38, fractureHeal:.55, speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, spherGrowth:.65, spherBands:.52, spherWobble:.32, volumeGrowth:.64, volumeFacets:.78, volumeBranches:.55, volumeDiffusion:.12, volumeSupply:.4, volumeSeedDepth:50, morphology: 'cathedral' };
+    this.config = { phaseDrive:.7, phaseStiffness:.76, phaseMobility:.78, phaseInstability:.72, phaseWavelength:.66, phaseCapillarity:.52, fractureWidth:7, fractureSplinter:.38, fractureHeal:.55, speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, spherGrowth:.65, spherBands:.52, spherWobble:.32, volumeGrowth:.64, volumeFacets:.78, volumeBranches:.55, volumeDiffusion:.12, volumeSupply:.4, volumeSeedDepth:50, volumeFractureDepth:50, volumeFractureReach:.70, volumeHealing:.65, morphology: 'cathedral' };
     this.randomize(357321);
   }
   randomize(seed) {
@@ -233,7 +233,10 @@ export class CrystalWorld {
     this.nutrientNext = src;
   }
   fracture(x,y,r=this.config.fractureWidth){
-    return this.phase.fracture(x,y,r);
+    const phased=this.phase.fracture(x,y,r);
+    const threeD=this.volume.active ? this.volume.fractureShear(
+      x,y,r,this.config.volumeFractureDepth??50,this.config.volumeFractureReach??.7) : 0;
+    return phased+threeD;
   }
   feed(x, y, r) {
     if(this.volume.active)this.volume.feedColumn(x,y,r);

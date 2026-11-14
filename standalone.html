@@ -52,7 +52,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / THE THIRD DIMENSION</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / METAMORPHOSIS</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -63,7 +63,7 @@
       </div>
       <div class="bottom-bar">
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
-        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
+        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve real fractures in phase-field and 3D volume crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
       </div>
       <div class="specimen-actions" aria-label="Crystal lifecycle actions">
         <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
@@ -73,7 +73,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.11 · VOLUMETRIC CRYSTALS</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.12 · CRYSTAL METAMORPHOSIS</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -93,6 +93,10 @@
           <label class="range-label" for="volumeDiffusion">3D nutrient diffusion <output id="volumeDiffusion-value">12%</output></label><input id="volumeDiffusion" type="range" min="0" max="16" value="12" step="1" />
           <label class="range-label" for="volumeSupply">3D nutrient recovery <output id="volumeSupply-value">40%</output></label><input id="volumeSupply" type="range" min="0" max="100" value="40" step="1" />
           <label class="range-label" for="volumeSeedDepth">Depth of newly planted seeds <output id="volumeSeedDepth-value">50%</output></label><input id="volumeSeedDepth" type="range" min="0" max="100" value="50" step="1" />
+          <div class="info"><strong>A.12 · INTERNAL 3D FRACTURE</strong><p>Choose ◇ FRACTURE and drag the crystal. The cut is a real sheared tunnel centered at the selected Z layer, not a texture. Change 2D inspection to Z-SLICE to see the interior. Newly deposited rock remembers that it is a later generation.</p></div>
+          <label class="range-label" for="volumeFractureDepth">Fracture layer · Z depth <output id="volumeFractureDepth-value">50%</output></label><input id="volumeFractureDepth" type="range" min="0" max="100" value="50" step="1" />
+          <label class="range-label" for="volumeFractureReach">Fracture reach through the volume <output id="volumeFractureReach-value">70%</output></label><input id="volumeFractureReach" type="range" min="0" max="100" value="70" step="1" />
+          <label class="range-label" for="volumeHealing">Crystal regrowth in old cuts <output id="volumeHealing-value">65%</output></label><input id="volumeHealing" type="range" min="0" max="100" value="65" step="1" />
         </div>
         <div id="tipControls">
         <label class="range-label" for="frost">Microscopic frost needles <output id="frost-value">64%</output></label><input id="frost" type="range" min="0" max="100" value="64" step="1" />
@@ -178,7 +182,7 @@
         <label class="range-label" for="fractureSplinter">Splintering / side fissures <output id="fractureSplinter-value">38%</output></label><input id="fractureSplinter" type="range" min="0" max="100" value="38" step="1" />
         <label class="range-label" for="fractureHeal">Recrystallization along cracks <output id="fractureHeal-value">55%</output></label><input id="fractureHeal" type="range" min="0" max="100" value="55" step="1" />
         <label class="range-label" for="archiveReveal">Reveal old mineral generations <output id="archiveReveal-value">68%</output></label><input id="archiveReveal" type="range" min="0" max="100" value="68" step="1" />
-        <div class="info"><strong>ARCHAEOLOGY LENS</strong><p>Select “CRYSTAL ARCHAEOLOGY” under FINISHES to see past deposition ghosts, generation-dependent bands and illuminated scars. Painting a fracture changes physics; revealing layers only changes how they look. Fractures currently work in the three phase-field anatomies.</p></div>
+        <div class="info"><strong>ARCHAEOLOGY LENS</strong><p>Select “CRYSTAL ARCHAEOLOGY” under FINISHES to see past deposition ghosts, generation-dependent bands and illuminated scars. Painting a fracture changes physics; revealing layers only changes how they look. Fractures work in both phase-field and 3D volume crystals; 3D mineral cuts can regrow as later generations.</p></div>
       </div>
       <div class="panel" id="panel-body" role="tabpanel" hidden>
   <p class="panel-intro">A real triangulated crystal body: genuinely 3D solidification for volumetric specimens, with the older 2D growth bodies preserved as extrusions. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
@@ -187,6 +191,8 @@
   <label class="range-label" for="volumeSlice">Volume cross-section depth <output id="volumeSlice-value">50%</output></label><input id="volumeSlice" type="range" min="0" max="100" value="50" step="1" />
   <button class="wide primary" id="bodyToggle" type="button" aria-pressed="false">◈ ENABLE 3D BODY VIEW</button>
   <div class="info"><strong id="bodyStatus">3D preview disabled · 2D stage unchanged</strong><p>Choose ORBIT 3D beneath the canvas to drag the camera. Pinch with two fingers to zoom. Switch off to return to the untouched 2D view.</p></div>
+  <label class="select-label" for="bodySurface">3D volume surface topology</label><select id="bodySurface"><option value="facets">SHARP · CRYSTALLINE VOXEL FACETS</option><option value="smooth">MELTED GLASS · SMOOTH ISOSURFACE</option></select>
+  <label class="range-label" for="bodyOpticalPath">Thickness-driven color absorption <output id="bodyOpticalPath-value">45%</output></label><input id="bodyOpticalPath" type="range" min="0" max="100" value="45" step="1" />
   <label class="range-label" for="bodyDepth">True extrusion thickness <output id="bodyDepth-value">72%</output></label><input id="bodyDepth" type="range" min="0" max="100" value="72" step="1" />
   <label class="range-label" for="bodyAngle">Camera orbit / yaw <output id="bodyAngle-value">20°</output></label><input id="bodyAngle" type="range" min="-180" max="180" value="20" step="1" />
   <label class="range-label" for="bodyTilt">Camera tilt <output id="bodyTilt-value">38°</output></label><input id="bodyTilt" type="range" min="0" max="82" value="38" step="1" />
@@ -198,13 +204,13 @@
   <label class="range-label" for="bodyTransparency">Crystal translucency <output id="bodyTransparency-value">12%</output></label><input id="bodyTransparency" type="range" min="0" max="100" value="12" step="1" />
   <label class="select-label" for="bodyDetail">Mesh detail / mobile performance</label><select id="bodyDetail"><option value="fast">FAST · LIGHTWEIGHT</option><option value="balanced" selected>BALANCED · DEFAULT</option><option value="fine">FINE · MORE FACETS</option></select>
   <button id="bodyResetCamera" type="button" class="wide">↶ RESET CAMERA ONLY</button>
-  <p class="control-note">The original 2D species have genuine top triangles and extruded walls. New A.11 species instead grow their own solid cells in x/y/z: exposed voxel surfaces and outward facet normals are extracted from that actual 3D occupancy. Color and lighting use real normals and stored growth history. Refraction and transparency are approximate GPU materials, not physically traced light paths. No extra packages, network, or API keys.</p>
+  <p class="control-note">Smooth isosurfaces are generated by marching tetrahedra over a locally averaged 3D density. Thickness coloring uses Beer–Lambert-inspired channel attenuation from the actual volume's Z-column thickness (not path-traced refraction). The original 2D species have genuine top triangles and extruded walls. New A.11 species instead grow their own solid cells in x/y/z: exposed voxel surfaces and outward facet normals are extracted from that actual 3D occupancy. Color and lighting use real normals and stored growth history. Refraction and transparency are approximate GPU materials, not physically traced light paths. No extra packages, network, or API keys.</p>
 </div>
       <div class="panel" id="panel-studio" role="tabpanel" hidden>
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately. The PNG export captures the live 3D body when WebGL2 is available; otherwise it captures the 2D volume projection or selected Z-slice.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <div class="info"><strong>SPECIMEN CONTROL</strong><p>Use the three buttons beneath the artwork: NEW SEED plants a colony without clearing anything; REFRESH generates new crystals using your selected anatomy; RESTART replays this specimen’s saved starting seed. Destructive actions ask first and can be undone.</p></div>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div><div><b id="volumeScarMetric">0</b><span>3D FRACTURE VOXELS</span></div><div><b id="volumeRegrowMetric">0</b><span>RECRYSTALLIZED VOXELS</span></div></div>
         <div class="info"><strong>ENGINE STATUS</strong><p>Four stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>
@@ -995,6 +1001,9 @@ class VolumeField {
     this.nutrient=new Float32Array(this.count).fill(1);
     this.nextNutrient=new Float32Array(this.count).fill(1);
     this.birth=new Uint32Array(this.count);
+    this.fossilBirth=new Uint32Array(this.count); // previous mineral generation
+    this.generation=new Uint16Array(this.count); // how often this voxel refilled
+    this.scar=new Uint8Array(this.count); // cut rock; visible in slice mode
     this.frontier=new Map();
     this.deposited=0;
     this.version=0;
@@ -1020,6 +1029,8 @@ class VolumeField {
     if(this.owner[i])return false;
     this.owner[i]=grain;
     this.birth[i]=this.world.ticks+1;
+    if(this.fossilBirth[i])this.generation[i]=Math.min(65535,this.generation[i]+1);
+    this.scar[i]=0;
     this.nutrient[i]=0;
     this.frontier.delete(i);
     this.addNeighbors(x,y,z,grain);
@@ -1080,7 +1091,9 @@ class VolumeField {
       if(this.valid(xx,yy,zz)&&this.owner[this.index(xx,yy,zz)]===grain)aligned++;
     }
     const detached=aligned===0?.56:1;
-    return Math.max(0,fuel*(.37+.23*Math.min(4,aligned))*detached*anisotropy*turbulence);
+    // A.12 damaged mineral surfaces act as energetic reattachment sites.
+    const scarAttract=this.scar[i]?1+clampV(this.world.config.volumeHealing??.65,0,1)*1.4:1;
+    return Math.max(0,fuel*(.37+.23*Math.min(4,aligned))*detached*anisotropy*turbulence*scarAttract);
   }
   advance(){
     if(!this.active)return;
@@ -1114,6 +1127,38 @@ class VolumeField {
     }
     if(changed)this.world.modified++;
   }
+  /** Actual three-axis, finite-depth fracture: removes occupied voxels.
+   * Touch X/Y locates the cut, selected Z determines its center, reach sets
+   * depth. The shear displaces the channel across Z. No image overlay involved.
+   * Every removed voxel retains its previous birth for later recrystallization.
+   */
+  fractureShear(x,y,r,zPercent=50,reach=.65){
+    const n=this.size, px=x/this.scale,py=y/this.scale;
+    const z0=clampV(Math.round(zPercent/100*(n-1)),2,n-3);
+    const halfExtent=Math.max(1,Math.round((.08+clampV(reach,0,1)*.37)*n));
+    const rr=Math.max(.6,r/this.scale);
+    let removed=0;
+    for(let z=Math.max(2,z0-halfExtent);z<=Math.min(n-3,z0+halfExtent);z++){
+      const depth=(z-z0)/halfExtent;
+      const cx=px+depth*(.8+rr*.65),cy=py-depth*(.6+rr*.50);
+      // Crystalline shear: a narrow fissure with deterministic side splinters.
+      const splinter=.20*(this.world.config.volumeBranches??.5)*Math.sin(z*1.73+px*.23);
+      const rad=rr*(.42+.26*(1-Math.abs(depth))+splinter);
+      for(let yy=Math.max(2,Math.floor(cy-rad-1));yy<=Math.min(n-3,Math.ceil(cy+rad+1));yy++)
+      for(let xx=Math.max(2,Math.floor(cx-rad-1));xx<=Math.min(n-3,Math.ceil(cx+rad+1));xx++){
+        if((xx-cx)**2+(yy-cy)**2>rad*rad)continue;
+        const i=this.index(xx,yy,z);
+        if(!this.owner[i])continue;
+        this.fossilBirth[i]=this.birth[i];
+        this.scar[i]=255;
+        this.owner[i]=0;this.birth[i]=0;
+        this.nutrient[i]=.92;
+        removed++;
+      }
+    }
+    if(removed){this.deposited=Math.max(0,this.deposited-removed);this.rebuild();this.world.modified++;}
+    return removed;
+  }
   meltColumn(x,y,r){
     const px=x/this.scale,py=y/this.scale,rr=r/this.scale,rr2=rr*rr;
     let removed=0;
@@ -1146,16 +1191,24 @@ class VolumeField {
     return this.owner.slice(z*this.area,(z+1)*this.area);
   }
   stats(){
+    let scars=0,regrown=0;
+    for(let i=0;i<this.count;i++){
+      if(this.scar[i]&&!this.owner[i])scars++;
+      if(this.generation[i]>0&&this.owner[i])regrown++;
+    }
     let cells=0,slabs=new Set();let minZ=this.size,maxZ=-1;
     for(let i=0;i<this.owner.length;i++)if(this.owner[i]){
       cells++;const z=Math.floor(i/this.area);slabs.add(z);minZ=Math.min(minZ,z);maxZ=Math.max(maxZ,z);
     }
-    return {volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0};
+    return {volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0,volumeScars:scars,volumeRegrown:regrown};
   }
-  snapshot(){return {owner:this.owner.slice(),nutrient:this.nutrient.slice(),nextNutrient:this.nextNutrient.slice(),birth:this.birth.slice(),frontier:[...this.frontier].map(([i,ids])=>[i,[...ids]]),deposited:this.deposited,version:this.version,active:this.active};}
+  snapshot(){return {owner:this.owner.slice(),nutrient:this.nutrient.slice(),nextNutrient:this.nextNutrient.slice(),birth:this.birth.slice(),fossilBirth:this.fossilBirth.slice(),generation:this.generation.slice(),scar:this.scar.slice(),frontier:[...this.frontier].map(([i,ids])=>[i,[...ids]]),deposited:this.deposited,version:this.version,active:this.active};}
   restore(state){
     if(!state)return;
     this.owner=state.owner.slice();this.nutrient=state.nutrient.slice();this.nextNutrient=state.nextNutrient.slice();this.birth=state.birth.slice();
+    this.fossilBirth=state.fossilBirth?.slice()||new Uint32Array(this.count);
+    this.generation=state.generation?.slice()||new Uint16Array(this.count);
+    this.scar=state.scar?.slice()||new Uint8Array(this.count);
     this.frontier=new Map(state.frontier.map(([i,ids])=>[i,new Set(ids)]));
     this.deposited=state.deposited;this.version=state.version+1;this.active=state.active;
   }
@@ -1176,8 +1229,20 @@ function renderVolumeProjection(volume,lut,{view='projection',slice=50,brightnes
       if(!id)continue;
       occupied++;if(frontZ<0){frontZ=z;grain=id;birth=volume.birth[i];}backZ=z;
     }
-    if(!occupied)continue;
-    const pigment=((grain*.173 + birth*.0041 + (backZ-frontZ)*.026)%1+1)%1;
+    if(!occupied){
+      if(view==='slice'){
+        const j=volume.index(x,y,zSlice);
+        if(volume.scar[j]&&volume.fossilBirth[j]){
+          const t=((volume.fossilBirth[j]*.009+volume.generation[j]*.13)%1+1)%1;
+          const color=Math.floor(t*255)*3,q=(y*n+x)*4;
+          for(let c=0;c<3;c++)pixels[q+c]=Math.min(255,lut[color+c]*.42+35);
+          pixels[q+3]=185;
+        }
+      }
+      continue;
+    }
+    const site=volume.index(x,y,view==='slice'?zSlice:frontZ);
+    const pigment=((grain*.173 + birth*.0041 + (backZ-frontZ)*.026 + (volume.generation[site]||0)*.09)%1+1)%1;
     const k=Math.floor(pigment*255)*3,q=(y*n+x)*4;
     const shade=(.40+.52*clampV(brightness,0,1))*(.72+.28*Math.min(1,occupied/8));
     for(let c=0;c<3;c++)pixels[q+c]=clampV(lut[k+c]*shade+20*Math.min(1,occupied/10),0,255);
@@ -1192,6 +1257,14 @@ function renderVolumeProjection(volume,lut,{view='projection',slice=50,brightnes
  * solid occupancy, competition for dissolved nutrient, melting and regrowth are
  * persistent state changes, not precomputed animation or shader-only movement.
  */
+
+
+
+
+
+
+
+
 const SIZE = 340;
 const ANATOMIES = Object.freeze({
   cathedral: Object.freeze({ axes: 6, length: 1.0, drift: .9, fork: 1.0, needle: .62, spread: 1.0 }),
@@ -1207,7 +1280,7 @@ class CrystalWorld {
   constructor(size = SIZE) {
     this.size = size;
     this.amount = size * size;
-    this.config = { phaseDrive:.7, phaseStiffness:.76, phaseMobility:.78, phaseInstability:.72, phaseWavelength:.66, phaseCapillarity:.52, fractureWidth:7, fractureSplinter:.38, fractureHeal:.55, speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, spherGrowth:.65, spherBands:.52, spherWobble:.32, volumeGrowth:.64, volumeFacets:.78, volumeBranches:.55, volumeDiffusion:.12, volumeSupply:.4, volumeSeedDepth:50, morphology: 'cathedral' };
+    this.config = { phaseDrive:.7, phaseStiffness:.76, phaseMobility:.78, phaseInstability:.72, phaseWavelength:.66, phaseCapillarity:.52, fractureWidth:7, fractureSplinter:.38, fractureHeal:.55, speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, spherGrowth:.65, spherBands:.52, spherWobble:.32, volumeGrowth:.64, volumeFacets:.78, volumeBranches:.55, volumeDiffusion:.12, volumeSupply:.4, volumeSeedDepth:50, volumeFractureDepth:50, volumeFractureReach:.70, volumeHealing:.65, morphology: 'cathedral' };
     this.randomize(357321);
   }
   randomize(seed) {
@@ -1413,7 +1486,10 @@ class CrystalWorld {
     this.nutrientNext = src;
   }
   fracture(x,y,r=this.config.fractureWidth){
-    return this.phase.fracture(x,y,r);
+    const phased=this.phase.fracture(x,y,r);
+    const threeD=this.volume.active ? this.volume.fractureShear(
+      x,y,r,this.config.volumeFractureDepth??50,this.config.volumeFractureReach??.7) : 0;
+    return phased+threeD;
   }
   feed(x, y, r) {
     if(this.volume.active)this.volume.feedColumn(x,y,r);
@@ -4600,7 +4676,7 @@ const TAU_BODY = Math.PI * 2;
 const boundBody = (v,a,b) => Math.max(a,Math.min(b,v));
 
 /** Derive a real 3D surface and boundary walls from ALL four growth families. */
-function buildCrystalMesh(world,{depth=.72,detail='balanced'}={}){
+function buildCrystalMesh(world,{depth=.72,detail='balanced',surface='facets'}={}){
   const step=detail==='fine'?2:detail==='fast'?6:4;
   const grid=Math.ceil(world.size/step),count=grid*grid;
   const id=new Uint8Array(count),density=new Float32Array(count);
@@ -4701,13 +4777,13 @@ function buildCrystalMesh(world,{depth=.72,detail='balanced'}={}){
   }
   // A.11: append independent three-dimensional voxel growth. The old 2D
   // extrusion remains fully reversible and is unchanged for non-volume art.
-  const volume=world.volume?.active?buildVolumeMesh(world.volume,{depth}):null;
+  const volume=world.volume?.active?(surface==='smooth'?buildSmoothVolumeMesh(world.volume,{depth}):buildVolumeMesh(world.volume,{depth})):null;
   const oldVertices=verts.length,combined=new Float32Array(oldVertices+(volume?.vertices.length||0));
   combined.set(verts);
   if(volume)combined.set(volume.vertices,oldVertices);
   return {vertices:combined,stride:9,grid,step,occupied,topTriangles,wallTriangles,bottomTriangles,
     volumeVoxels:volume?.voxels||0,volumeFaces:volume?.exposedFaces||0,volumeTriangles:volume?.triangles||0,
-    triangles:combined.length/27,depth,detail,heights:height,owners:id};
+    triangles:combined.length/27,depth,detail,surface,heights:height,owners:id};
 }
 
 /** Real Z-resolved 3D mesh: six exposed faces per occupied voxel, with angular
@@ -4717,6 +4793,7 @@ function buildVolumeMesh(volume,{depth=.72}={}){
   const n=volume.size, a=volume.area;
   const vertices=[];let exposedFaces=0,grainBoundaries=0;
   const paletteTone=(g,age,z)=>((g*.167 + age*.0032 + z/n*.18)%1+1)%1;
+  const thickness=volumeThickness(volume);
   function triangle(v0,v1,v2,pigment,history,band){
     const u=[v1[0]-v0[0],v1[1]-v0[1],v1[2]-v0[2]],v=[v2[0]-v0[0],v2[1]-v0[1],v2[2]-v0[2]];
     let nx=u[1]*v[2]-u[2]*v[1],ny=u[2]*v[0]-u[0]*v[2],nz=u[0]*v[1]-u[1]*v[0];
@@ -4737,7 +4814,8 @@ function buildVolumeMesh(volume,{depth=.72}={}){
     const center=[(x+.5)/n*2-1,1-(y+.5)/n*2,((z+.5)/n*2-1)*(.82+.17*depth)];
     const r=1/n;
     const corners=[[-r,r,-r],[r,r,-r],[r,-r,-r],[-r,-r,-r],[-r,r,r],[r,r,r],[r,-r,r],[-r,-r,r]].map(c=>[center[0]+c[0],center[1]+c[1],center[2]+c[2]*(.82+.17*depth)]);
-    const tone=paletteTone(g,volume.birth[i],z),history=(volume.birth[i]*.009)%1,band=z/n;
+    const tone=paletteTone(g,volume.birth[i],z)+(volume.generation?.[i]||0)*.097;
+    const history=(volume.birth[i]*.009)%1,band=thickness[y*n+x];
     for(const side of sides){
       const xx=x+side.d[0],yy=y+side.d[1],zz=z+side.d[2];
       const neighbor=volume.owner[zz*a+yy*n+xx];
@@ -4753,6 +4831,97 @@ function buildVolumeMesh(volume,{depth=.72}={}){
     }
   }
   return {vertices:new Float32Array(vertices),voxels,exposedFaces,grainBoundaries,triangles:vertices.length/27};
+}
+
+
+/** Number of voxels encountered along the actual occupied Z column.
+ * This is a geometry-derived optical-path PROXY, not a view-dependent ray trace.
+ * The result is stable under camera orbit and regenerates only with the mesh. */
+function volumeThickness(volume){
+  const n=volume.size,area=volume.area,out=new Float32Array(area);
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    let count=0;
+    for(let z=0;z<n;z++)if(volume.owner[z*area+y*n+x])count++;
+    out[y*n+x]=Math.min(1,count/(n*.62));
+  }
+  return out;
+}
+
+/** Marching tetrahedra over a smooth scalar field extracted from real solid voxels.
+ * Unlike voxel-quads, this produces interpolated vertices and continuous normals.
+ * It does not move or modify any material in the simulation. Six tetrahedra
+ * per cube guarantee a deterministic, crack-free decomposition of a shared grid.
+ * The threshold is tuned to retain thin one-cell branches; this is NOT a new PDE.
+ */
+function buildSmoothVolumeMesh(volume,{depth=.72}={}){
+  const n=volume.size,a=volume.area,count=volume.count;
+  const data=volume.owner,field=new Float32Array(count),thick=volumeThickness(volume);
+  const value=(x,y,z)=>data[z*a+y*n+x]?1:0;
+  for(let z=1;z<n-1;z++)for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+    const i=z*a+y*n+x;
+    field[i]=(4*value(x,y,z)+value(x-1,y,z)+value(x+1,y,z)+value(x,y-1,z)+value(x,y+1,z)+value(x,y,z-1)+value(x,y,z+1))/10;
+  }
+  const gradients=new Float32Array(count*3);
+  for(let z=1;z<n-1;z++)for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+    const i=z*a+y*n+x;
+    gradients[i*3]=field[i-1]-field[i+1];
+    gradients[i*3+1]=field[i-n]-field[i+n];
+    gradients[i*3+2]=field[i-a]-field[i+a];
+  }
+  const CUBE=[[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+  const TETRA=[[0,5,1,6],[0,1,2,6],[0,2,3,6],[0,3,7,6],[0,7,4,6],[0,4,5,6]];
+  const verts=[],iso=.32,scaleZ=.82+.17*depth;
+  let occupied=0;for(const g of data)if(g)occupied++;
+  const src=(index)=>{
+    const z=Math.floor(index/a),y=Math.floor((index%a)/n),x=index%n;
+    return [x,y,z];
+  };
+  function crossing(A,B,coordinate){
+    const va=field[A],vb=field[B], t=Math.abs(vb-va)<1e-9?.5:(iso-va)/(vb-va);
+    const pos=[coordinate[A][0]+(coordinate[B][0]-coordinate[A][0])*t,coordinate[A][1]+(coordinate[B][1]-coordinate[A][1])*t,coordinate[A][2]+(coordinate[B][2]-coordinate[A][2])*t];
+    let nx=gradients[A*3]+(gradients[B*3]-gradients[A*3])*t;
+    let ny=gradients[A*3+1]+(gradients[B*3+1]-gradients[A*3+1])*t;
+    let nz=gradients[A*3+2]+(gradients[B*3+2]-gradients[A*3+2])*t;
+    let m=Math.hypot(nx,ny,nz);if(m<1e-8){nx=0;ny=0;nz=1;m=1;}
+    // y is inverted in world coordinates, so the gradient y needs inversion.
+    return {p:[pos[0]/n*2-1,1-pos[1]/n*2,(pos[2]/n*2-1)*scaleZ],n:[nx/m,-ny/m,nz/m]};
+  }
+  function triangle(v0,v1,v2,pigment,history,band){
+    const a=v0.p,b=v1.p,c=v2.p,u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+    const cross=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+    const target=[v0.n[0]+v1.n[0]+v2.n[0],v0.n[1]+v1.n[1]+v2.n[1],v0.n[2]+v1.n[2]+v2.n[2]];
+    if(cross[0]*target[0]+cross[1]*target[1]+cross[2]*target[2]<0){const t=v1;v1=v2;v2=t;}
+    for(const point of [v0,v1,v2])verts.push(...point.p,...point.n,pigment,history,band);
+  }
+  for(let z=1;z<n-2;z++)for(let y=1;y<n-2;y++)for(let x=1;x<n-2;x++){
+    const coords=CUBE.map(([dx,dy,dz])=>[x+dx,y+dy,z+dz]);
+    const ids=coords.map(([xx,yy,zz])=>zz*a+yy*n+xx);
+    const vals=ids.map(i=>field[i]);
+    if(Math.min(...vals)>=iso||Math.max(...vals)<iso)continue;
+    // Pick the dominant real grain in the tetra-cube (not fabricated identity).
+    let grain=0,age=0,maxVal=-1,generation=0;
+    for(const i of ids)if(data[i]&&field[i]>maxVal){maxVal=field[i];grain=data[i];age=volume.birth[i];generation=volume.generation?.[i]||0;}
+    if(!grain)continue;
+    const tone=((grain*.167+age*.0032+z/n*.18+generation*.097)%1+1)%1;
+    const history=((age*.009)%1+1)%1,band=thick[y*n+x];
+    const lattice=Object.fromEntries(ids.map((i,k)=>[i,coords[k]]));
+    const make=(ia,ib)=>crossing(ids[ia],ids[ib],lattice);
+    // Split each tetra into one or two triangles by its four signed corner values.
+    for(const tet of TETRA){
+      const inside=tet.filter(i=>vals[i]>=iso),outside=tet.filter(i=>vals[i]<iso);
+      if(inside.length===0||outside.length===0)continue;
+      if(inside.length===1||inside.length===3){
+        const center=(inside.length===1?inside:outside)[0],rest=inside.length===1?outside:inside;
+        const pts=rest.map(r=>make(center,r));
+        triangle(pts[0],pts[1],pts[2],tone,history,band);
+      }else{
+        const aa=make(inside[0],outside[0]),bb=make(inside[0],outside[1]),cc=make(inside[1],outside[0]),dd=make(inside[1],outside[1]);
+        triangle(aa,bb,cc,tone,history,band);
+        triangle(cc,bb,dd,tone,history,band);
+      }
+    }
+  }
+  return {vertices:new Float32Array(verts),voxels:occupied,exposedFaces:0,grainBoundaries:0,triangles:verts.length/27,surface:'smooth'};
 }
 
 const VERT_BODY=`#version 300 es
@@ -4778,7 +4947,7 @@ precision highp float;
 in vec3 vNormal,vPigment,vPosition;
 out vec4 frag;
 uniform sampler2D uPalette;
-uniform float uLightAngle,uAbsorption,uDispersion,uTransparency,uLayerBands,uYaw,uTilt;
+uniform float uLightAngle,uAbsorption,uDispersion,uTransparency,uLayerBands,uYaw,uTilt,uOpticalPath;
 const float TAU=6.28318530718;
 void main(){
   vec3 n=normalize(vNormal);
@@ -4797,8 +4966,13 @@ void main(){
     texture(uPalette,vec2(base,.5)).g,
     texture(uPalette,vec2(fract(base+shift),.5)).b
   );
+  // Volume pigment.z encodes geometrically measured Z-column filling fraction.
+  // Color-selective exponential attenuation is Beer-Lambert-inspired only:
+  // no multiple scattering, caustic ray marching, or physical IOR calibration.
+  float opticalThickness=clamp(vPigment.z,0.,1.);
+  vec3 transmission=exp(-uOpticalPath*opticalThickness*vec3(.35,.90,1.65));
   float shading=(.20+.83*diffuse)*dark;
-  vec3 color=pigment*shading+vec3(.74,.84,1.)*(spec*.52+rim*(.11+.5*uDispersion));
+  vec3 color=pigment*shading*transmission+vec3(.74,.84,1.)*(spec*.52+rim*(.11+.5*uDispersion));
   color+=pigment*(.18*layer);
   float opacity=1.-uTransparency*(.22+.4*rim);
   frag=vec4(clamp(color,0.,1.),clamp(opacity,.31,1.));
@@ -4826,20 +5000,20 @@ class CrystalBodyGPU{
     for(const [location,size,offset] of [[0,3,0],[1,3,12],[2,3,24]]){
       gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset);
     }
-    this.paletteTexture=gl.createTexture();this.lastPalette=-1;this.lastGeometry=-1;this.lastDetail='';this.lastDepth=-1;
+    this.paletteTexture=gl.createTexture();this.lastPalette=-1;this.lastGeometry=-1;this.lastDetail='';this.lastDepth=-1;this.lastSurface='';
     this.vertices=0;this.triangles=0;this.status='ready';this.mesh=null;this.lost=false;
-    this.uniforms=Object.fromEntries(['uPalette','uYaw','uTilt','uZoom','uLightAngle','uAbsorption','uDispersion','uTransparency','uLayerBands'].map(k=>[k,gl.getUniformLocation(this.program,k)]));
+    this.uniforms=Object.fromEntries(['uPalette','uYaw','uTilt','uZoom','uLightAngle','uAbsorption','uDispersion','uTransparency','uLayerBands','uOpticalPath'].map(k=>[k,gl.getUniformLocation(this.program,k)]));
     this.canvas.addEventListener('webglcontextlost',ev=>{ev.preventDefault();this.lost=true;});
   }
   updateGeometry(world,settings={},now=0){
     const geometryVersion=world.modified;
-    if(this.lastGeometry===geometryVersion&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth)return;
+    if(this.lastGeometry===geometryVersion&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth&&this.lastSurface===settings.surface)return;
     // Limit mesh rebuilding for continuously growing worlds on older iPhones.
-    if(this.lastGeometry!==-1&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth&&now-this.lastBuildAt<145)return;
+    if(this.lastGeometry!==-1&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth&&this.lastSurface===settings.surface&&now-this.lastBuildAt<(settings.surface==='smooth'?800:145))return;
     const mesh=buildCrystalMesh(world,settings);
     const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,this.vbo);gl.bufferData(gl.ARRAY_BUFFER,mesh.vertices,gl.DYNAMIC_DRAW);
     this.mesh=mesh;this.vertices=mesh.vertices.length/9;this.triangles=mesh.triangles;
-    this.lastGeometry=geometryVersion;this.lastDetail=settings.detail;this.lastDepth=settings.depth;this.lastBuildAt=now;
+    this.lastGeometry=geometryVersion;this.lastDetail=settings.detail;this.lastDepth=settings.depth;this.lastSurface=settings.surface;this.lastBuildAt=now;
   }
   updatePalette(lut,revision){
     if(this.lastPalette===revision)return;
@@ -4873,6 +5047,7 @@ class CrystalBodyGPU{
     gl.uniform1f(this.uniforms.uDispersion,settings.dispersion??.6);
     gl.uniform1f(this.uniforms.uTransparency,settings.transparency??.12);
     gl.uniform1f(this.uniforms.uLayerBands,settings.bands??.52);
+    gl.uniform1f(this.uniforms.uOpticalPath,settings.opticalPath??.45);
     gl.drawArrays(gl.TRIANGLES,0,this.vertices);
     if(gl.getError()!==gl.NO_ERROR)throw Error('Crystal Body GL draw error');
     return this.canvas;
@@ -4905,7 +5080,7 @@ let analyzerAngle=28,opticalRetardance=.65,polarizerContrast=.80,polarRevision=0
 let spectralDispersion=.52,opticalDefects=.50,opticalTwist=.65,opticalBackend='auto';
 let spectralGPU=null,spectralError='';
 let bodyEnabled=false,bodyGPU=null,bodyError='';
-const bodySettings={depth:.72,yaw:20*Math.PI/180,tilt:38*Math.PI/180,zoom:.73,
+const bodySettings={surface:'facets',opticalPath:.45,depth:.72,yaw:20*Math.PI/180,tilt:38*Math.PI/180,zoom:.73,
   lightAngle:315,dispersion:.60,bands:.52,absorption:.28,transparency:.12,detail:'balanced'};
 const bodyPointers=new Map();let bodyPinchDistance=0;
 let editing = false;
@@ -5201,7 +5376,7 @@ function setTool(tool) {
   if(tool==='orbit'&&!bodyEnabled && !enableBody())return;
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAW A REAL CRACK THROUGH PHASE OR 3D ROCK · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -5212,7 +5387,15 @@ function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...com
 function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
-  else if(activeTool==='fracture')world.fracture(p.x,p.y);
+  else if(activeTool==='fracture'){
+    world.fracture(p.x,p.y);
+    if(world.volume.active&&volumeView!=='slice'){
+      volumeView='slice';$('volumeView').value='slice';
+      volumeSlice=world.config.volumeFractureDepth;
+      $('volumeSlice').value=volumeSlice;
+      $('volumeSlice-value').textContent=volumeSlice+'%';volumeRenderVersion=-1;
+    }
+  }
   else if(activeTool==='twist')world.spherulite.twistOptics(p.x,p.y,world.config.brush,opticalTwist);
   recentPoint=p;
 }
@@ -5283,6 +5466,8 @@ function enableBody(){
 }
 $('volumeView').addEventListener('change',ev=>{volumeView=ev.target.value;volumeRenderVersion=-1;});
 $('volumeSlice').addEventListener('input',ev=>{volumeSlice=Number(ev.target.value);$('volumeSlice-value').textContent=volumeSlice+'%';volumeRenderVersion=-1;});
+$('bodySurface').addEventListener('change',ev=>{bodySettings.surface=ev.target.value;if(bodyGPU)bodyGPU.lastGeometry=-1;});
+$('bodyOpticalPath').addEventListener('input',ev=>{bodySettings.opticalPath=Number(ev.target.value)/100;$('bodyOpticalPath-value').textContent=ev.target.value+'%';});
 $('bodyToggle').addEventListener('click',()=>{
   if(bodyEnabled){bodyEnabled=false;$('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');$('bodyStatus').textContent='3D preview disabled · 2D stage preserved';if(activeTool==='orbit')setTool('seed');}
   else enableBody();
@@ -5306,7 +5491,7 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={volumeGrowth:{value:v=>v+'%',transform:v=>v/100},volumeFacets:{value:v=>v+'%',transform:v=>v/100},volumeBranches:{value:v=>v+'%',transform:v=>v/100},volumeDiffusion:{value:v=>v+'%',transform:v=>v/100},volumeSupply:{value:v=>v+'%',transform:v=>v/100},volumeSeedDepth:{value:v=>v+'%',transform:v=>v},fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={volumeFractureDepth:{value:v=>v+'%',transform:v=>v},volumeFractureReach:{value:v=>v+'%',transform:v=>v/100},volumeHealing:{value:v=>v+'%',transform:v=>v/100},volumeGrowth:{value:v=>v+'%',transform:v=>v/100},volumeFacets:{value:v=>v+'%',transform:v=>v/100},volumeBranches:{value:v=>v+'%',transform:v=>v/100},volumeDiffusion:{value:v=>v+'%',transform:v=>v/100},volumeSupply:{value:v=>v+'%',transform:v=>v/100},volumeSeedDepth:{value:v=>v+'%',transform:v=>v},fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
@@ -5414,7 +5599,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.volumeCells>0 ? s.volumeCells.toLocaleString()+' 3D VOXELS · '+s.volumeDepthSlices+' Z-LAYERS' : s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();$('volumeMetric').textContent=s.volumeCells.toLocaleString();$('volumeZMetric').textContent=s.volumeDepthSlices.toLocaleString();$('volumeFrontMetric').textContent=s.volumeFrontier.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();$('volumeMetric').textContent=s.volumeCells.toLocaleString();$('volumeZMetric').textContent=s.volumeDepthSlices.toLocaleString();$('volumeFrontMetric').textContent=s.volumeFrontier.toLocaleString();$('volumeScarMetric').textContent=s.volumeScars.toLocaleString();$('volumeRegrowMetric').textContent=s.volumeRegrown.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;
