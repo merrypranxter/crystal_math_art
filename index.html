@@ -12,7 +12,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / OPTICAL HERESY</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / CRYSTAL BODIES</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -23,7 +23,7 @@
       </div>
       <div class="bottom-bar">
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
-        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button></div>
+        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
       </div>
       <div class="specimen-actions" aria-label="Crystal lifecycle actions">
         <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
@@ -33,12 +33,12 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.9 · OPTICAL HERESY</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.10 · CRYSTAL BODIES</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
         <button data-tab="material" role="tab" aria-selected="false">FINISHES</button><button data-tab="archaeology" role="tab" aria-selected="false">ARCHIVE</button>
-        <button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
+        <button data-tab="body" role="tab" aria-selected="false">BODY 3D</button><button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
         <p class="panel-intro">Plant classic branching tips, nutrient-driven accretion fronts, or a new anisotropic PDE phase-field crystal. Each colony keeps its growth identity.</p>
@@ -131,6 +131,23 @@
         <label class="range-label" for="archiveReveal">Reveal old mineral generations <output id="archiveReveal-value">68%</output></label><input id="archiveReveal" type="range" min="0" max="100" value="68" step="1" />
         <div class="info"><strong>ARCHAEOLOGY LENS</strong><p>Select “CRYSTAL ARCHAEOLOGY” under FINISHES to see past deposition ghosts, generation-dependent bands and illuminated scars. Painting a fracture changes physics; revealing layers only changes how they look. Fractures currently work in the three phase-field anatomies.</p></div>
       </div>
+      <div class="panel" id="panel-body" role="tabpanel" hidden>
+  <p class="panel-intro">A real triangulated 3D crystal body, extruded from existing growth. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
+  <button class="wide primary" id="bodyToggle" type="button" aria-pressed="false">◈ ENABLE 3D BODY VIEW</button>
+  <div class="info"><strong id="bodyStatus">3D preview disabled · 2D stage unchanged</strong><p>Choose ORBIT 3D beneath the canvas to drag the camera. Pinch with two fingers to zoom. Switch off to return to the untouched 2D view.</p></div>
+  <label class="range-label" for="bodyDepth">True extrusion thickness <output id="bodyDepth-value">72%</output></label><input id="bodyDepth" type="range" min="0" max="100" value="72" step="1" />
+  <label class="range-label" for="bodyAngle">Camera orbit / yaw <output id="bodyAngle-value">20°</output></label><input id="bodyAngle" type="range" min="-180" max="180" value="20" step="1" />
+  <label class="range-label" for="bodyTilt">Camera tilt <output id="bodyTilt-value">38°</output></label><input id="bodyTilt" type="range" min="0" max="82" value="38" step="1" />
+  <label class="range-label" for="bodyZoom">Zoom <output id="bodyZoom-value">73%</output></label><input id="bodyZoom" type="range" min="35" max="118" value="73" step="1" />
+  <label class="range-label" for="bodyLight">Move the light <output id="bodyLight-value">315°</output></label><input id="bodyLight" type="range" min="0" max="360" value="315" step="1" />
+  <label class="range-label" for="bodyDispersion">Prism / spectrum <output id="bodyDispersion-value">60%</output></label><input id="bodyDispersion" type="range" min="0" max="100" value="60" step="1" />
+  <label class="range-label" for="bodyBands">Interior growth bands <output id="bodyBands-value">52%</output></label><input id="bodyBands" type="range" min="0" max="100" value="52" step="1" />
+  <label class="range-label" for="bodyAbsorption">Mineral absorption <output id="bodyAbsorption-value">28%</output></label><input id="bodyAbsorption" type="range" min="0" max="100" value="28" step="1" />
+  <label class="range-label" for="bodyTransparency">Crystal translucency <output id="bodyTransparency-value">12%</output></label><input id="bodyTransparency" type="range" min="0" max="100" value="12" step="1" />
+  <label class="select-label" for="bodyDetail">Mesh detail / mobile performance</label><select id="bodyDetail"><option value="fast">FAST · LIGHTWEIGHT</option><option value="balanced" selected>BALANCED · DEFAULT</option><option value="fine">FINE · MORE FACETS</option></select>
+  <button id="bodyResetCamera" type="button" class="wide">↶ RESET CAMERA ONLY</button>
+  <p class="control-note">The model contains genuine top triangles, exposed side walls and an underside. Color and lighting use real normals and stored growth history. Refraction and transparency are approximate GPU materials, not physically traced light paths. No extra packages, network, or API keys.</p>
+</div>
       <div class="panel" id="panel-studio" role="tabpanel" hidden>
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
@@ -140,7 +157,7 @@
       </div>
     </aside>
   </main>
-  <footer class="foot">GPU SPECTRAL OPTICS · REVERSIBLE DIRECTOR WITCHCRAFT · LOCAL ONLY</footer>
+  <footer class="foot">3D FACET MESH · TOUCH ORBIT · GPU SHADER · ALL ORIGINAL PALETTES</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script type="module" src="./src/main.js"></script>

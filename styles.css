@@ -29,3 +29,10 @@
 .toolbox button[data-tool="twist"].selected {border-color:#59d6fd;background:rgba(31,143,177,.21);color:#b4f7ff}
 #opticalStatus[data-backend="webgl2"]::before {content:"● GPU ACTIVE · ";color:#60e5c8;font-weight:700}
 #opticalStatus[data-backend="canvas2d"]::before {content:"● CANVAS FALLBACK · ";color:#ffd174;font-weight:700}
+
+/* A.10 — optional 3D body controls, kept within the existing tab system. */
+.toolbox button[data-tool="orbit"].selected{border-color:#ffc76a;background:rgba(179,116,31,.24);color:#ffe8ab}
+#bodyStatus{color:#96dbe5;letter-spacing:.5px;overflow-wrap:anywhere}
+#bodyToggle[aria-pressed="true"]{background:#28516a;border-color:#8de6ff;color:white}
+#bodyDetail{width:100%}
+@media(max-width:730px){.tabs{flex-wrap:wrap}.tabs button{flex:1 1 18%;min-width:49px;padding:9px 2px}.toolbox button[data-tool="orbit"]{min-height:36px}}

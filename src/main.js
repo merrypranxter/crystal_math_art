@@ -4,6 +4,7 @@ import { PALETTES, PALETTE_MAP, basePalette, originalStops, hexToRgb, buildColor
 import { renderMineral, MINERAL_FINISHES } from './mineral.js';
 import { renderSpherulites } from './spherulite.js';
 import { renderSpectralCPU, SpectralGPU } from './optics.js';
+import { CrystalBodyGPU } from './body3d.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -25,6 +26,10 @@ let materialRevision=0;
 let analyzerAngle=28,opticalRetardance=.65,polarizerContrast=.80,polarRevision=0;
 let spectralDispersion=.52,opticalDefects=.50,opticalTwist=.65,opticalBackend='auto';
 let spectralGPU=null,spectralError='';
+let bodyEnabled=false,bodyGPU=null,bodyError='';
+const bodySettings={depth:.72,yaw:20*Math.PI/180,tilt:38*Math.PI/180,zoom:.73,
+  lightAngle:315,dispersion:.60,bands:.52,absorption:.28,transparency:.12,detail:'balanced'};
+const bodyPointers=new Map();let bodyPinchDistance=0;
 let editing = false;
 let recentPoint = null;
 let lastPaint = -Infinity;
@@ -255,6 +260,21 @@ function drawScreen() {
   const size=Math.min(w,h),ox=(w-size)/2,oy=(h-size)/2;
   display.save(); display.translate(ox,oy);
   paintBackdrop(display,size);
+  if(bodyEnabled){
+    try{
+      if(!bodyGPU)bodyGPU=new CrystalBodyGPU(()=>document.createElement('canvas'),Math.max(1,size));
+      const view=bodyGPU.render(world,paletteLUT,paletteRevision,bodySettings,performance.now(),Math.max(1,size));
+      display.drawImage(view,0,0,size,size);
+      $('bodyStatus').textContent='● GPU ACTIVE · '+bodyGPU.triangles.toLocaleString()+' material triangles · '+bodyGPU.mesh.occupied.toLocaleString()+' occupied grid tiles';
+      display.restore();return;
+    }catch(e){
+      console.warn('3D optional renderer disabled:',e);
+      bodyError=String(e.message||e);bodyEnabled=false;
+      $('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');
+      $('bodyStatus').textContent='WebGL2 unavailable or interrupted · 2D view restored · '+bodyError;
+      if(activeTool==='orbit')setTool('seed');
+    }
+  }
   if (world.fullRedraw||forceFull) redrawLayer();
   else if (renderVersion!==world.modified) {
     drawSegments(layerCtx,world.newSegments,layer.width/SIZE);
@@ -282,9 +302,10 @@ function drawScreen() {
   display.restore();
 }
 function setTool(tool) {
+  if(tool==='orbit'&&!bodyEnabled && !enableBody())return;
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -302,11 +323,30 @@ function doBrush(p){
 crystalCanvas.addEventListener('pointerdown',ev=>{
   if(ev.button!==0)return;
   ev.preventDefault();crystalCanvas.setPointerCapture(ev.pointerId);
+  if(activeTool==='orbit'){
+    bodyPointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    bodyPinchDistance=bodyPointers.size===2?pointerSpan():0;
+    return;
+  }
   saveUndo();editing=true;recentPoint=pointFromEvent(ev);
   if(activeTool==='seed') world.seed(recentPoint.x,recentPoint.y);
   else doBrush(recentPoint);
 });
 crystalCanvas.addEventListener('pointermove',ev=>{
+  if(activeTool==='orbit'&&bodyPointers.has(ev.pointerId)){
+    ev.preventDefault();const old=bodyPointers.get(ev.pointerId);
+    const dx=ev.clientX-old.x,dy=ev.clientY-old.y;
+    bodyPointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(bodyPointers.size===2){
+      const next=pointerSpan();
+      if(bodyPinchDistance>1)bodySettings.zoom=clamp(bodySettings.zoom*next/bodyPinchDistance,.35,1.18);
+      bodyPinchDistance=next;
+    }else{
+      bodySettings.yaw=wrapBodyYaw(bodySettings.yaw+dx*.008);
+      bodySettings.tilt=clamp(bodySettings.tilt+dy*.006,0,82*Math.PI/180);
+    }
+    updateBodyCameraControls();return;
+  }
   if(!editing)return;ev.preventDefault();
   const now=performance.now();if(now-lastPaint<30)return;
   const next=pointFromEvent(ev);
@@ -318,10 +358,50 @@ crystalCanvas.addEventListener('pointermove',ev=>{
   }
   recentPoint=next;lastPaint=now;
 });
-function endEdit(){editing=false;recentPoint=null;}
+function pointerSpan(){
+  const p=[...bodyPointers.values()];return p.length<2?0:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
+}
+function wrapBodyYaw(v){return ((v+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;}
+function updateBodyCameraControls(){
+  for(const [id,v] of [['bodyAngle',bodySettings.yaw*180/Math.PI],['bodyTilt',bodySettings.tilt*180/Math.PI],['bodyZoom',bodySettings.zoom*100]]){
+    $(id).value=Math.round(v);$(id+'-value').textContent=Math.round(v)+(id==='bodyZoom'?'%':'°');
+  }
+}
+function endEdit(ev){if(ev?.pointerId!==undefined)bodyPointers.delete(ev.pointerId);bodyPinchDistance=pointerSpan();editing=false;recentPoint=null;}
 crystalCanvas.addEventListener('pointerup',endEdit);
 crystalCanvas.addEventListener('pointercancel',endEdit);
 crystalCanvas.addEventListener('lostpointercapture',endEdit);
+function enableBody(){
+  try{
+    if(!bodyGPU)bodyGPU=new CrystalBodyGPU(()=>document.createElement('canvas'),512);
+    bodyEnabled=true;bodyError='';
+    $('bodyToggle').textContent='◈ 3D VIEW ACTIVE · SWITCH TO 2D';$('bodyToggle').setAttribute('aria-pressed','true');
+    $('bodyStatus').textContent='● GPU READY · drag with ORBIT 3D · pinch to zoom';
+    return true;
+  }catch(err){
+    bodyEnabled=false;bodyError=String(err.message||err);
+    $('bodyStatus').textContent='No WebGL2 · original 2D artwork remains available · '+bodyError;
+    $('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');
+    return false;
+  }
+}
+$('bodyToggle').addEventListener('click',()=>{
+  if(bodyEnabled){bodyEnabled=false;$('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');$('bodyStatus').textContent='3D preview disabled · 2D stage preserved';if(activeTool==='orbit')setTool('seed');}
+  else enableBody();
+});
+for(const [id,field,unit] of [
+  ['bodyDepth','depth','%'],['bodyAngle','yaw','°'],['bodyTilt','tilt','°'],['bodyZoom','zoom','%'],
+  ['bodyLight','lightAngle','°'],['bodyDispersion','dispersion','%'],['bodyBands','bands','%'],
+  ['bodyAbsorption','absorption','%'],['bodyTransparency','transparency','%']]){
+  $(id).addEventListener('input',ev=>{
+    const raw=Number(ev.target.value);bodySettings[field]=field==='yaw'||field==='tilt'?raw*Math.PI/180:
+      field==='lightAngle'?raw:raw/100;
+    $(id+'-value').textContent=raw+unit;
+    if(field==='depth'&&bodyGPU)bodyGPU.lastGeometry=-1;
+  });
+}
+$('bodyDetail').addEventListener('change',ev=>{bodySettings.detail=ev.target.value;if(bodyGPU)bodyGPU.lastGeometry=-1;});
+$('bodyResetCamera').addEventListener('click',()=>{bodySettings.yaw=20*Math.PI/180;bodySettings.tilt=38*Math.PI/180;bodySettings.zoom=.73;updateBodyCameraControls();});
 for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool));
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{
   currentTab=b.dataset.tab;
@@ -413,7 +493,11 @@ $('save').addEventListener('click',async()=>{
   const button=$('save');button.disabled=true;button.textContent='RENDERING HIGH-RES SPECIMEN…';
   try{
     const size=2400,output=document.createElement('canvas');output.width=output.height=size;
-    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);paintPhase(ctx,size);paintSpherulites(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
+    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);
+    if(bodyEnabled&&bodyGPU){
+      const body=bodyGPU.render(world,paletteLUT,paletteRevision,bodySettings,performance.now(),size);
+      ctx.drawImage(body,0,0,size,size);
+    }else{paintPhase(ctx,size);paintSpherulites(ctx,size);drawSegments(ctx,world.segments,size/SIZE);} 
     const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('PNG encode failed')),'image/png'));
     const link=document.createElement('a');const url=URL.createObjectURL(blob);
     link.href=url;link.download=`crystallization-apocalypse-${world.rngState.toString(16)}-${world.ticks}.png`;
@@ -438,5 +522,5 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},enableBody};
 requestAnimationFrame(loop);

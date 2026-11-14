@@ -3,8 +3,15 @@
 
 A mathematical growth-art studio. Plant competing crystal colonies, melt and regrow material, grow advancing dendritic tips or diffusion-coupled crystalline fronts, and finish their structure with color and surface effects.
 
-**Latest playable build: Phase A.8 — CHROMATIC HERESY.** Four independently evolving crystal engines now coexist: tip dendrites, nutrient-driven cellular fronts, phase-field material and radial spherulite colonies with saved local optical orientation. All 199 original palettes are preserved.
+**Latest playable build: Phase A.10 — CRYSTAL BODIES.** Four independently evolving crystal engines now coexist: tip dendrites, nutrient-driven cellular fronts, phase-field material and radial spherulite colonies with saved local optical orientation. All 199 original palettes are preserved.
 
+
+
+## A.10 — Crystal Bodies (new)
+
+**BODY 3D** is an optional WebGL2 layer that builds a genuine triangle mesh from existing occupied crystal cells across **all four growth engines**. It adds raised ridge geometry, exposed side walls, underside faces, directional lighting, history-derived internal bands, adjustable thickness/translucency and a RGB spectral surface shader. Select **ORBIT 3D** to drag the camera and pinch to zoom; camera changes do not alter any actual growth state. Toggle back to the 2D original at any time. The renderer automatically restores the 2D view if the GPU path cannot initialize. The 2400×2400 PNG button now renders the active 3D view when enabled.
+
+All **199 palettes** remain available (the canonical 194-entry vault with every original stop plus five crystal palettes). The WebGL mesh receives the SAME palette interpolation LUT as the existing renderers, so the source vault is never duplicated or truncated. Offline standalone, no external three.js/React imports or API keys. A.10 is an **extrusion of 2D simulation matter**, not a genuinely 3D growing phase-field solver or physically accurate ray-traced refraction. [Technical details](docs/PROTOTYPE_A10.md).
 
 ## A.8 — CHROMATIC HERESY / competing radial crystals
 
@@ -60,7 +67,7 @@ Run `npm test` to check the existing A.1–A.6 tests and the new A.7 history/fra
 
 - [Standalone HTML](standalone.html) — a complete offline browser/HTML-viewer build, no external scripts, server, subscription or secret keys needed.
 - Modular source runs from a folder with `python3 -m http.server 8080` or `npm run serve`. The JavaScript modules and CSS live in `src/` and `styles.css`.
-- `npm test` — 63 Node tests for growth-state persistence, deterministic reproduction, melting, regrowth, morphology identity, front deposition, and undo.
+- `npm test` — 79 Node tests for growth-state persistence, deterministic reproduction, melting, regrowth, morphology identity, front deposition, and undo.
 - `python3 scripts/build_standalone.py` — reassemble the dependency-free single HTML file from the current modular sources.
 - **No Netlify deployment is requested or triggered by the repository.**
 
@@ -100,7 +107,7 @@ The engines are structurally different: the first grows **tips and daughter bran
 - Real evolving **state**: occupied material, nutrient field, heated zones, per-grain identity and deterministic simulation RNG.
 - The four-neighbor concentration diffusion is bounded by a 0.24 parameter max to preserve a nonnegative explicit stencil; Wolfram checked its 0 ≤ d ≤ 0.25 convexity range.
 - A.3's nutrient-gradient proxy, orientation lock, and weighted growth tournament are **physics-inspired approximations**, not solved harmonic measure or true hopper facet kinetics. A.4 adds a genuine evolving phase-field PDE approximation, but it is neither the full anisotropic variational solver nor a complete thermodynamic solidification model.
-- The display is still a 2D structural renderer. True Bismuth Necropolis terraces, sectioned growth memory, birefringence and volumetric optics are still work ahead.
+- The 2D simulation now also feeds an optional triangulated 3D extrusion view. True intrinsic 3D crystallization, refractive ray tracing, and physically calibrated birefringence are still future work.
 - Performance will need profiling on real iPhone Safari before releasing heavy multi-crystal works.
 
 ## Project documents

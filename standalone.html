@@ -39,13 +39,20 @@
 #opticalStatus[data-backend="webgl2"]::before {content:"● GPU ACTIVE · ";color:#60e5c8;font-weight:700}
 #opticalStatus[data-backend="canvas2d"]::before {content:"● CANVAS FALLBACK · ";color:#ffd174;font-weight:700}
 
+/* A.10 — optional 3D body controls, kept within the existing tab system. */
+.toolbox button[data-tool="orbit"].selected{border-color:#ffc76a;background:rgba(179,116,31,.24);color:#ffe8ab}
+#bodyStatus{color:#96dbe5;letter-spacing:.5px;overflow-wrap:anywhere}
+#bodyToggle[aria-pressed="true"]{background:#28516a;border-color:#8de6ff;color:white}
+#bodyDetail{width:100%}
+@media(max-width:730px){.tabs{flex-wrap:wrap}.tabs button{flex:1 1 18%;min-width:49px;padding:9px 2px}.toolbox button[data-tool="orbit"]{min-height:36px}}
+
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / OPTICAL HERESY</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / CRYSTAL BODIES</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -56,7 +63,7 @@
       </div>
       <div class="bottom-bar">
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
-        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button></div>
+        <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button><button data-tool="fracture" type="button" title="Carve physical fractures in phase-field crystals">◇ FRACTURE</button><button data-tool="twist" type="button" title="Twist the stored optical directors of grown radial crystals">🌀 TWIST LIGHT</button><button data-tool="orbit" type="button" title="Drag to rotate actual crystal volume, pinch to zoom, without changing its growth">◈ ORBIT 3D</button></div>
       </div>
       <div class="specimen-actions" aria-label="Crystal lifecycle actions">
         <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
@@ -66,12 +73,12 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.9 · OPTICAL HERESY</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.10 · CRYSTAL BODIES</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
         <button data-tab="material" role="tab" aria-selected="false">FINISHES</button><button data-tab="archaeology" role="tab" aria-selected="false">ARCHIVE</button>
-        <button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
+        <button data-tab="body" role="tab" aria-selected="false">BODY 3D</button><button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
         <p class="panel-intro">Plant classic branching tips, nutrient-driven accretion fronts, or a new anisotropic PDE phase-field crystal. Each colony keeps its growth identity.</p>
@@ -164,6 +171,23 @@
         <label class="range-label" for="archiveReveal">Reveal old mineral generations <output id="archiveReveal-value">68%</output></label><input id="archiveReveal" type="range" min="0" max="100" value="68" step="1" />
         <div class="info"><strong>ARCHAEOLOGY LENS</strong><p>Select “CRYSTAL ARCHAEOLOGY” under FINISHES to see past deposition ghosts, generation-dependent bands and illuminated scars. Painting a fracture changes physics; revealing layers only changes how they look. Fractures currently work in the three phase-field anatomies.</p></div>
       </div>
+      <div class="panel" id="panel-body" role="tabpanel" hidden>
+  <p class="panel-intro">A real triangulated 3D crystal body, extruded from existing growth. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
+  <button class="wide primary" id="bodyToggle" type="button" aria-pressed="false">◈ ENABLE 3D BODY VIEW</button>
+  <div class="info"><strong id="bodyStatus">3D preview disabled · 2D stage unchanged</strong><p>Choose ORBIT 3D beneath the canvas to drag the camera. Pinch with two fingers to zoom. Switch off to return to the untouched 2D view.</p></div>
+  <label class="range-label" for="bodyDepth">True extrusion thickness <output id="bodyDepth-value">72%</output></label><input id="bodyDepth" type="range" min="0" max="100" value="72" step="1" />
+  <label class="range-label" for="bodyAngle">Camera orbit / yaw <output id="bodyAngle-value">20°</output></label><input id="bodyAngle" type="range" min="-180" max="180" value="20" step="1" />
+  <label class="range-label" for="bodyTilt">Camera tilt <output id="bodyTilt-value">38°</output></label><input id="bodyTilt" type="range" min="0" max="82" value="38" step="1" />
+  <label class="range-label" for="bodyZoom">Zoom <output id="bodyZoom-value">73%</output></label><input id="bodyZoom" type="range" min="35" max="118" value="73" step="1" />
+  <label class="range-label" for="bodyLight">Move the light <output id="bodyLight-value">315°</output></label><input id="bodyLight" type="range" min="0" max="360" value="315" step="1" />
+  <label class="range-label" for="bodyDispersion">Prism / spectrum <output id="bodyDispersion-value">60%</output></label><input id="bodyDispersion" type="range" min="0" max="100" value="60" step="1" />
+  <label class="range-label" for="bodyBands">Interior growth bands <output id="bodyBands-value">52%</output></label><input id="bodyBands" type="range" min="0" max="100" value="52" step="1" />
+  <label class="range-label" for="bodyAbsorption">Mineral absorption <output id="bodyAbsorption-value">28%</output></label><input id="bodyAbsorption" type="range" min="0" max="100" value="28" step="1" />
+  <label class="range-label" for="bodyTransparency">Crystal translucency <output id="bodyTransparency-value">12%</output></label><input id="bodyTransparency" type="range" min="0" max="100" value="12" step="1" />
+  <label class="select-label" for="bodyDetail">Mesh detail / mobile performance</label><select id="bodyDetail"><option value="fast">FAST · LIGHTWEIGHT</option><option value="balanced" selected>BALANCED · DEFAULT</option><option value="fine">FINE · MORE FACETS</option></select>
+  <button id="bodyResetCamera" type="button" class="wide">↶ RESET CAMERA ONLY</button>
+  <p class="control-note">The model contains genuine top triangles, exposed side walls and an underside. Color and lighting use real normals and stored growth history. Refraction and transparency are approximate GPU materials, not physically traced light paths. No extra packages, network, or API keys.</p>
+</div>
       <div class="panel" id="panel-studio" role="tabpanel" hidden>
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
@@ -173,7 +197,7 @@
       </div>
     </aside>
   </main>
-  <footer class="foot">GPU SPECTRAL OPTICS · REVERSIBLE DIRECTOR WITCHCRAFT · LOCAL ONLY</footer>
+  <footer class="foot">3D FACET MESH · TOUCH ORBIT · GPU SHADER · ALL ORIGINAL PALETTES</footer>
 </div>
 <dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script>
@@ -4325,6 +4349,257 @@ class SpectralGPU{
   }
 }
 
+/**
+ * A.10 — Crystal Bodies.
+ * Actual triangulated 3D solid volume derived from the SAME persistent growth
+ * state as the 2D studio. Each occupied coarse grid-cell contributes a raised
+ * top and its exposed boundary walls; nothing is generated by screen-space
+ * shader noise or the passage of time.
+ *
+ * Material shading is expressive: Fresnel-like edge light, spectral channel
+ * separation and exponential absorption are artist approximations. This is
+ * NOT ray-traced refraction, physically calibrated index of refraction,
+ * 3D phase-field crystallization, or arbitrary tetrahedral volume growth.
+ *
+ * Designed for self-contained HTML: WebGL2 used only if supported; the normal
+ * Canvas2D studio remains available with unchanged geometry and controls.
+ */
+const TAU_BODY = Math.PI * 2;
+const boundBody = (v,a,b) => Math.max(a,Math.min(b,v));
+
+/** Derive a real 3D surface and boundary walls from ALL four growth families. */
+function buildCrystalMesh(world,{depth=.72,detail='balanced'}={}){
+  const step=detail==='fine'?2:detail==='fast'?6:4;
+  const grid=Math.ceil(world.size/step),count=grid*grid;
+  const id=new Uint8Array(count),density=new Float32Array(count);
+  const age=new Float32Array(count),axis=new Float32Array(count),ring=new Float32Array(count);
+  let occupied=0;
+  const phase=world.phase,spher=world.spherulite;
+  for(let gy=0;gy<grid;gy++)for(let gx=0;gx<grid;gx++){
+    const votes=new Uint16Array(Math.max(2,world.grains.length+1));
+    let samples=0;
+    for(let y=gy*step;y<Math.min(world.size,(gy+1)*step);y++){
+      for(let x=gx*step;x<Math.min(world.size,(gx+1)*step);x++){
+        const g=world.crystal[y*world.size+x];
+        if(g && g<votes.length){votes[g]++;samples++;}
+      }
+    }
+    if(!samples)continue;
+    let dominant=0,maximum=0;
+    for(let k=1;k<votes.length;k++)if(votes[k]>maximum){maximum=votes[k];dominant=k;}
+    if(!dominant)continue;
+    const i=gy*grid+gx,g=world.grains[dominant-1];
+    id[i]=dominant;density[i]=samples/(Math.min(step,world.size-gx*step)*Math.min(step,world.size-gy*step));occupied++;
+    const wx=Math.min(world.size-1,Math.floor((gx+.5)*step));
+    const wy=Math.min(world.size-1,Math.floor((gy+.5)*step));
+    const px=boundBody(Math.floor(wx/phase.scale),0,phase.size-1);
+    const py=boundBody(Math.floor(wy/phase.scale),0,phase.size-1);
+    const sx=boundBody(Math.floor(wx/spher.scale),0,spher.size-1);
+    const sy=boundBody(Math.floor(wy/spher.scale),0,spher.size-1);
+    const pi=py*phase.size+px,si=sy*spher.size+sx;
+    if(spher.owner[si]===dominant){
+      age[i]=spher.birth[si]||world.ticks;
+      axis[i]=spher.director[si];ring[i]=spher.ring[si];
+    }else if(phase.owner[pi]===dominant){
+      age[i]=phase.birth[pi]||world.ticks;
+      axis[i]=g.angle;
+      ring[i]=Math.sin((age[i]-g.seededAt)*.05);
+    }else{
+      age[i]=world.ticks*.35 + (wx+wy)*.06;
+      axis[i]=g?.angle||0;
+      ring[i]=Math.sin((wx*.12+wy*.09+dominant)*1.3);
+    }
+  }
+  // Interior distance is computed from real occupied morphology: convex ridges
+  // rise where matter becomes wide; narrow dendrites stay knife-like.
+  const d=new Float32Array(count),diag=1.41421356237;
+  for(let y=0;y<grid;y++)for(let x=0;x<grid;x++){
+    const i=y*grid+x;
+    d[i]=id[i]&&x&&y&&x<grid-1&&y<grid-1&&id[i-1]&&id[i+1]&&id[i-grid]&&id[i+grid]?10000:0;
+  }
+  for(let y=1;y<grid-1;y++)for(let x=1;x<grid-1;x++){
+    const i=y*grid+x;if(!d[i])continue;
+    d[i]=Math.min(d[i],d[i-1]+1,d[i-grid]+1,d[i-grid-1]+diag,d[i-grid+1]+diag);
+  }
+  for(let y=grid-2;y>=1;y--)for(let x=grid-2;x>=1;x--){
+    const i=y*grid+x;if(!d[i])continue;
+    d[i]=Math.min(d[i],d[i+1]+1,d[i+grid]+1,d[i+grid+1]+diag,d[i+grid-1]+diag);
+  }
+  const height=new Float32Array(count);
+  for(let i=0;i<count;i++)if(id[i]){
+    const ridge=1-Math.exp(-d[i]*.27);
+    const layer=.5+.5*Math.cos(age[i]*.057 +ring[i]*2.0);
+    // The third dimension is an extrusion/relief of the 2D simulation,
+    // influenced by real thickness of local material and growth chronology.
+    height[i]=(.045+depth*(.13 + .43*ridge + .10*layer))*(.67+.33*Math.sqrt(density[i]));
+  }
+  const verts=[];let topTriangles=0,wallTriangles=0,bottomTriangles=0;
+  function addTriangle(a,b,c,tone,history,band){
+    const ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+    let nx=ab[1]*ac[2]-ab[2]*ac[1],ny=ab[2]*ac[0]-ab[0]*ac[2],nz=ab[0]*ac[1]-ab[1]*ac[0];
+    const length=Math.hypot(nx,ny,nz)||1;nx/=length;ny/=length;nz/=length;
+    for(const v of [a,b,c])verts.push(v[0],v[1],v[2],nx,ny,nz,tone,history,band);
+  }
+  function addQuad(a,b,c,d,t,h,bottom){addTriangle(a,b,c,t,h,bottom);addTriangle(a,c,d,t,h,bottom);}
+  function at(x,y){return x<0||y<0||x>=grid||y>=grid?-1:y*grid+x;}
+  function topAt(cx,cy,center){
+    let total=0,num=0;
+    for(let yy=cy-1;yy<=cy;yy++)for(let xx=cx-1;xx<=cx;xx++){
+      const i=at(xx,yy);
+      if(i>=0&&id[i]){total+=height[i];num++;}
+    }
+    return num?total/num:0; // Shared corner heights prevent cracks between adjacent facets.
+  }
+  for(let y=0;y<grid;y++)for(let x=0;x<grid;x++){
+    const i=y*grid+x;if(!id[i])continue;
+    const x0=x/grid*2-1,x1=(x+1)/grid*2-1,y0=1-y/grid*2,y1=1-(y+1)/grid*2;
+    const h00=topAt(x,y,i),h10=topAt(x+1,y,i),h11=topAt(x+1,y+1,i),h01=topAt(x,y+1,i);
+    const a=[x0,y0,h00],b=[x1,y0,h10],c=[x1,y1,h11],e=[x0,y1,h01];
+    const tone=((id[i]*.151+age[i]*.0027+ring[i]*.135+axis[i]/TAU_BODY*.19)%1+1)%1;
+    const history=((age[i]*.011)%1+1)%1;
+    addQuad(a,e,c,b,tone,history,ring[i]);topTriangles+=2;
+    const bottom=[x0,y0,-.027],bt1=[x1,y0,-.027],bt2=[x1,y1,-.027],bt3=[x0,y1,-.027];
+    addQuad(bottom,bt1,bt2,bt3,tone,history,ring[i]);bottomTriangles+=2;
+    // True side walls make the shapes volumetric in profile; exposed borders
+    // remain open to other colonies instead of bridging forbidden crystal cells.
+    if(y===0||!id[i-grid]){addQuad(a,b,bt1,bottom,tone,history,ring[i]);wallTriangles+=2;}
+    if(x===grid-1||!id[i+1]){addQuad(b,c,bt2,bt1,tone,history,ring[i]);wallTriangles+=2;}
+    if(y===grid-1||!id[i+grid]){addQuad(c,e,bt3,bt2,tone,history,ring[i]);wallTriangles+=2;}
+    if(x===0||!id[i-1]){addQuad(e,a,bottom,bt3,tone,history,ring[i]);wallTriangles+=2;}
+  }
+  const buffer=new Float32Array(verts);
+  return {vertices:buffer,stride:9,grid,step,occupied,topTriangles,wallTriangles,bottomTriangles,
+    triangles:buffer.length/27,depth,detail,heights:height,owners:id};
+}
+
+const VERT_BODY=`#version 300 es
+precision highp float;
+layout(location=0) in vec3 aPos;
+layout(location=1) in vec3 aNormal;
+layout(location=2) in vec3 aPigment;
+uniform float uYaw,uTilt,uZoom;
+out vec3 vNormal;
+out vec3 vPigment;
+out vec3 vPosition;
+void main(){
+  float cy=cos(uYaw),sy=sin(uYaw),ct=cos(uTilt),st=sin(uTilt);
+  vec3 p=vec3(aPos.xy,aPos.z-.12);
+  float x=cy*p.x-sy*p.y,y=sy*p.x+cy*p.y;
+  float projectedY=ct*y-st*p.z;
+  float depth=st*y+ct*p.z;
+  gl_Position=vec4(x*uZoom,projectedY*uZoom,-depth*.52,1.);
+  vNormal=aNormal;vPigment=aPigment;vPosition=aPos;
+}`;
+const FRAG_BODY=`#version 300 es
+precision highp float;
+in vec3 vNormal,vPigment,vPosition;
+out vec4 frag;
+uniform sampler2D uPalette;
+uniform float uLightAngle,uAbsorption,uDispersion,uTransparency,uLayerBands,uYaw,uTilt;
+const float TAU=6.28318530718;
+void main(){
+  vec3 n=normalize(vNormal);
+  vec3 L=normalize(vec3(cos(uLightAngle),sin(uLightAngle),.78));
+  vec3 V=normalize(vec3(-sin(uYaw)*sin(uTilt),cos(uYaw)*sin(uTilt),cos(uTilt)));
+  float diffuse=max(dot(n,L),0.);
+  float rim=pow(1.-abs(dot(n,V)),2.8);
+  float face=max(0.,dot(normalize(L+V),n));
+  float spec=pow(face,24.);
+  float dark=exp(-uAbsorption*(.35+vPosition.z*.8));
+  float layer=(.5+.5*cos(TAU*(vPigment.y*4.0+vPosition.z*2.8)))*uLayerBands;
+  float base=fract(vPigment.x+layer*.075);
+  float shift=uDispersion*(.035+rim*.09+max(vPosition.z,0.)*.025);
+  vec3 pigment=vec3(
+    texture(uPalette,vec2(fract(base-shift),.5)).r,
+    texture(uPalette,vec2(base,.5)).g,
+    texture(uPalette,vec2(fract(base+shift),.5)).b
+  );
+  float shading=(.20+.83*diffuse)*dark;
+  vec3 color=pigment*shading+vec3(.74,.84,1.)*(spec*.52+rim*(.11+.5*uDispersion));
+  color+=pigment*(.18*layer);
+  float opacity=1.-uTransparency*(.22+.4*rim);
+  frag=vec4(clamp(color,0.,1.),clamp(opacity,.31,1.));
+}`;
+function makeShaderBody(gl,kind,source){
+  const sh=gl.createShader(kind);gl.shaderSource(sh,source);gl.compileShader(sh);
+  if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS)){
+    const message=gl.getShaderInfoLog(sh);gl.deleteShader(sh);throw Error(`Crystal Body shader: ${message}`);
+  }return sh;
+}
+/** Actual GPU triangle renderer with cached physics-derived mesh. */
+class CrystalBodyGPU{
+  constructor(createCanvas,initialSize=700){
+    this.canvas=createCanvas();this.canvas.width=this.canvas.height=initialSize;
+    const gl=this.canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,premultipliedAlpha:false,preserveDrawingBuffer:true});
+    if(!gl)throw Error('WebGL2 crystal body view unavailable');
+    this.gl=gl;this.program=gl.createProgram();
+    const v=makeShaderBody(gl,gl.VERTEX_SHADER,VERT_BODY),f=makeShaderBody(gl,gl.FRAGMENT_SHADER,FRAG_BODY);
+    gl.attachShader(this.program,v);gl.attachShader(this.program,f);gl.linkProgram(this.program);
+    if(!gl.getProgramParameter(this.program,gl.LINK_STATUS))throw Error('Crystal Body link: '+gl.getProgramInfoLog(this.program));
+    gl.deleteShader(v);gl.deleteShader(f);
+    this.vao=gl.createVertexArray();gl.bindVertexArray(this.vao);
+    this.vbo=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.vbo);
+    const stride=9*4;
+    for(const [location,size,offset] of [[0,3,0],[1,3,12],[2,3,24]]){
+      gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset);
+    }
+    this.paletteTexture=gl.createTexture();this.lastPalette=-1;this.lastGeometry=-1;this.lastDetail='';this.lastDepth=-1;
+    this.vertices=0;this.triangles=0;this.status='ready';this.mesh=null;this.lost=false;
+    this.uniforms=Object.fromEntries(['uPalette','uYaw','uTilt','uZoom','uLightAngle','uAbsorption','uDispersion','uTransparency','uLayerBands'].map(k=>[k,gl.getUniformLocation(this.program,k)]));
+    this.canvas.addEventListener('webglcontextlost',ev=>{ev.preventDefault();this.lost=true;});
+  }
+  updateGeometry(world,settings={},now=0){
+    const geometryVersion=world.modified;
+    if(this.lastGeometry===geometryVersion&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth)return;
+    // Limit mesh rebuilding for continuously growing worlds on older iPhones.
+    if(this.lastGeometry!==-1&&this.lastDetail===settings.detail&&this.lastDepth===settings.depth&&now-this.lastBuildAt<145)return;
+    const mesh=buildCrystalMesh(world,settings);
+    const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,this.vbo);gl.bufferData(gl.ARRAY_BUFFER,mesh.vertices,gl.DYNAMIC_DRAW);
+    this.mesh=mesh;this.vertices=mesh.vertices.length/9;this.triangles=mesh.triangles;
+    this.lastGeometry=geometryVersion;this.lastDetail=settings.detail;this.lastDepth=settings.depth;this.lastBuildAt=now;
+  }
+  updatePalette(lut,revision){
+    if(this.lastPalette===revision)return;
+    const gl=this.gl;
+    const pixels=new Uint8Array(256*4);
+    for(let k=0;k<256;k++){pixels[k*4]=lut[k*3];pixels[k*4+1]=lut[k*3+1];pixels[k*4+2]=lut[k*3+2];pixels[k*4+3]=255;}
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.paletteTexture);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,256,1,0,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+    this.lastPalette=revision;
+  }
+  render(world,lut,revision,settings,now=0,outputSize=700){
+    if(this.lost)throw Error('WebGL2 context lost');
+    this.updateGeometry(world,settings,now);this.updatePalette(lut,revision);
+    const gl=this.gl, size=boundBody(Math.round(outputSize),1,Math.min(4096,gl.getParameter(gl.MAX_RENDERBUFFER_SIZE)));
+    if(this.canvas.width!==size||this.canvas.height!==size){this.canvas.width=this.canvas.height=size;}
+    gl.viewport(0,0,size,size);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+    gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+    gl.disable(gl.CULL_FACE);gl.clearColor(0,0,0,0);gl.clearDepth(1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.useProgram(this.program);gl.bindVertexArray(this.vao);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.paletteTexture);
+    gl.uniform1i(this.uniforms.uPalette,0);
+    gl.uniform1f(this.uniforms.uYaw,settings.yaw??.2);
+    gl.uniform1f(this.uniforms.uTilt,settings.tilt??.58);
+    gl.uniform1f(this.uniforms.uZoom,settings.zoom??.73);
+    gl.uniform1f(this.uniforms.uLightAngle,(settings.lightAngle??315)*Math.PI/180);
+    gl.uniform1f(this.uniforms.uAbsorption,settings.absorption??.28);
+    gl.uniform1f(this.uniforms.uDispersion,settings.dispersion??.6);
+    gl.uniform1f(this.uniforms.uTransparency,settings.transparency??.12);
+    gl.uniform1f(this.uniforms.uLayerBands,settings.bands??.52);
+    gl.drawArrays(gl.TRIANGLES,0,this.vertices);
+    if(gl.getError()!==gl.NO_ERROR)throw Error('Crystal Body GL draw error');
+    return this.canvas;
+  }
+  dispose(){
+    const gl=this.gl;if(!gl)return;
+    gl.deleteBuffer(this.vbo);gl.deleteTexture(this.paletteTexture);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program);
+  }
+}
+
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -4346,6 +4621,10 @@ let materialRevision=0;
 let analyzerAngle=28,opticalRetardance=.65,polarizerContrast=.80,polarRevision=0;
 let spectralDispersion=.52,opticalDefects=.50,opticalTwist=.65,opticalBackend='auto';
 let spectralGPU=null,spectralError='';
+let bodyEnabled=false,bodyGPU=null,bodyError='';
+const bodySettings={depth:.72,yaw:20*Math.PI/180,tilt:38*Math.PI/180,zoom:.73,
+  lightAngle:315,dispersion:.60,bands:.52,absorption:.28,transparency:.12,detail:'balanced'};
+const bodyPointers=new Map();let bodyPinchDistance=0;
 let editing = false;
 let recentPoint = null;
 let lastPaint = -Infinity;
@@ -4576,6 +4855,21 @@ function drawScreen() {
   const size=Math.min(w,h),ox=(w-size)/2,oy=(h-size)/2;
   display.save(); display.translate(ox,oy);
   paintBackdrop(display,size);
+  if(bodyEnabled){
+    try{
+      if(!bodyGPU)bodyGPU=new CrystalBodyGPU(()=>document.createElement('canvas'),Math.max(1,size));
+      const view=bodyGPU.render(world,paletteLUT,paletteRevision,bodySettings,performance.now(),Math.max(1,size));
+      display.drawImage(view,0,0,size,size);
+      $('bodyStatus').textContent='● GPU ACTIVE · '+bodyGPU.triangles.toLocaleString()+' material triangles · '+bodyGPU.mesh.occupied.toLocaleString()+' occupied grid tiles';
+      display.restore();return;
+    }catch(e){
+      console.warn('3D optional renderer disabled:',e);
+      bodyError=String(e.message||e);bodyEnabled=false;
+      $('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');
+      $('bodyStatus').textContent='WebGL2 unavailable or interrupted · 2D view restored · '+bodyError;
+      if(activeTool==='orbit')setTool('seed');
+    }
+  }
   if (world.fullRedraw||forceFull) redrawLayer();
   else if (renderVersion!==world.modified) {
     drawSegments(layerCtx,world.newSegments,layer.width/SIZE);
@@ -4603,9 +4897,10 @@ function drawScreen() {
   display.restore();
 }
 function setTool(tool) {
+  if(tool==='orbit'&&!bodyEnabled && !enableBody())return;
   activeTool=tool;
   for (const b of document.querySelectorAll('[data-tool]')) b.classList.toggle('selected',b.dataset.tool===tool);
-  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE'}[tool];
+  $('toolHint').textContent={seed:'TAP TO PLANT CRYSTAL SEEDS',melt:'DRAG TO MELT · SURVIVING EDGES CAN REGROW',feed:'DRAG TO RESTORE DISSOLVED MATERIAL',fracture:'DRAG TO CARVE REAL PHASE CRACKS · UNDO TO RESTORE',twist:'DRAG TO TWIST OPTICAL DIRECTORS · UNDO TO RESTORE',orbit:'DRAG TO ROTATE 3D CRYSTAL BODY · PINCH TO ZOOM'}[tool];
 }
 function pointFromEvent(ev){
   const rect=crystalCanvas.getBoundingClientRect();
@@ -4623,11 +4918,30 @@ function doBrush(p){
 crystalCanvas.addEventListener('pointerdown',ev=>{
   if(ev.button!==0)return;
   ev.preventDefault();crystalCanvas.setPointerCapture(ev.pointerId);
+  if(activeTool==='orbit'){
+    bodyPointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    bodyPinchDistance=bodyPointers.size===2?pointerSpan():0;
+    return;
+  }
   saveUndo();editing=true;recentPoint=pointFromEvent(ev);
   if(activeTool==='seed') world.seed(recentPoint.x,recentPoint.y);
   else doBrush(recentPoint);
 });
 crystalCanvas.addEventListener('pointermove',ev=>{
+  if(activeTool==='orbit'&&bodyPointers.has(ev.pointerId)){
+    ev.preventDefault();const old=bodyPointers.get(ev.pointerId);
+    const dx=ev.clientX-old.x,dy=ev.clientY-old.y;
+    bodyPointers.set(ev.pointerId,{x:ev.clientX,y:ev.clientY});
+    if(bodyPointers.size===2){
+      const next=pointerSpan();
+      if(bodyPinchDistance>1)bodySettings.zoom=clamp(bodySettings.zoom*next/bodyPinchDistance,.35,1.18);
+      bodyPinchDistance=next;
+    }else{
+      bodySettings.yaw=wrapBodyYaw(bodySettings.yaw+dx*.008);
+      bodySettings.tilt=clamp(bodySettings.tilt+dy*.006,0,82*Math.PI/180);
+    }
+    updateBodyCameraControls();return;
+  }
   if(!editing)return;ev.preventDefault();
   const now=performance.now();if(now-lastPaint<30)return;
   const next=pointFromEvent(ev);
@@ -4639,10 +4953,50 @@ crystalCanvas.addEventListener('pointermove',ev=>{
   }
   recentPoint=next;lastPaint=now;
 });
-function endEdit(){editing=false;recentPoint=null;}
+function pointerSpan(){
+  const p=[...bodyPointers.values()];return p.length<2?0:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);
+}
+function wrapBodyYaw(v){return ((v+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;}
+function updateBodyCameraControls(){
+  for(const [id,v] of [['bodyAngle',bodySettings.yaw*180/Math.PI],['bodyTilt',bodySettings.tilt*180/Math.PI],['bodyZoom',bodySettings.zoom*100]]){
+    $(id).value=Math.round(v);$(id+'-value').textContent=Math.round(v)+(id==='bodyZoom'?'%':'°');
+  }
+}
+function endEdit(ev){if(ev?.pointerId!==undefined)bodyPointers.delete(ev.pointerId);bodyPinchDistance=pointerSpan();editing=false;recentPoint=null;}
 crystalCanvas.addEventListener('pointerup',endEdit);
 crystalCanvas.addEventListener('pointercancel',endEdit);
 crystalCanvas.addEventListener('lostpointercapture',endEdit);
+function enableBody(){
+  try{
+    if(!bodyGPU)bodyGPU=new CrystalBodyGPU(()=>document.createElement('canvas'),512);
+    bodyEnabled=true;bodyError='';
+    $('bodyToggle').textContent='◈ 3D VIEW ACTIVE · SWITCH TO 2D';$('bodyToggle').setAttribute('aria-pressed','true');
+    $('bodyStatus').textContent='● GPU READY · drag with ORBIT 3D · pinch to zoom';
+    return true;
+  }catch(err){
+    bodyEnabled=false;bodyError=String(err.message||err);
+    $('bodyStatus').textContent='No WebGL2 · original 2D artwork remains available · '+bodyError;
+    $('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');
+    return false;
+  }
+}
+$('bodyToggle').addEventListener('click',()=>{
+  if(bodyEnabled){bodyEnabled=false;$('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');$('bodyStatus').textContent='3D preview disabled · 2D stage preserved';if(activeTool==='orbit')setTool('seed');}
+  else enableBody();
+});
+for(const [id,field,unit] of [
+  ['bodyDepth','depth','%'],['bodyAngle','yaw','°'],['bodyTilt','tilt','°'],['bodyZoom','zoom','%'],
+  ['bodyLight','lightAngle','°'],['bodyDispersion','dispersion','%'],['bodyBands','bands','%'],
+  ['bodyAbsorption','absorption','%'],['bodyTransparency','transparency','%']]){
+  $(id).addEventListener('input',ev=>{
+    const raw=Number(ev.target.value);bodySettings[field]=field==='yaw'||field==='tilt'?raw*Math.PI/180:
+      field==='lightAngle'?raw:raw/100;
+    $(id+'-value').textContent=raw+unit;
+    if(field==='depth'&&bodyGPU)bodyGPU.lastGeometry=-1;
+  });
+}
+$('bodyDetail').addEventListener('change',ev=>{bodySettings.detail=ev.target.value;if(bodyGPU)bodyGPU.lastGeometry=-1;});
+$('bodyResetCamera').addEventListener('click',()=>{bodySettings.yaw=20*Math.PI/180;bodySettings.tilt=38*Math.PI/180;bodySettings.zoom=.73;updateBodyCameraControls();});
 for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool));
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{
   currentTab=b.dataset.tab;
@@ -4734,7 +5088,11 @@ $('save').addEventListener('click',async()=>{
   const button=$('save');button.disabled=true;button.textContent='RENDERING HIGH-RES SPECIMEN…';
   try{
     const size=2400,output=document.createElement('canvas');output.width=output.height=size;
-    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);paintPhase(ctx,size);paintSpherulites(ctx,size);drawSegments(ctx,world.segments,size/SIZE);
+    const ctx=output.getContext('2d',{alpha:false});paintBackdrop(ctx,size);
+    if(bodyEnabled&&bodyGPU){
+      const body=bodyGPU.render(world,paletteLUT,paletteRevision,bodySettings,performance.now(),size);
+      ctx.drawImage(body,0,0,size,size);
+    }else{paintPhase(ctx,size);paintSpherulites(ctx,size);drawSegments(ctx,world.segments,size/SIZE);} 
     const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('PNG encode failed')),'image/png'));
     const link=document.createElement('a');const url=URL.createObjectURL(blob);
     link.href=url;link.download=`crystallization-apocalypse-${world.rngState.toString(16)}-${world.ticks}.png`;
@@ -4759,7 +5117,7 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},enableBody};
 requestAnimationFrame(loop);
 
 </script>
