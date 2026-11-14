@@ -33,7 +33,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.4 · COLOR VAULT</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.5 · INSTABILITY GARDEN</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -63,7 +63,11 @@
           <label class="range-label" for="phaseDrive">Supersaturation / driving force <output id="phaseDrive-value">70%</output></label><input id="phaseDrive" type="range" min="0" max="100" value="70" step="1" />
           <label class="range-label" for="phaseStiffness">Orientation stiffness <output id="phaseStiffness-value">76%</output></label><input id="phaseStiffness" type="range" min="0" max="100" value="76" step="1" />
           <label class="range-label" for="phaseMobility">Interface mobility <output id="phaseMobility-value">78%</output></label><input id="phaseMobility" type="range" min="0" max="100" value="78" step="1" />
-          <p class="control-note">Higher stiffness moves closer to the analytical faceting limit but never crosses into negative-stiffness instability. Existing crystals are preserved when these controls change.</p>
+          <div class="info"><strong>A.5 · INSTABILITY GARDEN</strong><p>Diffusing nutrients nourish exposed growth tips; smooth crystal fronts compete with fixed microscopic material irregularities. Tune new growth without erasing what already formed.</p></div>
+          <label class="range-label" for="phaseInstability">Front instability <output id="phaseInstability-value">72%</output></label><input id="phaseInstability" type="range" min="0" max="100" value="72" step="1" />
+          <label class="range-label" for="phaseWavelength">Branch scale (broad → fine) <output id="phaseWavelength-value">66%</output></label><input id="phaseWavelength" type="range" min="0" max="100" value="66" step="1" />
+          <label class="range-label" for="phaseCapillarity">Surface smoothing <output id="phaseCapillarity-value">52%</output></label><input id="phaseCapillarity" type="range" min="0" max="100" value="52" step="1" />
+          <p class="control-note">Set instability to 0 for the earlier A.4 behavior. No reset occurs when adjusting these sliders; the changed conditions affect future growth. These are physics-inspired controls, not experimentally calibrated quantities.</p>
         </div>
         <div class="info"><strong>STRUCTURAL RULE</strong><p id="structureRule">New side-branches inherit their parent direction, then compete for dissolved material. Existing arms don't move or rotate.</p></div>
       </div>
@@ -97,7 +101,7 @@
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <div class="info"><strong>SPECIMEN CONTROL</strong><p>Use the three buttons beneath the artwork: NEW SEED plants a colony without clearing anything; REFRESH generates new crystals using your selected anatomy; RESTART replays this specimen’s saved starting seed. Destructive actions ask first and can be undone.</p></div>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div></div>
         <div class="info"><strong>ENGINE STATUS</strong><p>Three stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>

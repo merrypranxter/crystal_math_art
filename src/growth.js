@@ -23,11 +23,12 @@ export class CrystalWorld {
   constructor(size = SIZE) {
     this.size = size;
     this.amount = size * size;
-    this.config = { phaseDrive:.7, phaseStiffness:.76, phaseMobility:.78, speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, morphology: 'cathedral' };
+    this.config = { phaseDrive:.7, phaseStiffness:.76, phaseMobility:.78, phaseInstability:.72, phaseWavelength:.66, phaseCapillarity:.52, speed: 3, branching: .7, anisotropy: .82, length: 1, diffusion: .22, recharge: .5, brush: 18, frost: .64, spread: .86, instability: .75, faceting: .70, morphology: 'cathedral' };
     this.randomize(357321);
   }
   randomize(seed) {
-    this.rngState = seed >>> 0 || 1;
+    this.seedValue = seed >>> 0 || 1;
+    this.rngState = this.seedValue;
     this.crystal = new Uint8Array(this.amount);
     this.nutrient = new Float32Array(this.amount).fill(1);
     this.nutrientNext = new Float32Array(this.amount).fill(1);
@@ -266,11 +267,11 @@ export class CrystalWorld {
     this.modified++;
   }
   snapshot() {
-    return { rngState:this.rngState, crystal:this.crystal.slice(),nutrient:this.nutrient.slice(), nutrientNext:this.nutrientNext.slice(),
+    return { seedValue:this.seedValue,rngState:this.rngState, crystal:this.crystal.slice(),nutrient:this.nutrient.slice(), nutrientNext:this.nutrientNext.slice(),
       heat:this.heat.slice(),tips:this.tips.map(cloneTip),grains:this.grains.map(x=>({...x})),segments:this.segments.map(x=>({...x})),front:this.front.snapshot(),phase:this.phase.snapshot(),ticks:this.ticks };
   }
   restore(s) {
-    this.rngState = s.rngState; this.crystal = s.crystal; this.nutrient = s.nutrient; this.nutrientNext = s.nutrientNext;
+    this.seedValue=s.seedValue||1;this.rngState = s.rngState; this.crystal = s.crystal; this.nutrient = s.nutrient; this.nutrientNext = s.nutrientNext;
     this.heat = s.heat; this.tips = s.tips; this.grains = s.grains; this.segments = s.segments;
     this.ticks = s.ticks; this.front.restore(s.front); this.phase.restore(s.phase); this.newSegments = []; this.fullRedraw = true; this.modified++;
   }

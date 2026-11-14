@@ -3,19 +3,27 @@
 
 A mathematical growth-art studio. Plant competing crystal colonies, melt and regrow material, grow advancing dendritic tips or diffusion-coupled crystalline fronts, and finish their structure with color and surface effects.
 
-**Latest playable build: Phase A.4 — Actual Crystal Physics.** Three distinct growth systems coexist, including a numerical phase-field PDE experiment. This is not a scientifically calibrated crystallization simulator.
+**Latest playable build: Phase A.5 — Instability Garden.** The continuous phase-field now supports nutrient-biased interface destabilization and actual branching protrusions that become persistent solid-phase material. The three prior growth systems remain intact; this is a physics-inspired artistic hybrid, not a calibrated dendritic solidification model.
+
+## A.5 — Instability Garden (new)
+
+- Phase-field crystals can grow branching material fingers from their current solid/liquid boundary. An Allen–Cahn-like PDE continues to advance and thicken the deposited phase.
+- **Front instability** balances diffuse compact growth against persistent, resource-screened protrusions. **Branch scale** controls spatial heterogeneity and how frequently fingers split. **Surface smoothing** controls capillary regularization. Zero instability restores the A.4 compact front without assisted tips.
+- Enabling instability *after* a crystal has grown plants leaders at the actual existing interface; no hidden reset or second prefab artwork.
+- The inherited A.4 PDE controls (supersaturation, surface stiffness, interface mobility), `NEW SEED`, `REFRESH`, `RESTART`, `UNDO`, 199 palettes and color-stop editing remain.
+- This is **not** an exact Mullins–Sekerka solver: the fingers are a deliberately explicit growth-front assistance mechanism coupled to real phase-state material, not a physically calibrated free-boundary model. [A.5 implementation and limitations](docs/PROTOTYPE_A5.md).
 
 ## A.4 — Phase Field laboratory
 
 **New:** an independently evolving continuous solid/liquid fraction field, solving a simplified Allen–Cahn-like reaction-diffusion PDE. Fourfold, sixfold and experimental eightfold symmetry are selectable for *newly planted* crystal grains. New controls alter supersaturation, orientation stiffness and interface mobility; other crystals remain intact. A sixfold phase grain is present in the default sample. A nine-point Laplacian reduces square-grid artifacts, and Wolfram validated the orientation surface-stiffness expression and safe parameter bounds.
 
-**Important scope:** this is an honest PDE-inspired phase-field experiment, **not** an accurate thermodynamic solidification simulation, true 3D facets or a complete anisotropic free-energy variational model. The new phase grains are currently relatively compact shapes, not mature branching dendrites. See [A.4 details and limitations](docs/PROTOTYPE_A4.md).
+**Important scope:** the A.4 PDE can be run as a relatively compact phase-growth baseline by setting A.5 instability to 0. A.5 adds deliberately heuristic branching front assistance rather than claiming a full thermodynamic model. See [A.4 details and limitations](docs/PROTOTYPE_A4.md).
 
 ## Play / development
 
 - [Standalone HTML](standalone.html) — a complete offline browser/HTML-viewer build, no external scripts, server, subscription or secret keys needed.
 - Modular source runs from a folder with `python3 -m http.server 8080` or `npm run serve`. The JavaScript modules and CSS live in `src/` and `styles.css`.
-- `npm test` — 28 Node tests for growth-state persistence, deterministic reproduction, melting, regrowth, morphology identity, front deposition, and undo.
+- `npm test` — 39 Node tests for growth-state persistence, deterministic reproduction, melting, regrowth, morphology identity, front deposition, and undo.
 - `python3 scripts/build_standalone.py` — reassemble the dependency-free single HTML file from the current modular sources.
 - **No Netlify deployment is requested or triggered by the repository.**
 
@@ -34,21 +42,21 @@ A mathematical growth-art studio. Plant competing crystal colonies, melt and reg
 6. Sixfold Skeletal Fingers — slender angular competing fronts.
 7. Mutant Accretion Coral — irregular, diffusion-fed, finger-like interface deposition.
 
-**Continuous phase field (A.4)**
+**Continuous phase field with A.5 instability growth**
 
 8. Fourfold Phase — a continuous solid fraction with fourfold interface stiffness.
 9. Sixfold Phase — an oriented compact freezing front with sixfold symmetry.
 10. Eightfold Experimental Phase — a deliberately non-crystallographic angular experiment.
 
-The engines are structurally different: the first grows **tips and daughter branches**, the second attaches **discrete cells** to a nutrient-fed interface, and the third **integrates a PDE for a continuous phase fraction**. Each colony remembers its growth family. The phase-field equation and limitations are described in the A.4 notes.
+The engines are structurally different: the first grows **tips and daughter branches**, the second attaches **discrete cells** to a nutrient-fed interface, and the third **integrates a PDE for a continuous phase fraction, optionally assisted by living protrusion fronts**. Each colony remembers its growth family. The phase-field equation and limitations are described in the A.4 notes.
 
 ## Artist controls
 
 - **Touch:** PLANT adds a colony with the currently selected anatomy; MELT removes material in a brush radius, creating a heated area and surviving regrowth edges; FEED restores dissolved material.
 - **Growth:** select the future colony anatomy, then use only the relevant controls for that growth family. Current crystals never change morphology when a different seed type is selected.
 - **Environment:** diffusion, supply, heat/brush radius.
-- **Finishes:** five palettes and three decorative treatments. Changing finish never erases material history.
-- **Studio:** pause, step, undo, guarded New Composition, measurements and 2400 × 2400 PNG export.
+- **Finishes:** 199 palettes (194 preserved MATHEMAGICAL recipes plus five Crystal Studio originals), searchable and editable color stops; three surface treatments. Changing finish never erases material history.
+- **Studio:** pause, step, undo, NEW SEED, confirmed REFRESH and RESTART, growth measurements, and 2400 × 2400 PNG export.
 
 ## Science and limitations
 
@@ -59,6 +67,9 @@ The engines are structurally different: the first grows **tips and daughter bran
 - Performance will need profiling on real iPhone Safari before releasing heavy multi-crystal works.
 
 ## Project documents
+
+- [A.5 Instability Garden](docs/PROTOTYPE_A5.md)
+- [A.4.1 palettes and seed controls](docs/A4_1_PALETTES_AND_SEEDS.md)
 
 - [A.4 phase-field research prototype](docs/PROTOTYPE_A4.md)
 - [A.3 implementation and caveats](docs/PROTOTYPE_A3.md)

@@ -11,6 +11,10 @@
  * derivative of anisotropic interfacial energy. The nutrient field comes
  * from the legacy liquid transport model; this is NOT quantitatively
  * calibrated solidification, thermal phase field or faithful 3D crystallography.
+ * A.5 adds deliberately simplified transport-driven interfacial destabilization:
+ * nutrient exposure at the liquid-facing normal, persistent fine-scale
+ * material heterogeneity, and reduced capillary smoothing. This is a
+ * morphology experiment, NOT a calibrated Mullins-Sekerka stability solver.
  * No shader or decorative animation creates the solid/liquid boundary.
  */
 export const PHASE_MODES = Object.freeze({
@@ -19,6 +23,19 @@ export const PHASE_MODES = Object.freeze({
   phase8: Object.freeze({ axes: 8, name: 'EIGHTFOLD PHASE · EXPERIMENTAL' }),
 });
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+// Fast, seeded 2D correlated heterogeneity; unchanged by frame count.
+function hash2(x,y,seed) {
+  let h=Math.imul(x, 0x27d4eb2d)^Math.imul(y,0x165667b1)^Math.imul(seed,0x9e3779b1);
+  h^=h>>>15;h=Math.imul(h,0x85ebca6b);h^=h>>>13;h=Math.imul(h,0xc2b2ae35);h^=h>>>16;
+  return (h>>>0)/4294967295;
+}
+export function materialNoise(x,y,seed,scale=9){
+  const cx=Math.floor(x/scale), cy=Math.floor(y/scale), fx=x/scale-cx, fy=y/scale-cy;
+  const a=fx*fx*(3-2*fx), b=fy*fy*(3-2*fy);
+  const p=hash2(cx,cy,seed)*(1-a)+hash2(cx+1,cy,seed)*a;
+  const q=hash2(cx,cy+1,seed)*(1-a)+hash2(cx+1,cy+1,seed)*a;
+  return (p*(1-b)+q*b)*2-1; // [-1,+1]
+}
 export class PhaseField {
   constructor(world) {
     this.world=world;
@@ -31,6 +48,11 @@ export class PhaseField {
     this.deposited=0;
     this.active=false;
     this.version=0;
+    // Growth-front instability leaders are stateful *phase material*, not
+    // rendered segments. They perturb the evolving PDE interface directly.
+    this.sprouts=[];
+    this.sproutedGrains=[];
+    this.branchEvents=0;
   }
   index(x,y){return Math.floor(y)*this.size+Math.floor(x);}
   mainIndex(x,y){
@@ -74,7 +96,15 @@ export class PhaseField {
     const mobility=clamp(c.phaseMobility,0,1);
     const strength=.92*clamp(c.phaseStiffness,0,1);
     const drive=1.25*clamp(c.phaseDrive,0,1);
-    const diffusion=.18, barrier=.50, dt=.42;
+    const instability=clamp(c.phaseInstability ?? 0,0,1);
+    const wavelength=clamp(c.phaseWavelength ?? .50,0,1);
+    const smoothing=clamp(c.phaseCapillarity ?? 1,0,1);
+    // Smaller capillary coefficient increases competition among existing
+    // protrusions, while the correlated impurity field supplies perturbations.
+    // Bounded well below explicit 9-point diffusion's conservative limit.
+    const diffusion=.18*(1-instability*(.50+.46*(1-smoothing)));
+    const textureScale=3+Math.round(22*(1-wavelength));
+    const barrier=.50, dt=.42;
     q.fill(0);no.fill(0);
     let changed=false;
     for(let y=2;y<n-2;y++)for(let x=2;x<n-2;x++){
@@ -107,7 +137,28 @@ export class PhaseField {
       const stiffness=1-strength*cosTerm; // bounded [.08,1.92], positive.
       const lap=(4*(l+r+u+d)+ul+ur+dl+dr-20*v)/6;
       const nutrient=clamp(w.nutrient[main],0,1);
-      const source=6*drive*nutrient*v*(1-v);
+      let growthGain=1;
+      // Only the LIQUID-facing moving interface receives destabilizing
+      // transport: a high nutrient reservoir ahead of a depleted interface
+      // favors exposed tips over recessed, shielded cells.
+      if(instability>0 && v>.015 && v<.985){
+        const mag=Math.hypot(gx,gy);
+        let exposure=0;
+        if(mag>1e-5){
+          // Gradient of phase fraction points into solid. Look OUTWARD.
+          const ux=-gx/mag,uy=-gy/mag;
+          const ax=clamp(Math.round(x+ux*2),1,n-2),ay=clamp(Math.round(y+uy*2),1,n-2);
+          const far=clamp(w.nutrient[this.mainIndex(ax,ay)],0,1);
+          exposure=clamp((far-nutrient)*2.0,0,1);
+        }
+        // Quenched (fixed, seeded) heterogeneity is *not* time-animated noise:
+        // changed nutrient and interface geometry decide which variations grow.
+        const disorder=materialNoise(x,y,(g.id*73856093)^(w.seedValue>>>0),textureScale);
+        const alignment=(cosTerm+1)*.5;
+        growthGain=clamp(1+instability*(-.74 + .27*disorder + .32*exposure +
+          .28*(alignment-.5)),.08,1.8);
+      }
+      const source=6*drive*nutrient*growthGain*v*(1-v);
       const dw=-2*barrier*v*(1-v)*(1-2*v);
       const heat=clamp(w.heat[main],0,1);
       const value=clamp(v + dt*mobility*(diffusion*stiffness*lap+dw+source)-.23*heat*v,0,1);
@@ -132,9 +183,107 @@ export class PhaseField {
     }
     this.phi=q;this.next=p;
     this.owner=no;this.nextOwner=owner;
+    if(mobility>0 && instability>.015) this.advanceInstability(instability,wavelength);
     this.version++;
     if(changed)w.modified++;
   }
+
+  /**
+   * Surface-instability assistant. The A.4 PDE remains responsible for
+   * smoothing and advancing *phase fraction*. Exposed tips here deposit
+   * phase material and introduce hierarchical perturbations that the PDE
+   * subsequently evolves. This is an artistic hybrid model and NOT a
+   * faithful Mullins-Sekerka eigenmode solver / atomistic dendrite model.
+   */
+  advanceInstability(strength,wavelength){
+    const w=this.world,n=this.size;
+    for(const g of w.grains){
+      if(!PHASE_MODES[g.morphology] || this.sproutedGrains.includes(g.id))continue;
+      // Spawn from the REAL seed and oriented interface, never from a drawn
+      // decorative snowflake template. New grains keep their own orientation.
+      const folds=PHASE_MODES[g.morphology].axes;
+      if(this.sprouts.length+folds>128)break;
+      for(let k=0;k<folds;k++){
+        const a=g.angle+Math.PI*2*k/folds, ux=Math.cos(a),uy=Math.sin(a);
+        const cx=g.x/this.scale,cy=g.y/this.scale;
+        // Search the CURRENT real solid boundary. This allows the artist to
+        // turn instability on after a seed has already grown for a while.
+        let radius=3;
+        for(let r=3;r<Math.min(n*.46,75);r+=.8){
+          const ix=Math.round(cx+ux*r),iy=Math.round(cy+uy*r);
+          if(ix<3||iy<3||ix>=n-3||iy>=n-3)break;
+          const i=iy*n+ix;
+          if(this.owner[i]!==g.id||this.phi[i]<.57)break;
+          radius=r;
+        }
+        const x=cx+(radius+.4)*ux,y=cy+(radius+.4)*uy;
+        this.sprouts.push({x,y,angle:a,grain:g.id,level:0,traveled:0,nextFork:4+w.rand()*4,sign:k%2?1:-1});
+      }
+      this.sproutedGrains.push(g.id);
+    }
+    const born=[],survived=[];
+    const maxTips=128;
+    const branchScale=3+Math.floor((1-wavelength)*14);
+    for(const t of this.sprouts){
+      if(t.traveled>Math.min(n*.42,11+51*strength) || survived.length+born.length>=maxTips)continue;
+      const xi=Math.round(t.x),yi=Math.round(t.y);
+      if(xi<3||yi<3||xi>=n-3||yi>=n-3)continue;
+      const ii=this.mainIndex(xi,yi);
+      if(w.heat[ii]>.28){survived.push(t);continue;}
+      const g=w.grains[t.grain-1];if(!g)continue;
+      const leadX=clamp(Math.round(t.x+Math.cos(t.angle)*2.8),2,n-3);
+      const leadY=clamp(Math.round(t.y+Math.sin(t.angle)*2.8),2,n-3);
+      const current=w.nutrient[this.mainIndex(leadX,leadY)];
+      if(current<.025){survived.push(t);continue;}
+      const noise=materialNoise(t.x,t.y,t.grain*733+w.seedValue,Math.max(2,Math.round(branchScale*.75)));
+      const bend=(noise*.052 + Math.sin(t.x*.074+t.y*.041+t.grain)*.008)*strength;
+      t.angle+=bend;
+      const distance=(.36+.41*Math.min(1,current))*Math.max(.5,strength);
+      const nx=t.x+Math.cos(t.angle)*distance,ny=t.y+Math.sin(t.angle)*distance;
+      const ax=Math.round(nx),ay=Math.round(ny);
+      if(ax<3||ay<3||ax>=n-3||ay>=n-3)continue;
+      const i=ay*n+ax;
+      if(this.owner[i] && this.owner[i]!==t.grain)continue;
+      const main=this.mainIndex(ax,ay);
+      if(w.crystal[main] && w.crystal[main]!==t.grain)continue;
+      t.x=nx;t.y=ny;t.traveled+=distance;
+      // Depositing phase fraction modifies actual state. The continuous
+      // solver thickens each filament and can erode it under local heat.
+      if(this.phi[i]<.90){
+        this.phi[i]=.90;this.owner[i]=t.grain;
+        this.writeSolid(ax,ay,t.grain,true);
+        this.deposited++;
+      }
+      const shoulders=[[1,0],[-1,0],[0,1],[0,-1]];
+      for(const [dx,dy] of shoulders){
+        const px=ax+dx,py=ay+dy,j=py*n+px,under=this.mainIndex(px,py);
+        if((!this.owner[j]||this.owner[j]===t.grain) && (!w.crystal[under]||w.crystal[under]===t.grain)){
+          this.phi[j]=Math.max(this.phi[j],.22+.13*strength);
+          this.owner[j]=t.grain;
+        }
+      }
+      // Screened resource: solidifying protrusions draw from surrounding
+      // dissolved matter, so competing branches can shade one another.
+      const consumed=.06+.09*strength;
+      for(const idx of [main,main-1,main+1,main-w.size,main+w.size])
+        if(idx>=0&&idx<w.amount&&!w.crystal[idx])w.nutrient[idx]=Math.max(0,w.nutrient[idx]-consumed);
+      if(t.level<3 && t.traveled>t.nextFork && this.sprouts.length+born.length<maxTips){
+        const chance=strength*(t.level===0?.76:t.level===1?.49:.34)*Math.min(1,current*1.8);
+        if(w.rand()<chance){
+          const sign=t.sign;
+          const childAngle=t.angle+sign*(.46+w.rand()*.60);
+          born.push({x:nx,y:ny,angle:childAngle,grain:t.grain,level:t.level+1,
+            traveled:0,nextFork:2.5+w.rand()*branchScale*.60,sign:-sign});
+          this.branchEvents++;
+        }
+        t.sign=-t.sign;
+        t.nextFork=t.traveled+Math.max(2,branchScale*(.75+w.rand()*.6));
+      }
+      survived.push(t);
+    }
+    this.sprouts=survived.concat(born);
+  }
+
   /** Melt is a real phase change. Other seeds outside the brush are untouched. */
   melt(x,y,r){
     const n=this.size,cx=x/this.scale,cy=y/this.scale,rad=r/this.scale;
@@ -146,17 +295,20 @@ export class PhaseField {
       if(grain){this.phi[i]=0;this.next[i]=0;this.owner[i]=0;this.nextOwner[i]=0;
         this.writeSolid(xx,yy,grain,false);}
     }
+    this.sprouts=this.sprouts.filter(t=>(t.x-cx)**2+(t.y-cy)**2>(rad+1)**2);
     this.version++;
   }
-  snapshot(){return {phi:this.phi.slice(),next:this.next.slice(),owner:this.owner.slice(),nextOwner:this.nextOwner.slice(),deposited:this.deposited,active:this.active,version:this.version};}
+  snapshot(){return {phi:this.phi.slice(),next:this.next.slice(),owner:this.owner.slice(),nextOwner:this.nextOwner.slice(),deposited:this.deposited,active:this.active,version:this.version,sprouts:this.sprouts.map(t=>({...t})),sproutedGrains:[...this.sproutedGrains],branchEvents:this.branchEvents};}
   restore(v){
     if(!v)return;
     this.phi=v.phi.slice();this.next=v.next.slice();this.owner=v.owner.slice();this.nextOwner=v.nextOwner.slice();
     this.deposited=v.deposited;this.active=v.active;this.version=v.version+1;
+    this.sprouts=(v.sprouts||[]).map(t=>({...t}));
+    this.sproutedGrains=[...(v.sproutedGrains||[])];this.branchEvents=v.branchEvents||0;
   }
   stats(){
     let mass=0,occupied=0;
     for(const p of this.phi){mass+=p;if(p>=.58)occupied++;}
-    return {phaseMass:mass,phaseCells:occupied,phaseDeposits:this.deposited};
+    return {phaseMass:mass,phaseCells:occupied,phaseDeposits:this.deposited,phaseSprouts:this.sprouts.length,phaseBranches:this.branchEvents};
   }
 }

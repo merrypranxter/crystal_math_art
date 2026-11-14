@@ -255,7 +255,7 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
@@ -266,7 +266,7 @@ function syncMorphologyControls() {
   $('frontControls').hidden=!isFront;
   $('phaseControls').hidden=!isPhase;
   $('structureRule').textContent=isPhase
-    ? 'The solid fraction evolves by a two-dimensional phase-field PDE, with a double-well barrier, nutrient driving and positive orientation-dependent surface stiffness. No pre-drawn growth path.'
+    ? 'The solid fraction evolves by a phase-field PDE. A.5 instability emphasizes nutrient-fed protrusions against capillary smoothing, with fixed correlated heterogeneity. Existing boundaries remain real state.'
     : isFront ? 'Solid cells attach along existing crystal boundaries; concentration and orientation bias change which interface cells advance.'
     : 'New side-branches inherit their parent direction, then compete for dissolved material. Existing arms do not move or rotate.';
 }
@@ -334,7 +334,7 @@ $('save').addEventListener('click',async()=>{
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;
