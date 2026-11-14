@@ -116,9 +116,60 @@ export function buildCrystalMesh(world,{depth=.72,detail='balanced'}={}){
     if(y===grid-1||!id[i+grid]){addQuad(c,e,bt3,bt2,tone,history,ring[i]);wallTriangles+=2;}
     if(x===0||!id[i-1]){addQuad(e,a,bottom,bt3,tone,history,ring[i]);wallTriangles+=2;}
   }
-  const buffer=new Float32Array(verts);
-  return {vertices:buffer,stride:9,grid,step,occupied,topTriangles,wallTriangles,bottomTriangles,
-    triangles:buffer.length/27,depth,detail,heights:height,owners:id};
+  // A.11: append independent three-dimensional voxel growth. The old 2D
+  // extrusion remains fully reversible and is unchanged for non-volume art.
+  const volume=world.volume?.active?buildVolumeMesh(world.volume,{depth}):null;
+  const oldVertices=verts.length,combined=new Float32Array(oldVertices+(volume?.vertices.length||0));
+  combined.set(verts);
+  if(volume)combined.set(volume.vertices,oldVertices);
+  return {vertices:combined,stride:9,grid,step,occupied,topTriangles,wallTriangles,bottomTriangles,
+    volumeVoxels:volume?.voxels||0,volumeFaces:volume?.exposedFaces||0,volumeTriangles:volume?.triangles||0,
+    triangles:combined.length/27,depth,detail,heights:height,owners:id};
+}
+
+/** Real Z-resolved 3D mesh: six exposed faces per occupied voxel, with angular
+ * face centers that add facet normals. Unlike old 2D extrusion, shape and
+ * internal cavities come from distinct x/y/z material occupancy. */
+export function buildVolumeMesh(volume,{depth=.72}={}){
+  const n=volume.size, a=volume.area;
+  const vertices=[];let exposedFaces=0,grainBoundaries=0;
+  const paletteTone=(g,age,z)=>((g*.167 + age*.0032 + z/n*.18)%1+1)%1;
+  function triangle(v0,v1,v2,pigment,history,band){
+    const u=[v1[0]-v0[0],v1[1]-v0[1],v1[2]-v0[2]],v=[v2[0]-v0[0],v2[1]-v0[1],v2[2]-v0[2]];
+    let nx=u[1]*v[2]-u[2]*v[1],ny=u[2]*v[0]-u[0]*v[2],nz=u[0]*v[1]-u[1]*v[0];
+    const d=Math.hypot(nx,ny,nz)||1;nx/=d;ny/=d;nz/=d;
+    for(const p of [v0,v1,v2])vertices.push(p[0],p[1],p[2],nx,ny,nz,pigment,history,band);
+  }
+  // The center of each exposed square is pushed along its outward 3D normal.
+  // Border corners remain continuous; adjacent faces form real, hard facets.
+  const sides=[
+    {d:[1,0,0],face:[1,2,6,5]}, {d:[-1,0,0],face:[0,4,7,3]},
+    {d:[0,1,0],face:[2,3,7,6]}, {d:[0,-1,0],face:[0,1,5,4]},
+    {d:[0,0,1],face:[4,5,6,7]}, {d:[0,0,-1],face:[0,3,2,1]},
+  ];
+  let voxels=0;
+  for(let z=1;z<n-1;z++)for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+    const i=z*a+y*n+x,g=volume.owner[i];if(!g)continue;
+    voxels++;
+    const center=[(x+.5)/n*2-1,1-(y+.5)/n*2,((z+.5)/n*2-1)*(.82+.17*depth)];
+    const r=1/n;
+    const corners=[[-r,r,-r],[r,r,-r],[r,-r,-r],[-r,-r,-r],[-r,r,r],[r,r,r],[r,-r,r],[-r,-r,r]].map(c=>[center[0]+c[0],center[1]+c[1],center[2]+c[2]*(.82+.17*depth)]);
+    const tone=paletteTone(g,volume.birth[i],z),history=(volume.birth[i]*.009)%1,band=z/n;
+    for(const side of sides){
+      const xx=x+side.d[0],yy=y+side.d[1],zz=z+side.d[2];
+      const neighbor=volume.owner[zz*a+yy*n+xx];
+      if(neighbor===g)continue;
+      if(neighbor&&neighbor!==g){grainBoundaries++;continue;} // no internal opaque wall between touching grains
+      const v=side.face.map(j=>corners[j]);
+      const mid=v[0].map((_,j)=>(v[0][j]+v[1][j]+v[2][j]+v[3][j])/4);
+      // Small true three-axis facet; no geometry depends on a shader clock.
+      const lift=r*(.12+.25*depth);
+      for(let j=0;j<3;j++)mid[j]+=side.d[j]*lift;
+      for(let j=0;j<4;j++)triangle(v[(j+1)%4],v[j],mid,tone,history,band);
+      exposedFaces++;
+    }
+  }
+  return {vertices:new Float32Array(vertices),voxels,exposedFaces,grainBoundaries,triangles:vertices.length/27};
 }
 
 const VERT_BODY=`#version 300 es

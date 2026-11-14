@@ -1,4 +1,5 @@
-import { CrystalWorld, SIZE, FRONT_MODES, PHASE_MODES, SPHERULITE_MODES } from './growth.js';
+import { CrystalWorld, SIZE, FRONT_MODES, PHASE_MODES, SPHERULITE_MODES, VOLUME_MODES } from './growth.js';
+import { renderVolumeProjection } from './volume.js';
 import { DEFAULT_COMPOSITION, startComposition, addRandomColony, freshSeed } from './compositions.js';
 import { PALETTES, PALETTE_MAP, basePalette, originalStops, hexToRgb, buildColorLUT, randomColor } from './palettes.js';
 import { renderMineral, MINERAL_FINISHES } from './mineral.js';
@@ -50,6 +51,9 @@ spherLayer.width=spherLayer.height=world.spherulite.size;
 const spherCtx=spherLayer.getContext('2d',{alpha:true});
 let spherRenderVersion=-1,spherPaletteRevision=-1,spherFinish='',spherPolarRevision=-1,spherLuminosity=-1;
 let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1, phasePaletteRevision=-1, phaseMaterialRevision=-1;
+const volumeLayer=document.createElement('canvas');
+const volumeCtx=volumeLayer.getContext('2d',{alpha:true});
+let volumeRenderVersion=-1,volumePaletteRevision=-1,volumeSlice=50,volumeView='projection',volumePrevSlice=-1,volumePrevView='';
 const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
 
 function paletteIndex(t) { return (Math.floor((((t % 1) + 1) % 1) * 255) * 3); }
@@ -64,6 +68,7 @@ function invalidatePalette() {
   paletteRevision++;
   phaseRenderVersion=-1;
   spherRenderVersion=-1;
+  volumeRenderVersion=-1;
   forceFull=true;
 }
 function renderPalettePreview() {
@@ -250,6 +255,19 @@ function paintSpherulites(ctx,size){
   }
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(spherLayer,0,0,size,size);ctx.restore();
 }
+function paintVolume(ctx,size){
+  const volume=world.volume;
+  if(!volume.active)return;
+  if(volumeRenderVersion!==volume.version||volumePaletteRevision!==paletteRevision||volumePrevSlice!==volumeSlice||volumePrevView!==volumeView){
+    const pixels=renderVolumeProjection(volume,paletteLUT,{view:volumeView,slice:volumeSlice});
+    if(volumeLayer.width!==pixels.width||volumeLayer.height!==pixels.height){volumeLayer.width=pixels.width;volumeLayer.height=pixels.height;}
+    const frame=volumeCtx.createImageData(pixels.width,pixels.height);
+    frame.data.set(pixels.data);volumeCtx.putImageData(frame,0,0);
+    volumeRenderVersion=volume.version;volumePaletteRevision=paletteRevision;
+    volumePrevSlice=volumeSlice;volumePrevView=volumeView;
+  }
+  ctx.save();ctx.globalAlpha=.94;ctx.imageSmoothingEnabled=true;ctx.drawImage(volumeLayer,0,0,size,size);ctx.restore();
+}
 function drawScreen() {
   const dpr=clamp(window.devicePixelRatio||1,1,2);
   const box=crystalCanvas.getBoundingClientRect();
@@ -265,7 +283,7 @@ function drawScreen() {
       if(!bodyGPU)bodyGPU=new CrystalBodyGPU(()=>document.createElement('canvas'),Math.max(1,size));
       const view=bodyGPU.render(world,paletteLUT,paletteRevision,bodySettings,performance.now(),Math.max(1,size));
       display.drawImage(view,0,0,size,size);
-      $('bodyStatus').textContent='● GPU ACTIVE · '+bodyGPU.triangles.toLocaleString()+' material triangles · '+bodyGPU.mesh.occupied.toLocaleString()+' occupied grid tiles';
+      $('bodyStatus').textContent='● GPU ACTIVE · '+bodyGPU.triangles.toLocaleString()+' material triangles · '+bodyGPU.mesh.occupied.toLocaleString()+' 2D extrusion tiles · '+bodyGPU.mesh.volumeVoxels.toLocaleString()+' independently grown 3D voxels';
       display.restore();return;
     }catch(e){
       console.warn('3D optional renderer disabled:',e);
@@ -283,6 +301,7 @@ function drawScreen() {
   }
   paintPhase(display,size);
   paintSpherulites(display,size);
+  paintVolume(display,size);
   display.drawImage(layer,0,0,size,size);
   // Draw only active growth points; these glints move because the tips advance.
   if (playing && world.tips.length) {
@@ -385,6 +404,8 @@ function enableBody(){
     return false;
   }
 }
+$('volumeView').addEventListener('change',ev=>{volumeView=ev.target.value;volumeRenderVersion=-1;});
+$('volumeSlice').addEventListener('input',ev=>{volumeSlice=Number(ev.target.value);$('volumeSlice-value').textContent=volumeSlice+'%';volumeRenderVersion=-1;});
 $('bodyToggle').addEventListener('click',()=>{
   if(bodyEnabled){bodyEnabled=false;$('bodyToggle').textContent='◈ ENABLE 3D BODY VIEW';$('bodyToggle').setAttribute('aria-pressed','false');$('bodyStatus').textContent='3D preview disabled · 2D stage preserved';if(activeTool==='orbit')setTool('seed');}
   else enableBody();
@@ -408,7 +429,7 @@ for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
 });
-const configs={fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
+const configs={volumeGrowth:{value:v=>v+'%',transform:v=>v/100},volumeFacets:{value:v=>v+'%',transform:v=>v/100},volumeBranches:{value:v=>v+'%',transform:v=>v/100},volumeDiffusion:{value:v=>v+'%',transform:v=>v/100},volumeSupply:{value:v=>v+'%',transform:v=>v/100},volumeSeedDepth:{value:v=>v+'%',transform:v=>v},fractureWidth:{value:v=>String(v),transform:v=>v},fractureSplinter:{value:v=>v+'%',transform:v=>v/100},fractureHeal:{value:v=>v+'%',transform:v=>v/100},spherGrowth:{value:v=>v+'%',transform:v=>v/100},spherBands:{value:v=>v+'%',transform:v=>v/100},spherWobble:{value:v=>v+'%',transform:v=>v/100},phaseInstability:{value:v=>v+'%',transform:v=>v/100},phaseWavelength:{value:v=>v+'%',transform:v=>v/100},phaseCapillarity:{value:v=>v+'%',transform:v=>v/100},phaseDrive:{value:v=>v+'%',transform:v=>v/100},phaseStiffness:{value:v=>v+'%',transform:v=>v/100},phaseMobility:{value:v=>v+'%',transform:v=>v/100},instability:{value:v=>v+'%',transform:v=>v/100},faceting:{value:v=>v+'%',transform:v=>v/100},frost:{value:v=>v+'%',transform:v=>v/100},spread:{value:v=>v+'%',transform:v=>v/100},speed:{value:v=>String(v),transform:v=>v},branching:{value:v=>v+'%',transform:v=>v/100},anisotropy:{value:v=>v+'%',transform:v=>v/100},length:{value:v=>v+'%',transform:v=>v/100},diffusion:{value:v=>v+'%',transform:v=>v/100},recharge:{value:v=>v+'%',transform:v=>v/100},brush:{value:v=>String(v),transform:v=>v}};
 for(const [id,setting] of Object.entries(configs)){
   $(id).addEventListener('input',ev=>{const v=Number(ev.target.value);world.config[id]=setting.transform(v);$(id+'-value').textContent=setting.value(v);});
 }
@@ -416,11 +437,15 @@ function syncMorphologyControls() {
   const isFront=Object.hasOwn(FRONT_MODES,world.config.morphology);
   const isPhase=Object.hasOwn(PHASE_MODES,world.config.morphology);
   const isSpherulite=Object.hasOwn(SPHERULITE_MODES,world.config.morphology);
-  $('tipControls').hidden=isFront||isPhase||isSpherulite;
+  const isVolume=Object.hasOwn(VOLUME_MODES,world.config.morphology);
+  $('tipControls').hidden=isFront||isPhase||isSpherulite||isVolume;
+  $('volumeControls').hidden=!isVolume;
   $('frontControls').hidden=!isFront;
   $('phaseControls').hidden=!isPhase;
   $('spherControls').hidden=!isSpherulite;
-  $('structureRule').textContent=isSpherulite
+  $('structureRule').textContent=isVolume
+    ? 'True 3D volume accretes cells in all three axes from a separate diffusing mineral solution. Surface faces are extracted into the orbitable mesh. The Z-slice preview is diagnostic, not a fake extrusion.'
+    : isSpherulite
     ? 'A separate radial-fibril front grows persistent material and local orientation. When colonies collide, contact seams survive. The colors follow those orientations; no physics state changes when you move the optical analyzer.'
     : isPhase
     ? 'The solid fraction evolves by a phase-field PDE. A.5 instability emphasizes nutrient-fed protrusions against capillary smoothing, with fixed correlated heterogeneity. Existing boundaries remain real state.'
@@ -457,7 +482,9 @@ $('toggle').addEventListener('click',()=>setPlaying(!playing));
 $('step').addEventListener('click',()=>{setPlaying(false);world.step();});
 $('undo').addEventListener('click',()=>{
   const entry=undoStack.pop();if(!entry)return;
-  world.restore(entry.state);composition={...entry.composition};
+  // Freeze the restored frame; otherwise an active simulator immediately
+  // changes the material before the artist can inspect their Undo.
+  setPlaying(false);world.restore(entry.state);composition={...entry.composition};
   $('undo').disabled=undoStack.length===0;forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;updateCompositionLabel();
 });
 function plantNewSeed() {
@@ -466,12 +493,13 @@ function plantNewSeed() {
   forceFull=true;updateCompositionLabel();
 }
 function resetComposition(kind) {
+  const resumeAfterReset=playing;
   saveUndo();
   if(kind==='refresh')composition={seed:freshSeed(),layout:'randomized',morphology:world.config.morphology};
   // Restart retains original seed, original colony anatomy and position layout.
   startComposition(world,composition);
   forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;frameAccumulator=0;
-  setPlaying(true);updateCompositionLabel();
+  setPlaying(resumeAfterReset);updateCompositionLabel();
 }
 let pendingReset='refresh';
 const dialog=$('resetDialog');
@@ -497,7 +525,7 @@ $('save').addEventListener('click',async()=>{
     if(bodyEnabled&&bodyGPU){
       const body=bodyGPU.render(world,paletteLUT,paletteRevision,bodySettings,performance.now(),size);
       ctx.drawImage(body,0,0,size,size);
-    }else{paintPhase(ctx,size);paintSpherulites(ctx,size);drawSegments(ctx,world.segments,size/SIZE);} 
+    }else{paintPhase(ctx,size);paintSpherulites(ctx,size);paintVolume(ctx,size);drawSegments(ctx,world.segments,size/SIZE);} 
     const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('PNG encode failed')),'image/png'));
     const link=document.createElement('a');const url=URL.createObjectURL(blob);
     link.href=url;link.download=`crystallization-apocalypse-${world.rngState.toString(16)}-${world.ticks}.png`;
@@ -507,9 +535,9 @@ $('save').addEventListener('click',async()=>{
   finally{button.disabled=false;setTimeout(()=>button.textContent='↓ EXPORT 2400 × 2400 PNG',2000);}
 });
 function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
-  const s=world.stats();$('stageReadout').textContent=s.coverage.toFixed(2)+'% SOLIDIFIED';
+  const s=world.stats();$('stageReadout').textContent=s.volumeCells>0 ? s.volumeCells.toLocaleString()+' 3D VOXELS · '+s.volumeDepthSlices+' Z-LAYERS' : s.coverage.toFixed(2)+'% SOLIDIFIED';
   $('stepCount').textContent='T+'+String(s.ticks).padStart(5,'0');
-  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();
+  $('seedMetric').textContent=s.grains;$('tipMetric').textContent=s.tips.toLocaleString();$('branchMetric').textContent=s.segments.toLocaleString();$('microMetric').textContent=s.microSegments.toLocaleString();$('frontMetric').textContent=s.frontDeposits.toLocaleString();$('sitesMetric').textContent=s.frontSites.toLocaleString();$('phaseMetric').textContent=s.phaseCells.toLocaleString();$('phaseMassMetric').textContent=Math.round(s.phaseMass).toLocaleString();$('phaseSproutMetric').textContent=s.phaseSprouts.toLocaleString();$('phaseBranchMetric').textContent=s.phaseBranches.toLocaleString();$('crackMetric').textContent=s.openCracks.toLocaleString();$('recrystalMetric').textContent=s.recrystallized.toLocaleString();$('spherMetric').textContent=s.spherCells.toLocaleString();$('boundaryMetric').textContent=s.spherContacts.toLocaleString();$('volumeMetric').textContent=s.volumeCells.toLocaleString();$('volumeZMetric').textContent=s.volumeDepthSlices.toLocaleString();$('volumeFrontMetric').textContent=s.volumeFrontier.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;
@@ -522,5 +550,5 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},enableBody};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},enableBody};
 requestAnimationFrame(loop);
