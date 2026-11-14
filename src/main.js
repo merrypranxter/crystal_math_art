@@ -6,6 +6,7 @@ import { renderMineral, MINERAL_FINISHES } from './mineral.js';
 import { renderSpherulites } from './spherulite.js';
 import { renderSpectralCPU, SpectralGPU } from './optics.js';
 import { CrystalBodyGPU } from './body3d.js';
+import { BREEDING_PRESETS, normalizeGenome, captureVolumeGenome, breedThreeParents, plantOffspring, describeGenome } from './breeding.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -339,7 +340,7 @@ function pointFromEvent(ev){
   const size=Math.min(rect.width,rect.height), ox=(rect.width-size)/2,oy=(rect.height-size)/2;
   return {x:clamp((ev.clientX-rect.left-ox)/size*SIZE,1,SIZE-2),y:clamp((ev.clientY-rect.top-oy)/size*SIZE,1,SIZE-2)};
 }
-function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...composition}}); if(undoStack.length>6)undoStack.shift();$('undo').disabled=false; }
+function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...composition},childSequence}); if(undoStack.length>6)undoStack.shift();$('undo').disabled=false; }
 function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
@@ -467,8 +468,104 @@ $('bodyResetCamera').addEventListener('click',()=>{bodySettings.yaw=20*Math.PI/1
 for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool));
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{
   currentTab=b.dataset.tab;
+  if(currentTab==='breeding')refreshBreedingSources();
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
+});
+// A.14 · Capture from real occupied volume, mix three parents, then implant
+// their genes into a fresh embryo. Parental samples are immutable snapshots.
+let breedParents=BREEDING_PRESETS.map(normalizeGenome);
+let lastOffspringRecipe=null;
+let childSequence=0;
+function refreshBreedingSources(){
+  const select=$('breedSource'),before=select.value;
+  const sources=[...BREEDING_PRESETS.map((g,i)=>({value:'preset:'+i,label:g.name}))];
+  const counts=new Uint32Array(251);for(const id of world.volume.owner)if(id)counts[id]++;
+  for(const g of world.grains)if(g.z!==undefined){
+    const cells=counts[g.id];
+    if(cells>0)sources.push({value:'grain:'+g.id,label:`GRAIN ${g.id} · ${g.morphology} · ${cells} voxels`});
+  }
+  select.replaceChildren();
+  for(const item of sources){const option=new Option(item.label,item.value);select.appendChild(option);}
+  select.value=sources.some(o=>o.value===before)?before:'preset:0';
+}
+function breedingSettings(){
+  return {weights:['A','B','C'].map(letter=>Number($('breedWeight'+letter).value)),
+    mutation:Number($('breedMutation').value)/100,crossover:Number($('breedCrossover').value)/100,
+    seed:((composition.seed^Math.imul(childSequence+1,0x9e3779b9)^world.seedValue)>>>0)||1};
+}
+function buildOffspringRecipe(){
+  const settings=breedingSettings();
+  return breedThreeParents(breedParents,settings.weights,settings);
+}
+function renderBreeding(){
+  const parentArea=$('breedingParents');parentArea.replaceChildren();
+  for(let i=0;i<3;i++){
+    const p=breedParents[i],card=document.createElement('div');card.className='breeding-parent';
+    const b=document.createElement('b');b.textContent='PARENT '+String.fromCharCode(65+i);card.appendChild(b);
+    const n=document.createElement('span');n.textContent=p.name;card.appendChild(n);
+    const detail=document.createElement('small');detail.textContent=p.cells?`${p.cells.toLocaleString()} original voxels`:'archetype DNA';card.appendChild(detail);
+    parentArea.appendChild(card);
+  }
+  const area=$('breedGenePreview');area.replaceChildren();
+  let genome;
+  try{genome=buildOffspringRecipe();}catch(e){area.textContent=e.message;return;}
+  for(const line of describeGenome(genome)){
+    const row=document.createElement('div');row.className='breed-gene';
+    const name=document.createElement('span');name.textContent=line.name;
+    const rail=document.createElement('i'),bar=document.createElement('b');bar.style.width=line.share+'%';rail.appendChild(bar);
+    const amount=document.createElement('strong');amount.textContent=line.share+'%';
+    row.append(name,rail,amount);area.appendChild(row);
+  }
+  lastOffspringRecipe=genome;
+}
+refreshBreedingSources();renderBreeding();
+for(const b of document.querySelectorAll('[data-breed-capture]'))b.addEventListener('click',()=>{
+  const slot=Number(b.dataset.breedCapture),selected=$('breedSource').value;
+  let specimen=null;
+  if(selected.startsWith('preset:'))specimen=normalizeGenome(BREEDING_PRESETS[Number(selected.slice(7))]);
+  else if(selected.startsWith('grain:'))specimen=captureVolumeGenome(world.volume,Number(selected.slice(6)));
+  if(!specimen){$('breedStatus').textContent='No grown material found for that 3D grain. Let it grow first.';return;}
+  breedParents[slot]=specimen;renderBreeding();
+  $('breedStatus').textContent=`Captured ${specimen.name} into Parent ${'ABC'[slot]}. The sample survives Refresh and Restart.`;
+});
+for(const id of ['breedWeightA','breedWeightB','breedWeightC','breedCrossover','breedMutation']){
+  $(id).addEventListener('input',ev=>{ $(id+'-value').textContent=ev.target.value+(id==='breedCrossover'||id==='breedMutation'?'%':'');renderBreeding(); });
+}
+$('breedPreview').addEventListener('click',()=>{
+  renderBreeding();$('breedStatus').textContent='Recombined 3-parent DNA preview. Press PLANT to create new 3D mineral; the current artwork is unchanged.';
+});
+function breedAndPlant(){
+  if(world.grains.length>=250){$('breedStatus').textContent='Colony limit reached. Refresh to start a new specimen.';return null;}
+  let recipe;try{recipe=buildOffspringRecipe();}catch(e){$('breedStatus').textContent=e.message;return null;}
+  saveUndo();
+  const child=plantOffspring(world,recipe);
+  if(!child){undoStack.pop();$('undo').disabled=undoStack.length===0;$('breedStatus').textContent='Could not place an offspring. Try a fresh specimen.';return null;}
+  childSequence++;renderBreeding();refreshBreedingSources();updateCompositionLabel();
+  $('breedStatus').textContent=`Child grain ${child.grainId} is alive: ${child.initialCells} founding 3D voxels, three inherited growth laws, persistent local crossover. Let it evolve or capture its DNA as another parent.`;
+  forceFull=true;volumeRenderVersion=-1;
+  return child;
+}
+$('breedPlant').addEventListener('click',breedAndPlant);
+$('breedExport').addEventListener('click',()=>{
+  let data;try{data=buildOffspringRecipe();}catch(e){$('breedStatus').textContent=e.message;return;}
+  const blob=new Blob([JSON.stringify({schema:'mathemagical-crystal-genome/v1',genome:data},null,2)],{type:'application/json'});
+  const link=document.createElement('a'),url=URL.createObjectURL(blob);
+  link.href=url;link.download='mineral-offspring-dna.json';document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1200);
+  $('breedStatus').textContent='Exported a portable three-parent DNA recipe as JSON. No network requests.';
+});
+$('breedImport').addEventListener('change',async ev=>{
+  const file=ev.target.files?.[0];if(!file)return;
+  try{
+    if(file.size>24_000)throw Error('DNA file too large');
+    const doc=JSON.parse(await file.text());
+    if(doc.schema!=='mathemagical-crystal-genome/v1')throw Error('Unsupported crystal DNA schema');
+    // Import the recipe as an independent Parent A phenotype; no code execution.
+    breedParents[0]=normalizeGenome({...doc.genome,name:'IMPORTED · '+(doc.genome?.name||'MINERAL DNA'),source:'imported-json'});
+    renderBreeding();$('breedStatus').textContent='DNA imported into Parent A. The captured B/C parents remain unchanged.';
+  }catch(err){$('breedStatus').textContent='Could not import DNA: '+err.message;}
+  ev.target.value='';
 });
 function currentMutation(){
   return {primary:world.config.mutationPrimary,partner:world.config.mutationPartner,
@@ -547,7 +644,7 @@ $('undo').addEventListener('click',()=>{
   const entry=undoStack.pop();if(!entry)return;
   // Freeze the restored frame; otherwise an active simulator immediately
   // changes the material before the artist can inspect their Undo.
-  setPlaying(false);world.restore(entry.state);composition={...entry.composition};
+  setPlaying(false);world.restore(entry.state);composition={...entry.composition};childSequence=entry.childSequence||0;
   $('undo').disabled=undoStack.length===0;forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;updateCompositionLabel();
 });
 function plantNewSeed() {
@@ -561,6 +658,7 @@ function resetComposition(kind) {
   if(kind==='refresh')composition={seed:freshSeed(),layout:'randomized',morphology:world.config.morphology};
   // Restart retains original seed, original colony anatomy and position layout.
   startComposition(world,composition);
+  childSequence=0;refreshBreedingSources();
   forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;frameAccumulator=0;
   setPlaying(resumeAfterReset);updateCompositionLabel();
 }
@@ -604,6 +702,7 @@ function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   $('volumeMutantMetric').textContent=s.volumeMutants.toLocaleString();
   $('volumeChimeraMetric').textContent=s.volumeChimeras.toLocaleString();
   $('volumeMutationEventMetric').textContent=s.volumeMutations.toLocaleString();
+  $('volumeHybridMetric').textContent=s.volumeHybrids.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;
@@ -618,5 +717,5 @@ function loop(now){
 // Named for test harnesses: no private user data or external connections.
 window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},
   get mutation(){return {...currentMutation(),...world.volume.stats()};},
-  mutateAllFronts,enableBody};
+  mutateAllFronts,enableBody,get breeding(){return {parents:breedParents.map(g=>({...g,laws:[...g.laws],angles:[...g.angles]})),preview:buildOffspringRecipe(),hybrids:world.volume.hybrids.size}},breedAndPlant,refreshBreedingSources};
 requestAnimationFrame(loop);

@@ -59,13 +59,30 @@
  #panel-mutation .row button{flex:1 1 126px}
 }
 
+/* A.14 · mobile-first tri-parent genotype workshop, no added framework. */
+#panel-breeding .breeding-capture,#panel-breeding .breeding-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px}
+#panel-breeding .breeding-capture button,#panel-breeding .breeding-actions button,#panel-breeding .breed-import{flex:1 1 110px;min-height:40px;padding:9px 7px;text-align:center;font-size:10px}
+#panel-breeding .breeding-parents{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0 14px}
+#panel-breeding .breeding-parent{border:1px solid #3a5266;border-radius:8px;padding:9px 7px;background:rgba(14,24,41,.72);min-width:0}
+#panel-breeding .breeding-parent b{display:block;color:#bdd6e8;font:700 11px/1.5 ui-monospace,monospace}
+#panel-breeding .breeding-parent span{display:block;font-size:10px;overflow-wrap:anywhere;color:#afd6a9}
+#panel-breeding .breeding-parent small{color:#8fa5bb;font-size:9px}
+#panel-breeding .breed-gene-preview{padding:10px;border-radius:8px;background:rgba(12,25,38,.78);border:1px solid #334756;margin:12px 0}
+#panel-breeding .breed-gene{display:grid;grid-template-columns:98px minmax(0,1fr) 34px;align-items:center;gap:6px;margin:5px 0;font-size:10px}
+#panel-breeding .breed-gene i{height:9px;background:rgba(181,213,234,.14);border-radius:6px;overflow:hidden;display:block}
+#panel-breeding .breed-gene i b{height:100%;display:block;background:linear-gradient(90deg,#66cbd8,#e657c1)}
+#panel-breeding #breedStatus{border-left:2px solid #f09fd0;padding-left:9px}
+#panel-breeding .breed-import{display:flex;align-items:center;justify-content:center;border:1px solid #56747d;border-radius:6px;cursor:pointer;color:#d6eef6}
+#panel-breeding .breed-import input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(max-width:730px){#panel-breeding .breeding-parent{padding:7px 5px}#panel-breeding .breeding-parents{gap:4px}#panel-breeding .breed-gene{grid-template-columns:76px minmax(0,1fr) 29px}}
+
 </style>
 </head>
 <body>
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / MUTATION CHAMBER</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / BREEDING CHAMBER</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -86,12 +103,12 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.13 · MINERAL MUTATION CHAMBER</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.14 · CRYSTAL BREEDING CHAMBER</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
         <button data-tab="material" role="tab" aria-selected="false">FINISHES</button><button data-tab="archaeology" role="tab" aria-selected="false">ARCHIVE</button>
-        <button data-tab="mutation" role="tab" aria-selected="false">MUTATION</button>
+        <button data-tab="mutation" role="tab" aria-selected="false">MUTATION</button><button data-tab="breeding" role="tab" aria-selected="false">BREEDING</button>
         <button data-tab="body" role="tab" aria-selected="false">BODY 3D</button><button data-tab="studio" role="tab" aria-selected="false">STUDIO</button>
       </div>
       <div class="panel active" id="panel-growth" role="tabpanel">
@@ -215,6 +232,31 @@
         <p class="control-note" id="mutationStatus" aria-live="polite">Plant a VOLUME specimen, let it grow, then mutate its exposed frontier or paint a local 3D gene patch. The old interior survives while descendants inherit the new law.</p>
         <div class="info"><strong>GENETIC ARCHIVE, NOT A BIOLOGICAL CLAIM</strong><p>These are three competing procedural growth kinetics—not actual molecular DNA, cell genetics, or measured mineral nucleation. Gene, angle and lineage affect new material attachment and its palette sampling.</p></div>
       </div>
+      <div class="panel" id="panel-breeding" role="tabpanel" hidden>
+        <div class="info"><strong>A.14 · THREE-PARENT MINERAL GENETICS</strong><p>Capture a real grown 3D crystal's gene ratios and growth-axis directions, or start with the three archetype parents. Parents stay saved in these slots even after Refresh. Offspring inherits a mixed, persistent 3D growth recipe. No real biological DNA is involved.</p></div>
+        <label class="select-label" for="breedSource">Choose an archetype or a grown volume grain to sample</label>
+        <select id="breedSource"><option value="preset:0">NEEDLE STAR · ARCHETYPE</option><option value="preset:1">OCTAHEDRAL · ARCHETYPE</option><option value="preset:2">CAVERN CORAL · ARCHETYPE</option></select>
+        <div class="breeding-capture" role="group" aria-label="Capture three mineral parents">
+          <button type="button" data-breed-capture="0">CAPTURE A</button>
+          <button type="button" data-breed-capture="1">CAPTURE B</button>
+          <button type="button" data-breed-capture="2">CAPTURE C</button>
+        </div>
+        <div class="breeding-parents" id="breedingParents" aria-label="Captured parents"></div>
+        <label class="range-label" for="breedWeightA">Parent A contribution <output id="breedWeightA-value">40</output></label><input id="breedWeightA" type="range" min="0" max="100" value="40" step="1"/>
+        <label class="range-label" for="breedWeightB">Parent B contribution <output id="breedWeightB-value">35</output></label><input id="breedWeightB" type="range" min="0" max="100" value="35" step="1"/>
+        <label class="range-label" for="breedWeightC">Parent C contribution <output id="breedWeightC-value">25</output></label><input id="breedWeightC" type="range" min="0" max="100" value="25" step="1"/>
+        <label class="range-label" for="breedCrossover">Recombine future growth fronts <output id="breedCrossover-value">25%</output></label><input id="breedCrossover" type="range" min="0" max="100" value="25" step="1"/>
+        <label class="range-label" for="breedMutation">Heritable mutation chance <output id="breedMutation-value">12%</output></label><input id="breedMutation" type="range" min="0" max="100" value="12" step="1"/>
+        <div id="breedGenePreview" class="breed-gene-preview" aria-label="Offspring genome ratios"></div>
+        <div class="breeding-actions">
+          <button id="breedPreview" type="button">⟳ RECOMBINE DNA</button>
+          <button id="breedPlant" class="primary" type="button">✳ PLANT 3-PARENT CHILD</button>
+          <button id="breedExport" type="button">↓ EXPORT DNA JSON</button>
+          <label class="breed-import" for="breedImport">↑ IMPORT DNA INTO A <input id="breedImport" type="file" accept=".json,application/json" aria-label="Import a saved crystal DNA sample into parent A" /></label>
+        </div>
+        <p class="control-note" id="breedStatus" role="status" aria-live="polite">Three archetypes are ready. Grow a VOLUME crystal and capture it to replace any parent. Then plant an offspring to breed actual new growth geometry.</p>
+        <div class="info"><strong>REAL MATHEMATICAL INHERITANCE</strong><p>Gene ratios and axes come from existing solid 3D cells. A new embryo receives a spatial mosaic of those laws. As it grows, neighboring material transmits its own law; occasional deterministic crossover revives minority parents. Visual palettes remain independent of this genetics lab.</p></div>
+      </div>
       <div class="panel" id="panel-body" role="tabpanel" hidden>
   <p class="panel-intro">A real triangulated crystal body: genuinely 3D solidification for volumetric specimens, with the older 2D growth bodies preserved as extrusions. Facet walls and raised ridges respond to touch-orbit and a movable light source. WebGL2 only; the complete 2D artwork is preserved as fallback.</p>
   <div class="info"><strong>3D VOLUMETRIC SPECIMENS</strong><p>For the new volume growth species, the geometry comes from individual 3D cells, not an extruded 2D outline. The 2D preview uses a real volumetric projection or a chosen Z-slice if WebGL2 is unavailable.</p></div>
@@ -241,7 +283,7 @@
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately. The PNG export captures the live 3D body when WebGL2 is available; otherwise it captures the 2D volume projection or selected Z-slice.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
         <div class="info"><strong>SPECIMEN CONTROL</strong><p>Use the three buttons beneath the artwork: NEW SEED plants a colony without clearing anything; REFRESH generates new crystals using your selected anatomy; RESTART replays this specimen’s saved starting seed. Destructive actions ask first and can be undone.</p></div>
-        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div><div><b id="volumeScarMetric">0</b><span>3D FRACTURE VOXELS</span></div><div><b id="volumeRegrowMetric">0</b><span>RECRYSTALLIZED VOXELS</span></div><div><b id="volumeMutantMetric">0</b><span>MUTANT 3D CELLS</span></div><div><b id="volumeChimeraMetric">0</b><span>CHIMERIC CRYSTALS</span></div><div><b id="volumeMutationEventMetric">0</b><span>GENE EDITS</span></div></div>
+        <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div><div><b id="phaseSproutMetric">0</b><span>CRYSTAL FINGERS</span></div><div><b id="phaseBranchMetric">0</b><span>FINGER SPLITS</span></div><div><b id="crackMetric">0</b><span>OPEN CRACKS</span></div><div><b id="recrystalMetric">0</b><span>REGROWN CELLS</span></div><div><b id="spherMetric">0</b><span>RADIAL CELLS</span></div><div><b id="boundaryMetric">0</b><span>GRAIN CONTACTS</span></div><div><b id="volumeMetric">0</b><span>3D MINERAL CELLS</span></div><div><b id="volumeZMetric">0</b><span>OCCUPIED Z-SLICES</span></div><div><b id="volumeFrontMetric">0</b><span>3D GROWTH FRONTIER</span></div><div><b id="volumeScarMetric">0</b><span>3D FRACTURE VOXELS</span></div><div><b id="volumeRegrowMetric">0</b><span>RECRYSTALLIZED VOXELS</span></div><div><b id="volumeMutantMetric">0</b><span>MUTANT 3D CELLS</span></div><div><b id="volumeChimeraMetric">0</b><span>CHIMERIC CRYSTALS</span></div><div><b id="volumeHybridMetric">0</b><span>THREE-PARENT CHILDREN</span></div><div><b id="volumeMutationEventMetric">0</b><span>GENE EDITS</span></div></div>
         <div class="info"><strong>ENGINE STATUS</strong><p>Four stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
     </aside>
@@ -1049,6 +1091,7 @@ class VolumeField {
     this.geneAngle=new Float32Array(this.count); // inheritable orientation of growth law
     this.lineage=new Uint32Array(this.count); // identity of the mutation event that founded this tissue
     this.mutationSerial=0;this.mutationEvents=0;this.lastMutationEvent=0;
+    this.hybrids=new Map(); // per-grain reproducible three-parent growth recipes
 
     this.frontier=new Map();
     this.deposited=0;
@@ -1113,6 +1156,27 @@ class VolumeField {
     this.gene[i]=geneSource?.gene||GENE_LAWS[g?.morphology]||1;
     this.geneAngle[i]=geneSource?.angle??g?.angle??0;
     this.lineage[i]=geneSource?.lineage||0;
+    // A.14: parent-sensitive CROSSOVER samples a weighted gene law from the
+    // implanted recipe. Most daughters still inherit their local growth front;
+    // this occasionally resurrects a recessive parent on a new exposed face.
+    const genome=this.hybrids.get(grain);
+    if(genome && geneSource){
+      const crossoverHash=geneHash(x,y,z,(genome.seed^this.world.seedValue)^981733);
+      const m=genome.mutation;
+      if(crossoverHash<genome.crossover){
+        let r=geneHash(x+19,y+37,z+11,(genome.seed^grain)^78967);
+        let law=2;
+        for(let k=0;k<3;k++){r-=genome.laws[k];if(r<=0){law=k;break;}}
+        this.gene[i]=law+1;
+        this.geneAngle[i]=genome.angles[law];
+        this.lineage[i]=genome.lineage;
+      }
+      if(m>0 && geneHash(x+7,y+9,z+13,genome.seed^9277)<m*.11){
+        this.gene[i]=1+Math.floor(3*geneHash(x+3,y+5,z+31,genome.seed^grain));
+        this.geneAngle[i]=genome.angles[this.gene[i]-1]+(geneHash(x+17,y+41,z+3,genome.seed^577)-.5)*m*1.8;
+        this.lineage[i]=genome.lineage;
+      }
+    }
     this.birth[i]=this.world.ticks+1;
     if(this.fossilBirth[i])this.generation[i]=Math.min(65535,this.generation[i]+1);
     this.scar[i]=0;
@@ -1134,6 +1198,51 @@ class VolumeField {
     }
     this.active=this.active||count>0;
     return count;
+  }
+  /** Install a three-parent phenotype in an already-planted volume grain.
+   * Genes are distributed spatially through its existing 3D embryo, not
+   * painted into the final image. These cells become parents to future voxels.
+   */
+  imprintHybrid(grain,recipe){
+    if(!this.world.grains[grain-1] || !Array.isArray(recipe.laws) || recipe.laws.length!==3)return 0;
+    const ids=[];
+    for(let i=0;i<this.count;i++)if(this.owner[i]===grain)ids.push(i);
+    if(!ids.length)return 0;
+    const raw=recipe.laws.map(v=>Math.max(0,Number(v)||0));
+    const total=raw.reduce((a,b)=>a+b,0);if(total<=0)return 0;
+    const laws=raw.map(v=>v/total);
+    const token=this.newMutationEpoch();
+    const seed=(Number(recipe.seed)>>>0)||1;
+    const hybrid={laws,angles:recipe.angles.map(v=>Number(v)||0),
+      crossover:clampV(Number(recipe.crossover)||0,0,1),
+      mutation:clampV(Number(recipe.mutation)||0,0,1),
+      roughness:clampV(Number(recipe.roughness)||0,0,1),seed,lineage:token,
+      parents:(recipe.parents||[]).map(p=>({name:String(p.name),grainId:p.grainId||0}))};
+    // Allocate quotas with a largest-remainder pass and ensure that any
+    // meaningful parent has at least one founding cell (when space permits).
+    const quotas=laws.map(p=>p*ids.length);
+    const counts=quotas.map(v=>Math.floor(v));
+    let remaining=ids.length-counts.reduce((a,b)=>a+b,0);
+    const fractional=[0,1,2].sort((a,b)=>(quotas[b]-counts[b])-(quotas[a]-counts[a]));
+    for(let k=0;k<remaining;k++)counts[fractional[k%3]]++;
+    for(let k=0;k<3;k++)if(laws[k]>.04&&counts[k]===0&&ids.length>=3){
+      const donor=counts.indexOf(Math.max(...counts));if(counts[donor]>1){counts[donor]--;counts[k]++;}
+    }
+    ids.sort((a,b)=>{
+      const [ax,ay,az]=this.xyz(a),[bx,by,bz]=this.xyz(b);
+      return geneHash(ax,ay,az,seed^7919)-geneHash(bx,by,bz,seed^7919);
+    });
+    let cursor=0;
+    for(let law=0;law<3;law++)for(let q=0;q<counts[law];q++){
+      const i=ids[cursor++];if(i===undefined)break;
+      const [x,y,z]=this.xyz(i);
+      this.gene[i]=law+1;
+      this.geneAngle[i]=hybrid.angles[law]+(geneHash(x,y,z,seed^887)-.5)*hybrid.mutation*.9;
+      this.lineage[i]=token;
+    }
+    this.hybrids.set(grain,hybrid);this.recordMutation(token);
+    this.version++;this.world.modified++;
+    return ids.length;
   }
   /** One lineage ID per logical edit gesture. Pass the token to each drag
    * sample so crossing the same voxel doesn't create dozens of new generations.
@@ -1349,12 +1458,13 @@ class VolumeField {
     for(let i=0;i<this.owner.length;i++)if(this.owner[i]){
       cells++;const z=Math.floor(i/this.area);slabs.add(z);minZ=Math.min(minZ,z);maxZ=Math.max(maxZ,z);
     }
-    return {volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0,volumeScars:scars,volumeRegrown:regrown,
+    return {volumeHybrids:this.hybrids.size,volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0,volumeScars:scars,volumeRegrown:regrown,
       volumeMutants:mutated,volumeNeedleCells:needle,volumeOctaCells:octa,volumeCoralCells:coral,
       volumeChimeras:[...perGrain.values()].filter(bits=>(bits&(bits-1))!==0).length,
       volumeMutations:this.mutationEvents};
   }
   snapshot(){return {owner:this.owner.slice(),nutrient:this.nutrient.slice(),nextNutrient:this.nextNutrient.slice(),birth:this.birth.slice(),fossilBirth:this.fossilBirth.slice(),generation:this.generation.slice(),scar:this.scar.slice(),gene:this.gene.slice(),geneAngle:this.geneAngle.slice(),lineage:this.lineage.slice(),
+      hybrids:[...this.hybrids].map(([id,g])=>[id,JSON.parse(JSON.stringify(g))]),
       mutationSerial:this.mutationSerial,mutationEvents:this.mutationEvents,lastMutationEvent:this.lastMutationEvent,
       frontier:[...this.frontier].map(([i,ids])=>[i,[...ids]]),deposited:this.deposited,version:this.version,active:this.active};}
   restore(state){
@@ -1366,6 +1476,7 @@ class VolumeField {
     this.gene=state.gene?.slice()||new Uint8Array(this.count);
     this.geneAngle=state.geneAngle?.slice()||new Float32Array(this.count);
     this.lineage=state.lineage?.slice()||new Uint32Array(this.count);
+    this.hybrids=new Map((state.hybrids||[]).map(([id,g])=>[id,JSON.parse(JSON.stringify(g))]));
     this.mutationSerial=state.mutationSerial||0;
     this.mutationEvents=state.mutationEvents||0;this.lastMutationEvent=state.lastMutationEvent||0;
     this.frontier=new Map(state.frontier.map(([i,ids])=>[i,new Set(ids)]));
@@ -1418,14 +1529,6 @@ function renderVolumeProjection(volume,lut,{view='projection',slice=50,brightnes
  * solid occupancy, competition for dissolved nutrient, melting and regrowth are
  * persistent state changes, not precomputed animation or shader-only movement.
  */
-
-
-
-
-
-
-
-
 const SIZE = 340;
 const ANATOMIES = Object.freeze({
   cathedral: Object.freeze({ axes: 6, length: 1.0, drift: .9, fork: 1.0, needle: .62, spread: 1.0 }),
@@ -5224,6 +5327,115 @@ class CrystalBodyGPU{
   }
 }
 
+/**
+ * A.14 Crystal Breeding Chamber: artist-controlled 3-parent recipes for the
+ * procedural x/y/z growth laws. Genetic language here is metaphorical.
+ * Parents are immutable data snapshots captured from actual occupied 3D voxels.
+ * The resulting mixture alters future attachment competition, NOT only color.
+ * No network or paid backend is required.
+ */
+const clampB=(v,a,b)=>Math.min(b,Math.max(a,v));
+const DEFAULT_LAWS=['NEEDLE STAR','OCTAHEDRAL','CAVERN CORAL'];
+const BREEDING_PRESETS=Object.freeze([
+  Object.freeze({name:'NEEDLE STAR · ARCHETYPE',source:'preset',cells:0,laws:[1,0,0],angles:[.12,.12,.12],roughness:.18}),
+  Object.freeze({name:'OCTAHEDRAL · ARCHETYPE',source:'preset',cells:0,laws:[0,1,0],angles:[.72,.72,.72],roughness:.36}),
+  Object.freeze({name:'CAVERN CORAL · ARCHETYPE',source:'preset',cells:0,laws:[0,0,1],angles:[-.34,-.34,-.34],roughness:.82})
+]);
+function normalizeGenome(input){
+  if(!input || !Array.isArray(input.laws) || input.laws.length!==3)throw new Error('A mineral DNA sample needs exactly three kinetic law weights');
+  const raw=input.laws.map(n=>Number(n));
+  if(raw.some(n=>!Number.isFinite(n)||n<0))throw new Error('DNA weights must be finite and nonnegative');
+  const sum=raw.reduce((a,b)=>a+b,0);
+  if(sum<1e-8)throw new Error('DNA sample has no viable growth law');
+  const lawAngles=Array.isArray(input.angles)&&input.angles.length===3?input.angles:[0,0,0];
+  const angles=lawAngles.map(n=>Number.isFinite(Number(n))?Number(n):0);
+  return {name:String(input.name||'UNNAMED MINERAL').slice(0,100),source:String(input.source||'saved').slice(0,48),
+    grainId:Number(input.grainId)||0,cells:Math.max(0,Number(input.cells)||0),
+    laws:raw.map(x=>x/sum),angles,
+    roughness:clampB(Number.isFinite(Number(input.roughness))?Number(input.roughness):.5,0,1)};
+}
+/** Measure actual 3D material genotype and circular-average each law's director. */
+function captureVolumeGenome(volume,grainId){
+  if(!Number.isInteger(grainId)||grainId<1)return null;
+  const count=[0,0,0],sin=[0,0,0],cos=[0,0,0];
+  let cells=0,exposed=0;
+  const n=volume.size;
+  for(let i=0;i<volume.count;i++){
+    if(volume.owner[i]!==grainId)continue;
+    const type=volume.gene[i]-1;
+    if(type<0||type>2)continue;
+    count[type]++;cells++;
+    sin[type]+=Math.sin(volume.geneAngle[i]);cos[type]+=Math.cos(volume.geneAngle[i]);
+    const x=i%n,y=Math.floor(i/n)%n,z=Math.floor(i/volume.area);
+    for(const [dx,dy,dz] of [[-1,0,0],[1,0,0],[0,-1,0],[0,1,0],[0,0,-1],[0,0,1]]){
+      const px=x+dx,py=y+dy,pz=z+dz;
+      if(px<0||py<0||pz<0||px>=n||py>=n||pz>=n||volume.owner[volume.index(px,py,pz)]!==grainId)exposed++;
+    }
+  }
+  if(!cells)return null;
+  const sourceGrain=volume.world.grains[grainId-1];
+  const fallback=sourceGrain?.angle||0;
+  return normalizeGenome({name:`SPECIMEN ${String(grainId).padStart(3,'0')} · ${sourceGrain?.morphology||'VOLUME'}`,
+    source:'captured-voxel-phenotype',grainId,cells,laws:count,
+    angles:count.map((v,i)=>v?Math.atan2(sin[i],cos[i]):fallback),
+    roughness:clampB(exposed/(cells*6)*1.7,0,1)});
+}
+/** Weighted three-parent recombination: each per-law orientation is mixed
+ * circularly. Mutation changes the offspring's FUTURE sampling rate, not
+ * a captured parent's original DNA or the current mineral geometry.
+ */
+function breedThreeParents(parents,weights=[40,35,25],{mutation=.12,crossover=.25,seed=1}={}){
+  if(!Array.isArray(parents)||parents.length!==3)throw new Error('Breeding requires three parent samples');
+  const sources=parents.map(normalizeGenome);
+  const ws=weights.map(w=>clampB(Number(w)||0,0,100));
+  const total=ws.reduce((a,b)=>a+b,0);
+  if(total<=0)throw new Error('At least one parent needs a nonzero contribution');
+  const fractions=ws.map(w=>w/total);
+  const laws=[0,0,0],angles=[0,0,0];
+  let roughness=0;
+  for(let p=0;p<3;p++){
+    roughness+=sources[p].roughness*fractions[p];
+    for(let k=0;k<3;k++)laws[k]+=sources[p].laws[k]*fractions[p];
+  }
+  for(let k=0;k<3;k++){
+    let x=0,y=0;
+    for(let p=0;p<3;p++){
+      const amount=fractions[p]*sources[p].laws[k];
+      x+=Math.cos(sources[p].angles[k])*amount;y+=Math.sin(sources[p].angles[k])*amount;
+    }
+    angles[k]=Math.atan2(y,x);
+  }
+  const m=clampB(Number(mutation)||0,0,1);
+  return {version:1,name:'TRI-PARENT MINERAL OFFSPRING',source:'tri-parent-breeding',
+    parents:sources.map(s=>({name:s.name,grainId:s.grainId,cells:s.cells,laws:[...s.laws]})),
+    parentWeights:fractions,seed:(Number(seed)>>>0)||1,
+    laws:laws.map(v=>v*(1-.15*m)+.05*m),angles,
+    roughness:clampB(roughness+.12*m,0,1),
+    crossover:clampB(Number(crossover)||0,0,1),mutation:m};
+}
+function describeGenome(genome){
+  return genome.laws.map((fraction,i)=>({name:DEFAULT_LAWS[i],share:Math.round(fraction*100)}));
+}
+/** Plant offspring into existing world, leaving other grains untouched. */
+function plantOffspring(world,recipe){
+  if(world.grains.length>=250)return null;
+  const r=normalizeGenome(recipe);
+  const modes=['volumeNeedle','volumeOcta','volumeCoral'];
+  const dominant=r.laws.indexOf(Math.max(...r.laws));
+  const n=world.size;
+  let best=null,bestDist=-Infinity;
+  for(let i=0;i<35;i++){
+    const x=(.16+.68*world.rand())*n,y=(.16+.68*world.rand())*n;
+    const distance=world.grains.filter(g=>g.z!==undefined).reduce((v,g)=>Math.min(v,Math.hypot(x-g.x,y-g.y)),Infinity);
+    if(distance>bestDist){best={x,y};bestDist=distance;}
+  }
+  if(!best||!world.seed(best.x,best.y,world.rand()*Math.PI*2,undefined,modes[dominant]))return null;
+  const id=world.grains.length;
+  const planted=world.volume.imprintHybrid(id,recipe);
+  if(!planted)throw new Error('Offspring nucleated without a viable 3D cell');
+  return {grainId:id,seedX:best.x,seedY:best.y,initialCells:planted};
+}
+
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -5557,7 +5769,7 @@ function pointFromEvent(ev){
   const size=Math.min(rect.width,rect.height), ox=(rect.width-size)/2,oy=(rect.height-size)/2;
   return {x:clamp((ev.clientX-rect.left-ox)/size*SIZE,1,SIZE-2),y:clamp((ev.clientY-rect.top-oy)/size*SIZE,1,SIZE-2)};
 }
-function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...composition}}); if(undoStack.length>6)undoStack.shift();$('undo').disabled=false; }
+function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...composition},childSequence}); if(undoStack.length>6)undoStack.shift();$('undo').disabled=false; }
 function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
@@ -5685,8 +5897,104 @@ $('bodyResetCamera').addEventListener('click',()=>{bodySettings.yaw=20*Math.PI/1
 for(const b of document.querySelectorAll('[data-tool]')) b.addEventListener('click',()=>setTool(b.dataset.tool));
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{
   currentTab=b.dataset.tab;
+  if(currentTab==='breeding')refreshBreedingSources();
   for(const t of document.querySelectorAll('[data-tab]')) {const on=t.dataset.tab===currentTab;t.classList.toggle('active',on);t.setAttribute('aria-selected',String(on));}
   for(const p of document.querySelectorAll('.panel')) {const on=p.id==='panel-'+currentTab;p.hidden=!on;p.classList.toggle('active',on);}
+});
+// A.14 · Capture from real occupied volume, mix three parents, then implant
+// their genes into a fresh embryo. Parental samples are immutable snapshots.
+let breedParents=BREEDING_PRESETS.map(normalizeGenome);
+let lastOffspringRecipe=null;
+let childSequence=0;
+function refreshBreedingSources(){
+  const select=$('breedSource'),before=select.value;
+  const sources=[...BREEDING_PRESETS.map((g,i)=>({value:'preset:'+i,label:g.name}))];
+  const counts=new Uint32Array(251);for(const id of world.volume.owner)if(id)counts[id]++;
+  for(const g of world.grains)if(g.z!==undefined){
+    const cells=counts[g.id];
+    if(cells>0)sources.push({value:'grain:'+g.id,label:`GRAIN ${g.id} · ${g.morphology} · ${cells} voxels`});
+  }
+  select.replaceChildren();
+  for(const item of sources){const option=new Option(item.label,item.value);select.appendChild(option);}
+  select.value=sources.some(o=>o.value===before)?before:'preset:0';
+}
+function breedingSettings(){
+  return {weights:['A','B','C'].map(letter=>Number($('breedWeight'+letter).value)),
+    mutation:Number($('breedMutation').value)/100,crossover:Number($('breedCrossover').value)/100,
+    seed:((composition.seed^Math.imul(childSequence+1,0x9e3779b9)^world.seedValue)>>>0)||1};
+}
+function buildOffspringRecipe(){
+  const settings=breedingSettings();
+  return breedThreeParents(breedParents,settings.weights,settings);
+}
+function renderBreeding(){
+  const parentArea=$('breedingParents');parentArea.replaceChildren();
+  for(let i=0;i<3;i++){
+    const p=breedParents[i],card=document.createElement('div');card.className='breeding-parent';
+    const b=document.createElement('b');b.textContent='PARENT '+String.fromCharCode(65+i);card.appendChild(b);
+    const n=document.createElement('span');n.textContent=p.name;card.appendChild(n);
+    const detail=document.createElement('small');detail.textContent=p.cells?`${p.cells.toLocaleString()} original voxels`:'archetype DNA';card.appendChild(detail);
+    parentArea.appendChild(card);
+  }
+  const area=$('breedGenePreview');area.replaceChildren();
+  let genome;
+  try{genome=buildOffspringRecipe();}catch(e){area.textContent=e.message;return;}
+  for(const line of describeGenome(genome)){
+    const row=document.createElement('div');row.className='breed-gene';
+    const name=document.createElement('span');name.textContent=line.name;
+    const rail=document.createElement('i'),bar=document.createElement('b');bar.style.width=line.share+'%';rail.appendChild(bar);
+    const amount=document.createElement('strong');amount.textContent=line.share+'%';
+    row.append(name,rail,amount);area.appendChild(row);
+  }
+  lastOffspringRecipe=genome;
+}
+refreshBreedingSources();renderBreeding();
+for(const b of document.querySelectorAll('[data-breed-capture]'))b.addEventListener('click',()=>{
+  const slot=Number(b.dataset.breedCapture),selected=$('breedSource').value;
+  let specimen=null;
+  if(selected.startsWith('preset:'))specimen=normalizeGenome(BREEDING_PRESETS[Number(selected.slice(7))]);
+  else if(selected.startsWith('grain:'))specimen=captureVolumeGenome(world.volume,Number(selected.slice(6)));
+  if(!specimen){$('breedStatus').textContent='No grown material found for that 3D grain. Let it grow first.';return;}
+  breedParents[slot]=specimen;renderBreeding();
+  $('breedStatus').textContent=`Captured ${specimen.name} into Parent ${'ABC'[slot]}. The sample survives Refresh and Restart.`;
+});
+for(const id of ['breedWeightA','breedWeightB','breedWeightC','breedCrossover','breedMutation']){
+  $(id).addEventListener('input',ev=>{ $(id+'-value').textContent=ev.target.value+(id==='breedCrossover'||id==='breedMutation'?'%':'');renderBreeding(); });
+}
+$('breedPreview').addEventListener('click',()=>{
+  renderBreeding();$('breedStatus').textContent='Recombined 3-parent DNA preview. Press PLANT to create new 3D mineral; the current artwork is unchanged.';
+});
+function breedAndPlant(){
+  if(world.grains.length>=250){$('breedStatus').textContent='Colony limit reached. Refresh to start a new specimen.';return null;}
+  let recipe;try{recipe=buildOffspringRecipe();}catch(e){$('breedStatus').textContent=e.message;return null;}
+  saveUndo();
+  const child=plantOffspring(world,recipe);
+  if(!child){undoStack.pop();$('undo').disabled=undoStack.length===0;$('breedStatus').textContent='Could not place an offspring. Try a fresh specimen.';return null;}
+  childSequence++;renderBreeding();refreshBreedingSources();updateCompositionLabel();
+  $('breedStatus').textContent=`Child grain ${child.grainId} is alive: ${child.initialCells} founding 3D voxels, three inherited growth laws, persistent local crossover. Let it evolve or capture its DNA as another parent.`;
+  forceFull=true;volumeRenderVersion=-1;
+  return child;
+}
+$('breedPlant').addEventListener('click',breedAndPlant);
+$('breedExport').addEventListener('click',()=>{
+  let data;try{data=buildOffspringRecipe();}catch(e){$('breedStatus').textContent=e.message;return;}
+  const blob=new Blob([JSON.stringify({schema:'mathemagical-crystal-genome/v1',genome:data},null,2)],{type:'application/json'});
+  const link=document.createElement('a'),url=URL.createObjectURL(blob);
+  link.href=url;link.download='mineral-offspring-dna.json';document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1200);
+  $('breedStatus').textContent='Exported a portable three-parent DNA recipe as JSON. No network requests.';
+});
+$('breedImport').addEventListener('change',async ev=>{
+  const file=ev.target.files?.[0];if(!file)return;
+  try{
+    if(file.size>24_000)throw Error('DNA file too large');
+    const doc=JSON.parse(await file.text());
+    if(doc.schema!=='mathemagical-crystal-genome/v1')throw Error('Unsupported crystal DNA schema');
+    // Import the recipe as an independent Parent A phenotype; no code execution.
+    breedParents[0]=normalizeGenome({...doc.genome,name:'IMPORTED · '+(doc.genome?.name||'MINERAL DNA'),source:'imported-json'});
+    renderBreeding();$('breedStatus').textContent='DNA imported into Parent A. The captured B/C parents remain unchanged.';
+  }catch(err){$('breedStatus').textContent='Could not import DNA: '+err.message;}
+  ev.target.value='';
 });
 function currentMutation(){
   return {primary:world.config.mutationPrimary,partner:world.config.mutationPartner,
@@ -5765,7 +6073,7 @@ $('undo').addEventListener('click',()=>{
   const entry=undoStack.pop();if(!entry)return;
   // Freeze the restored frame; otherwise an active simulator immediately
   // changes the material before the artist can inspect their Undo.
-  setPlaying(false);world.restore(entry.state);composition={...entry.composition};
+  setPlaying(false);world.restore(entry.state);composition={...entry.composition};childSequence=entry.childSequence||0;
   $('undo').disabled=undoStack.length===0;forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;updateCompositionLabel();
 });
 function plantNewSeed() {
@@ -5779,6 +6087,7 @@ function resetComposition(kind) {
   if(kind==='refresh')composition={seed:freshSeed(),layout:'randomized',morphology:world.config.morphology};
   // Restart retains original seed, original colony anatomy and position layout.
   startComposition(world,composition);
+  childSequence=0;refreshBreedingSources();
   forceFull=true;phaseRenderVersion=-1;spherRenderVersion=-1;frameAccumulator=0;
   setPlaying(resumeAfterReset);updateCompositionLabel();
 }
@@ -5822,6 +6131,7 @@ function refreshStats(now){if(now-lastStatsAt<350)return;lastStatsAt=now;
   $('volumeMutantMetric').textContent=s.volumeMutants.toLocaleString();
   $('volumeChimeraMetric').textContent=s.volumeChimeras.toLocaleString();
   $('volumeMutationEventMetric').textContent=s.volumeMutations.toLocaleString();
+  $('volumeHybridMetric').textContent=s.volumeHybrids.toLocaleString();
 }
 function loop(now){
   const dt=lastFrameTime?Math.min(70,now-lastFrameTime):16.67;lastFrameTime=now;
@@ -5836,7 +6146,7 @@ function loop(now){
 // Named for test harnesses: no private user data or external connections.
 window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition,get optics(){return {analyzerAngle,opticalRetardance,polarizerContrast,spectralDispersion,opticalDefects,opticalTwist,opticalBackend,activeRenderer:document.getElementById('opticalStatus')?.dataset.backend||'not-active',error:spectralError}},renderSpherulites,get body(){return {enabled:bodyEnabled,error:bodyError,settings:{...bodySettings},mesh:bodyGPU?.mesh?{triangles:bodyGPU.mesh.triangles,occupied:bodyGPU.mesh.occupied,wallTriangles:bodyGPU.mesh.wallTriangles}:null}},get volume(){return {view:volumeView,slice:volumeSlice,...world.volume.stats()};},
   get mutation(){return {...currentMutation(),...world.volume.stats()};},
-  mutateAllFronts,enableBody};
+  mutateAllFronts,enableBody,get breeding(){return {parents:breedParents.map(g=>({...g,laws:[...g.laws],angles:[...g.angles]})),preview:buildOffspringRecipe(),hybrids:world.volume.hybrids.size}},breedAndPlant,refreshBreedingSources};
 requestAnimationFrame(loop);
 
 </script>

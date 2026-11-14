@@ -49,3 +49,20 @@
  .stage-head #stageReadout{max-width:55%;white-space:normal;text-align:right;line-height:1.35;overflow-wrap:normal}
  #panel-mutation .row button{flex:1 1 126px}
 }
+
+/* A.14 · mobile-first tri-parent genotype workshop, no added framework. */
+#panel-breeding .breeding-capture,#panel-breeding .breeding-actions{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px}
+#panel-breeding .breeding-capture button,#panel-breeding .breeding-actions button,#panel-breeding .breed-import{flex:1 1 110px;min-height:40px;padding:9px 7px;text-align:center;font-size:10px}
+#panel-breeding .breeding-parents{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0 14px}
+#panel-breeding .breeding-parent{border:1px solid #3a5266;border-radius:8px;padding:9px 7px;background:rgba(14,24,41,.72);min-width:0}
+#panel-breeding .breeding-parent b{display:block;color:#bdd6e8;font:700 11px/1.5 ui-monospace,monospace}
+#panel-breeding .breeding-parent span{display:block;font-size:10px;overflow-wrap:anywhere;color:#afd6a9}
+#panel-breeding .breeding-parent small{color:#8fa5bb;font-size:9px}
+#panel-breeding .breed-gene-preview{padding:10px;border-radius:8px;background:rgba(12,25,38,.78);border:1px solid #334756;margin:12px 0}
+#panel-breeding .breed-gene{display:grid;grid-template-columns:98px minmax(0,1fr) 34px;align-items:center;gap:6px;margin:5px 0;font-size:10px}
+#panel-breeding .breed-gene i{height:9px;background:rgba(181,213,234,.14);border-radius:6px;overflow:hidden;display:block}
+#panel-breeding .breed-gene i b{height:100%;display:block;background:linear-gradient(90deg,#66cbd8,#e657c1)}
+#panel-breeding #breedStatus{border-left:2px solid #f09fd0;padding-left:9px}
+#panel-breeding .breed-import{display:flex;align-items:center;justify-content:center;border:1px solid #56747d;border-radius:6px;cursor:pointer;color:#d6eef6}
+#panel-breeding .breed-import input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+@media(max-width:730px){#panel-breeding .breeding-parent{padding:7px 5px}#panel-breeding .breeding-parents{gap:4px}#panel-breeding .breed-gene{grid-template-columns:76px minmax(0,1fr) 29px}}

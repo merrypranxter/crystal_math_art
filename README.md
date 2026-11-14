@@ -1,4 +1,6 @@
 # CRYSTALLIZATION APOCALYPSE
+
+**Latest playable version: A.14 — Three-Parent Crystal Breeding Chamber.** Capture actual grown 3D mineral phenotypes into A/B/C parent slots, blend their growth laws and axis orientations, plant a mixed child, then breed its descendants. All 199 palettes and old growth tools remain. See [A.14 technical notes](docs/PROTOTYPE_A14.md).
 ### A living MATHEMAGICAL laboratory for impossible crystalline matter
 
 **Latest: A.13 — MINERAL MUTATION CHAMBER**, with inheritable, per-voxel crystal growth laws within the independently growing 3D volume.

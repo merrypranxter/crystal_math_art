@@ -43,6 +43,7 @@ export class VolumeField {
     this.geneAngle=new Float32Array(this.count); // inheritable orientation of growth law
     this.lineage=new Uint32Array(this.count); // identity of the mutation event that founded this tissue
     this.mutationSerial=0;this.mutationEvents=0;this.lastMutationEvent=0;
+    this.hybrids=new Map(); // per-grain reproducible three-parent growth recipes
 
     this.frontier=new Map();
     this.deposited=0;
@@ -107,6 +108,27 @@ export class VolumeField {
     this.gene[i]=geneSource?.gene||GENE_LAWS[g?.morphology]||1;
     this.geneAngle[i]=geneSource?.angle??g?.angle??0;
     this.lineage[i]=geneSource?.lineage||0;
+    // A.14: parent-sensitive CROSSOVER samples a weighted gene law from the
+    // implanted recipe. Most daughters still inherit their local growth front;
+    // this occasionally resurrects a recessive parent on a new exposed face.
+    const genome=this.hybrids.get(grain);
+    if(genome && geneSource){
+      const crossoverHash=geneHash(x,y,z,(genome.seed^this.world.seedValue)^981733);
+      const m=genome.mutation;
+      if(crossoverHash<genome.crossover){
+        let r=geneHash(x+19,y+37,z+11,(genome.seed^grain)^78967);
+        let law=2;
+        for(let k=0;k<3;k++){r-=genome.laws[k];if(r<=0){law=k;break;}}
+        this.gene[i]=law+1;
+        this.geneAngle[i]=genome.angles[law];
+        this.lineage[i]=genome.lineage;
+      }
+      if(m>0 && geneHash(x+7,y+9,z+13,genome.seed^9277)<m*.11){
+        this.gene[i]=1+Math.floor(3*geneHash(x+3,y+5,z+31,genome.seed^grain));
+        this.geneAngle[i]=genome.angles[this.gene[i]-1]+(geneHash(x+17,y+41,z+3,genome.seed^577)-.5)*m*1.8;
+        this.lineage[i]=genome.lineage;
+      }
+    }
     this.birth[i]=this.world.ticks+1;
     if(this.fossilBirth[i])this.generation[i]=Math.min(65535,this.generation[i]+1);
     this.scar[i]=0;
@@ -128,6 +150,51 @@ export class VolumeField {
     }
     this.active=this.active||count>0;
     return count;
+  }
+  /** Install a three-parent phenotype in an already-planted volume grain.
+   * Genes are distributed spatially through its existing 3D embryo, not
+   * painted into the final image. These cells become parents to future voxels.
+   */
+  imprintHybrid(grain,recipe){
+    if(!this.world.grains[grain-1] || !Array.isArray(recipe.laws) || recipe.laws.length!==3)return 0;
+    const ids=[];
+    for(let i=0;i<this.count;i++)if(this.owner[i]===grain)ids.push(i);
+    if(!ids.length)return 0;
+    const raw=recipe.laws.map(v=>Math.max(0,Number(v)||0));
+    const total=raw.reduce((a,b)=>a+b,0);if(total<=0)return 0;
+    const laws=raw.map(v=>v/total);
+    const token=this.newMutationEpoch();
+    const seed=(Number(recipe.seed)>>>0)||1;
+    const hybrid={laws,angles:recipe.angles.map(v=>Number(v)||0),
+      crossover:clampV(Number(recipe.crossover)||0,0,1),
+      mutation:clampV(Number(recipe.mutation)||0,0,1),
+      roughness:clampV(Number(recipe.roughness)||0,0,1),seed,lineage:token,
+      parents:(recipe.parents||[]).map(p=>({name:String(p.name),grainId:p.grainId||0}))};
+    // Allocate quotas with a largest-remainder pass and ensure that any
+    // meaningful parent has at least one founding cell (when space permits).
+    const quotas=laws.map(p=>p*ids.length);
+    const counts=quotas.map(v=>Math.floor(v));
+    let remaining=ids.length-counts.reduce((a,b)=>a+b,0);
+    const fractional=[0,1,2].sort((a,b)=>(quotas[b]-counts[b])-(quotas[a]-counts[a]));
+    for(let k=0;k<remaining;k++)counts[fractional[k%3]]++;
+    for(let k=0;k<3;k++)if(laws[k]>.04&&counts[k]===0&&ids.length>=3){
+      const donor=counts.indexOf(Math.max(...counts));if(counts[donor]>1){counts[donor]--;counts[k]++;}
+    }
+    ids.sort((a,b)=>{
+      const [ax,ay,az]=this.xyz(a),[bx,by,bz]=this.xyz(b);
+      return geneHash(ax,ay,az,seed^7919)-geneHash(bx,by,bz,seed^7919);
+    });
+    let cursor=0;
+    for(let law=0;law<3;law++)for(let q=0;q<counts[law];q++){
+      const i=ids[cursor++];if(i===undefined)break;
+      const [x,y,z]=this.xyz(i);
+      this.gene[i]=law+1;
+      this.geneAngle[i]=hybrid.angles[law]+(geneHash(x,y,z,seed^887)-.5)*hybrid.mutation*.9;
+      this.lineage[i]=token;
+    }
+    this.hybrids.set(grain,hybrid);this.recordMutation(token);
+    this.version++;this.world.modified++;
+    return ids.length;
   }
   /** One lineage ID per logical edit gesture. Pass the token to each drag
    * sample so crossing the same voxel doesn't create dozens of new generations.
@@ -343,12 +410,13 @@ export class VolumeField {
     for(let i=0;i<this.owner.length;i++)if(this.owner[i]){
       cells++;const z=Math.floor(i/this.area);slabs.add(z);minZ=Math.min(minZ,z);maxZ=Math.max(maxZ,z);
     }
-    return {volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0,volumeScars:scars,volumeRegrown:regrown,
+    return {volumeHybrids:this.hybrids.size,volumeCells:cells,volumeDepthSlices:slabs.size,volumeFrontier:this.frontier.size,volumeDeposits:this.deposited,volumeSpan:minZ<=maxZ?maxZ-minZ+1:0,volumeScars:scars,volumeRegrown:regrown,
       volumeMutants:mutated,volumeNeedleCells:needle,volumeOctaCells:octa,volumeCoralCells:coral,
       volumeChimeras:[...perGrain.values()].filter(bits=>(bits&(bits-1))!==0).length,
       volumeMutations:this.mutationEvents};
   }
   snapshot(){return {owner:this.owner.slice(),nutrient:this.nutrient.slice(),nextNutrient:this.nextNutrient.slice(),birth:this.birth.slice(),fossilBirth:this.fossilBirth.slice(),generation:this.generation.slice(),scar:this.scar.slice(),gene:this.gene.slice(),geneAngle:this.geneAngle.slice(),lineage:this.lineage.slice(),
+      hybrids:[...this.hybrids].map(([id,g])=>[id,JSON.parse(JSON.stringify(g))]),
       mutationSerial:this.mutationSerial,mutationEvents:this.mutationEvents,lastMutationEvent:this.lastMutationEvent,
       frontier:[...this.frontier].map(([i,ids])=>[i,[...ids]]),deposited:this.deposited,version:this.version,active:this.active};}
   restore(state){
@@ -360,6 +428,7 @@ export class VolumeField {
     this.gene=state.gene?.slice()||new Uint8Array(this.count);
     this.geneAngle=state.geneAngle?.slice()||new Float32Array(this.count);
     this.lineage=state.lineage?.slice()||new Uint32Array(this.count);
+    this.hybrids=new Map((state.hybrids||[]).map(([id,g])=>[id,JSON.parse(JSON.stringify(g))]));
     this.mutationSerial=state.mutationSerial||0;
     this.mutationEvents=state.mutationEvents||0;this.lastMutationEvent=state.lastMutationEvent||0;
     this.frontier=new Map(state.frontier.map(([i,ids])=>[i,new Set(ids)]));
