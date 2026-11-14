@@ -1,7 +1,7 @@
 {
   "name": "crystallization-apocalypse",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "Stateful mathematical crystal growth art studio — Black Ice Cathedral prototype",
   "scripts": {

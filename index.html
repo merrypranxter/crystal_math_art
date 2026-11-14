@@ -25,9 +25,15 @@
         <div class="transport"><button id="toggle" class="primary" type="button">Ⅱ PAUSE</button><button id="step" type="button">STEP +1</button><button id="undo" type="button" disabled>↶ UNDO</button></div>
         <div class="toolbox" aria-label="Touch tool"><button data-tool="seed" class="selected" type="button">✳ PLANT</button><button data-tool="melt" type="button">♨ MELT</button><button data-tool="feed" type="button">＋ FEED</button></div>
       </div>
+      <div class="specimen-actions" aria-label="Crystal lifecycle actions">
+        <button id="newSeed" type="button" title="Plant another colony without resetting existing art">＋ NEW SEED</button>
+        <button id="refresh" type="button" title="Generate a completely fresh randomized specimen; confirmation required">⟳ REFRESH</button>
+        <button id="restart" type="button" title="Replay this exact specimen seed from the beginning; confirmation required">↺ RESTART</button>
+        <span id="specimenSeed" class="specimen-code">SEED 000573C9</span>
+      </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.4</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.4 · COLOR VAULT</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -70,8 +76,19 @@
       </div>
       <div class="panel" id="panel-material" role="tabpanel" hidden>
         <p class="panel-intro">A visual finish never resets or changes the growth simulation.</p>
-        <label class="select-label" for="palette">Chromatic atmosphere</label>
-        <select id="palette"><option value="silver">BLACK ICE · SILVER</option><option value="spectrum">SPECTRAL WITCHCRAFT</option><option value="violet">ULTRAVIOLET VEINS</option><option value="fire">MOLTEN FRACTURE</option><option value="ivory">IVORY MICROSCOPE</option></select>
+        <label class="select-label" for="paletteSearch">Search your MATHEMAGICAL palettes</label>
+        <input id="paletteSearch" type="search" autocomplete="off" placeholder="Name, source, or color family…" aria-label="Find a color palette" />
+        <label class="select-label" for="palette">Chromatic atmosphere <span id="paletteCount" class="palette-count">199 palettes</span></label>
+        <select id="palette"><option value="silver">BLACK ICE · SILVER</option></select>
+        <div id="palettePreview" class="palette-preview" aria-label="Selected palette colors"></div>
+        <div id="paletteStops" class="palette-stops" aria-label="Editable color stops"></div>
+        <div class="palette-actions">
+          <button id="randomPalette" type="button">⚄ RANDOM PALETTE</button>
+          <button id="shuffleStops" type="button">⤨ SHUFFLE STOPS</button>
+          <button id="randomColors" type="button">✳ RANDOM COLORS</button>
+          <button id="restorePalette" type="button">↶ ORIGINAL COLORS</button>
+        </div>
+        <p class="control-note">All original color stops are preserved, including 12-color recipes. Editing a swatch changes only the appearance—not the crystals you've grown.</p>
         <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option></select>
         <label class="range-label" for="luminosity">Highlight strength <output id="luminosity-value">62%</output></label><input id="luminosity" type="range" min="0" max="100" value="62" step="1" />
         <div class="info"><strong>NO FAKE PHYSICS</strong><p>These are stylized structural finishes; birefringence and physical thin-film optics belong to the next optical research phase.</p></div>
@@ -79,7 +96,7 @@
       <div class="panel" id="panel-studio" role="tabpanel" hidden>
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>
         <button id="save" class="wide primary" type="button">↓ EXPORT 2400 × 2400 PNG</button>
-        <button id="new" class="wide danger" type="button">✳ NEW COMPOSITION…</button>
+        <div class="info"><strong>SPECIMEN CONTROL</strong><p>Use the three buttons beneath the artwork: NEW SEED plants a colony without clearing anything; REFRESH generates new crystals using your selected anatomy; RESTART replays this specimen’s saved starting seed. Destructive actions ask first and can be undone.</p></div>
         <div class="metrics"><div><b id="seedMetric">0</b><span>COLONIES</span></div><div><b id="tipMetric">0</b><span>ACTIVE FRONTS</span></div><div><b id="branchMetric">0</b><span>SEGMENTS</span></div><div><b id="microMetric">0</b><span>MICRO NEEDLES</span></div><div><b id="frontMetric">0</b><span>FRONT DEPOSITS</span></div><div><b id="sitesMetric">0</b><span>LIVE INTERFACE</span></div><div><b id="phaseMetric">0</b><span>PHASE CELLS</span></div><div><b id="phaseMassMetric">0</b><span>PHASE MASS</span></div></div>
         <div class="info"><strong>ENGINE STATUS</strong><p>Three stateful growth families: branching tips, discrete diffusion-fed accretion, and an actual numerical phase-field PDE approximation. No calibrated crystal thermodynamics, accurate birefringence, or full DLA is claimed.</p></div>
       </div>
@@ -87,7 +104,7 @@
   </main>
   <footer class="foot">PHASE-FIELD MATHEMATICS · PERSISTENT MATERIAL HISTORY · LOCAL ONLY · NO PAID API</footer>
 </div>
-<dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2>Start a new apocalypse?</h2><p>All current crystal branches and growth history will be replaced. UNDO can restore your previous specimen.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" value="reset" type="submit">YES, NEW CRYSTAL</button></div></form></dialog>
+<dialog id="resetDialog"><form method="dialog"><div class="dialog-kicker">CAUTION / DESTRUCTIVE CHANGE</div><h2 id="resetTitle">Start a new apocalypse?</h2><p id="resetMessage">This replaces your current crystal structures, but UNDO can restore them. Your palette stays exactly as you arranged it.</p><div class="dialog-actions"><button value="cancel" type="submit">KEEP MY CRYSTALS</button><button class="danger" id="confirmReset" value="reset" type="submit">CONFIRM</button></div></form></dialog>
 <script type="module" src="./src/main.js"></script>
 </body>
 </html>

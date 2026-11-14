@@ -1,14 +1,20 @@
 import { CrystalWorld, SIZE, FRONT_MODES, PHASE_MODES } from './growth.js';
+import { DEFAULT_COMPOSITION, startComposition, addRandomColony, freshSeed } from './compositions.js';
+import { PALETTES, PALETTE_MAP, basePalette, originalStops, hexToRgb, buildColorLUT, randomColor } from './palettes.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
 const display = crystalCanvas.getContext('2d', { alpha: false });
 const world = new CrystalWorld();
-world.plantInitial();
+let composition = {...DEFAULT_COMPOSITION};
+startComposition(world, composition);
 let playing = true;
 let activeTool = 'seed';
 let currentTab = 'growth';
 let palette = 'silver';
+let activeStops = originalStops(palette);
+let paletteLUT = buildColorLUT(activeStops);
+let paletteRevision = 0;
 let finish = 'frost';
 let luminosity = .62;
 let editing = false;
@@ -26,24 +32,72 @@ const layerCtx = layer.getContext('2d', { alpha:true });
 const phaseLayer=document.createElement('canvas');
 phaseLayer.width=phaseLayer.height=world.phase.size;
 const phaseCtx=phaseLayer.getContext('2d', {alpha:true});
-let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1;
+let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1, phasePaletteRevision=-1;
 const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
 
-function colors(grain, level) {
-  const key = (grain - 1) % 7;
-  const palettes = {
-    silver: [[193,225,241],[219,238,248],[129,171,195],[146,184,197]],
-    spectrum: [[234,136,202],[154,240,235],[147,130,253],[247,187,95]],
-    violet: [[176,123,255],[116,226,244],[243,143,255],[103,116,255]],
-    fire: [[247,194,129],[241,113,89],[255,217,156],[203,93,143]],
-    ivory: [[47,65,81],[69,96,114],[98,111,122],[118,128,137]]
-  };
-  const list = palettes[palette] || palettes.silver;
-  if (palette === 'silver' || palette === 'ivory') return list[Math.min(level,3)];
-  return list[(key + level) % list.length];
+function paletteIndex(t) { return (Math.floor((((t % 1) + 1) % 1) * 255) * 3); }
+function colors(grain, level, stamp=0) {
+  // Sampling across deposition time, grain and depth incorporates all original
+  // palette stops (including long 12-stop recipes), instead of truncating to 4.
+  const k=paletteIndex(grain*.131 + level*.123 + stamp*.0033);
+  return [paletteLUT[k],paletteLUT[k+1],paletteLUT[k+2]];
+}
+function invalidatePalette() {
+  paletteLUT=buildColorLUT(activeStops);
+  paletteRevision++;
+  phaseRenderVersion=-1;
+  forceFull=true;
+}
+function renderPalettePreview() {
+  const area=$('palettePreview');area.replaceChildren();
+  for(const hex of activeStops){const block=document.createElement('i');block.style.background=hex;block.title=hex;area.appendChild(block);}
+}
+function renderPaletteStops() {
+  renderPalettePreview();
+  const area=$('paletteStops');area.replaceChildren();
+  for(const [i,hex] of activeStops.entries()){
+    const label=document.createElement('label');label.title='Edit stop '+(i+1)+' · '+hex;
+    const input=document.createElement('input');input.type='color';input.value=hex;input.setAttribute('aria-label','Edit color stop '+(i+1));
+    input.addEventListener('input',()=>{activeStops[i]=input.value;label.title='Edit stop '+(i+1)+' · '+input.value;renderPalettePreview();invalidatePalette();});
+    label.appendChild(input);label.appendChild(document.createTextNode(String(i+1)));
+    area.appendChild(label);
+  }
+}
+function renderPaletteOptions(query='') {
+  const q=query.toLocaleLowerCase().trim();const select=$('palette'),groups=new Map();
+  const found=PALETTES.filter(p=>!q || `${p.name} ${p.id} ${p.source}`.toLocaleLowerCase().includes(q));
+  const visible=found.some(p=>p.id===palette)?found:[basePalette(palette),...found];
+  for(const p of visible){
+    const source=p.source==='crystal-studio'?'CRYSTAL STUDIO':String(p.source).replaceAll('_',' ').toUpperCase();
+    if(!groups.has(source))groups.set(source,[]);
+    groups.get(source).push(p);
+  }
+  select.replaceChildren();
+  for(const [label,list] of groups){
+    const group=document.createElement('optgroup');group.label=label;
+    for(const p of list){const option=new Option(p.name,p.id);group.appendChild(option);}
+    select.appendChild(group);
+  }
+  select.value=palette;
+  $('paletteCount').textContent=q ? `${found.length} / ${PALETTES.length}` : `${PALETTES.length} palettes`;
+}
+function choosePalette(id){
+  if(!PALETTE_MAP.has(id))return;
+  palette=id;activeStops=originalStops(id);
+  invalidatePalette();renderPaletteStops();renderPaletteOptions($('paletteSearch').value);
+}
+function changeStops(next){
+  activeStops=[...next];renderPaletteStops();invalidatePalette();
+}
+function shuffleColors(stops){
+  const copy=[...stops];for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}
+  return copy;
+}
+function updateCompositionLabel() {
+  $('specimenSeed').textContent='SEED '+composition.seed.toString(16).padStart(8,'0').toUpperCase()+' · '+world.grains.length+' COLONIES';
 }
 function strokeSegment(ctx, s, scale) {
-  const col = colors(s.grain, s.level);
+  const col = colors(s.grain, s.level, s.stamp);
   const a = clamp(.40 + luminosity * .58 - s.level * .028, .27, 1);
   const lw = [2.16,1.53,1.05,.73,.44,.27][s.level] * scale;
   if (finish === 'metal' && s.level < 2) {
@@ -62,7 +116,7 @@ function strokeSegment(ctx, s, scale) {
 }
 function drawSegments(ctx, segments, scale) {
   ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
-  if (finish === 'glass') { ctx.shadowBlur=2.5*scale;ctx.shadowColor=palette==='violet'?'#8c53df':'#60b9e5'; }
+  if (finish === 'glass') { ctx.shadowBlur=2.5*scale;ctx.shadowColor=activeStops.at(-1) || '#60b9e5'; }
   for (const s of segments) strokeSegment(ctx,s,scale);
   ctx.restore();
 }
@@ -77,11 +131,12 @@ function redrawLayer() {
 }
 function paintBackdrop(ctx,size) {
   const ivory = palette==='ivory';
+  const rgb=hexToRgb(basePalette(palette).bg || activeStops[0]);
   ctx.save();
   ctx.fillStyle=ivory?'#e6e2d8':'#05090d';ctx.fillRect(0,0,size,size);
   const g=ctx.createRadialGradient(size*.55,size*.44,size*.02,size*.52,size*.54,size*.78);
   if (ivory) { g.addColorStop(0,'#f7f4e8');g.addColorStop(1,'#c9ccca'); }
-  else {g.addColorStop(0, palette==='violet'?'#101024':palette==='fire'?'#201017':'#101c27');g.addColorStop(1,'#020407');}
+  else {g.addColorStop(0,`rgb(${rgb.map(v=>Math.round(7+v*.28)).join(',')})`);g.addColorStop(1,'#020407');}
   ctx.fillStyle=g;ctx.fillRect(0,0,size,size);
   // Tiny fixed point inclusions suggest photographic depth without hijacking the growth.
   for(let k=0;k<90;k++) {
@@ -95,14 +150,15 @@ function paintBackdrop(ctx,size) {
 function paintPhase(ctx, size) {
   const field=world.phase;
   if(!field.active)return;
-  if(phaseRenderVersion!==field.version||phasePalette!==palette||phaseFinish!==finish||phaseLuminosity!==luminosity){
+  if(phaseRenderVersion!==field.version||phasePalette!==palette||phaseFinish!==finish||phaseLuminosity!==luminosity||phasePaletteRevision!==paletteRevision){
     const n=field.size;
     const img=phaseCtx.createImageData(n,n),data=img.data;
     for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
       const i=y*n+x,v=field.phi[i],owner=field.owner[i];
       if(!owner||v<.025)continue;
       const edge=clamp(Math.abs(field.phi[i-1]-field.phi[i+1])+Math.abs(field.phi[i-n]-field.phi[i+n]),0,1);
-      const rgb=colors(owner,0);
+      const colorIndex=paletteIndex(owner*.137 + x/n*.62 + y/n*.36);
+      const rgb=[paletteLUT[colorIndex],paletteLUT[colorIndex+1],paletteLUT[colorIndex+2]];
       // Physically solved phase fractions give opacity/edges; these colors
       // remain an explicitly *artistic*, orientation-agnostic optical finish.
       const rim=finish==='glass' ? .79 : finish==='metal' ? .54 : .38;
@@ -115,7 +171,7 @@ function paintPhase(ctx, size) {
       data[idx+3]=Math.round(clamp(v*.96+edge*.35,0,1)*255);
     }
     phaseCtx.putImageData(img,0,0);
-    phaseRenderVersion=field.version;phasePalette=palette;phaseFinish=finish;phaseLuminosity=luminosity;
+    phaseRenderVersion=field.version;phasePalette=palette;phaseFinish=finish;phaseLuminosity=luminosity;phasePaletteRevision=paletteRevision;
   }
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(phaseLayer,0,0,size,size);ctx.restore();
 }
@@ -141,7 +197,7 @@ function drawScreen() {
   if (playing && world.tips.length) {
     for(let i=0;i<world.tips.length;i+=Math.max(1,Math.floor(world.tips.length/85))){
       const t=world.tips[i],x=t.x/SIZE*size,y=t.y/SIZE*size;
-      const c=colors(t.grain,t.level);
+      const c=colors(t.grain,t.level,world.ticks);
       display.fillStyle=`rgba(${c[0]},${c[1]},${c[2]},.68)`;
       display.beginPath();display.arc(x,y,Math.max(.55,size*.00083),0,Math.PI*2);display.fill();
     }
@@ -164,7 +220,7 @@ function pointFromEvent(ev){
   const size=Math.min(rect.width,rect.height), ox=(rect.width-size)/2,oy=(rect.height-size)/2;
   return {x:clamp((ev.clientX-rect.left-ox)/size*SIZE,1,SIZE-2),y:clamp((ev.clientY-rect.top-oy)/size*SIZE,1,SIZE-2)};
 }
-function saveUndo() { undoStack.push(world.snapshot()); if(undoStack.length>6)undoStack.shift();$('undo').disabled=false; }
+function saveUndo() { undoStack.push({state:world.snapshot(),composition:{...composition}}); if(undoStack.length>6)undoStack.shift();$('undo').disabled=false; }
 function doBrush(p){
   if(activeTool==='melt') world.melt(p.x,p.y,world.config.brush);
   else if(activeTool==='feed')world.feed(p.x,p.y,world.config.brush);
@@ -216,22 +272,52 @@ function syncMorphologyControls() {
 }
 $('morphology').addEventListener('change',ev=>{world.config.morphology=ev.target.value;syncMorphologyControls();});
 syncMorphologyControls();
-$('palette').addEventListener('change',ev=>{palette=ev.target.value;forceFull=true;});
+renderPaletteOptions();renderPaletteStops();updateCompositionLabel();
+$('paletteSearch').addEventListener('input',ev=>renderPaletteOptions(ev.target.value));
+$('palette').addEventListener('change',ev=>choosePalette(ev.target.value));
+$('randomPalette').addEventListener('click',()=>choosePalette(PALETTES[Math.floor(Math.random()*PALETTES.length)].id));
+$('shuffleStops').addEventListener('click',()=>changeStops(shuffleColors(activeStops)));
+$('randomColors').addEventListener('click',()=>changeStops(activeStops.map(()=>randomColor())));
+$('restorePalette').addEventListener('click',()=>changeStops(originalStops(palette)));
 $('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;});
 $('luminosity').addEventListener('input',ev=>{luminosity=Number(ev.target.value)/100;$('luminosity-value').textContent=ev.target.value+'%';forceFull=true;});
 function setPlaying(p){playing=p;$('toggle').textContent=p?'Ⅱ PAUSE':'▶ RESUME';$('runState').textContent=p?'LIVE GROWTH':'GROWTH PAUSED';document.querySelector('.alive').classList.toggle('paused',!p);}
 $('toggle').addEventListener('click',()=>setPlaying(!playing));
 $('step').addEventListener('click',()=>{setPlaying(false);world.step();});
 $('undo').addEventListener('click',()=>{
-  const s=undoStack.pop();if(!s)return;world.restore(s);$('undo').disabled=undoStack.length===0;forceFull=true;
+  const entry=undoStack.pop();if(!entry)return;
+  world.restore(entry.state);composition={...entry.composition};
+  $('undo').disabled=undoStack.length===0;forceFull=true;phaseRenderVersion=-1;updateCompositionLabel();
 });
+function plantNewSeed() {
+  if(world.grains.length>=250)return;
+  saveUndo();addRandomColony(world,world.config.morphology);
+  forceFull=true;updateCompositionLabel();
+}
+function resetComposition(kind) {
+  saveUndo();
+  if(kind==='refresh')composition={seed:freshSeed(),layout:'randomized',morphology:world.config.morphology};
+  // Restart retains original seed, original colony anatomy and position layout.
+  startComposition(world,composition);
+  forceFull=true;phaseRenderVersion=-1;frameAccumulator=0;
+  setPlaying(true);updateCompositionLabel();
+}
+let pendingReset='refresh';
 const dialog=$('resetDialog');
-$('new').addEventListener('click',()=>dialog.showModal());
-dialog.addEventListener('close',()=>{
-  if(dialog.returnValue!=='reset')return;
-  saveUndo();world.randomize((Date.now()^Math.floor(Math.random()*0x7fffffff))>>>0);
-  world.plantInitial();forceFull=true;
-});
+function askReset(kind) {
+  pendingReset=kind;
+  const isRefresh=kind==='refresh';
+  $('resetTitle').textContent=isRefresh?'Refresh with a completely new specimen?':'Restart this exact specimen?';
+  $('resetMessage').textContent=isRefresh
+    ? 'Your current crystals will be replaced with a new randomized composition in the selected anatomy. Your palette and finish remain unchanged. UNDO can restore the artwork.'
+    : 'Replay your saved composition seed from the beginning, removing all growth and later planted colonies. Your palette stays unchanged, and UNDO can restore your artwork.';
+  $('confirmReset').textContent=isRefresh?'YES, REFRESH':'YES, RESTART';
+  dialog.showModal();
+}
+$('newSeed').addEventListener('click',plantNewSeed);
+$('refresh').addEventListener('click',()=>askReset('refresh'));
+$('restart').addEventListener('click',()=>askReset('restart'));
+dialog.addEventListener('close',()=>{if(dialog.returnValue==='reset')resetComposition(pendingReset);});
 $('save').addEventListener('click',async()=>{
   const button=$('save');button.disabled=true;button.textContent='RENDERING HIGH-RES SPECIMEN…';
   try{
@@ -261,5 +347,5 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 // Named for test harnesses: no private user data or external connections.
-window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},setTool,setPlaying};
+window.crystalDebug={world,get running(){return playing;},get tool(){return activeTool;},get paletteId(){return palette;},get stops(){return [...activeStops];},get catalogSize(){return PALETTES.length;},get composition(){return {...composition};},setTool,setPlaying,choosePalette,plantNewSeed,resetComposition};
 requestAnimationFrame(loop);
