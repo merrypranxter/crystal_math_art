@@ -5,6 +5,19 @@ A mathematical growth-art studio. Plant competing crystal colonies, melt and reg
 
 **Latest playable build: Phase A.5 — Instability Garden.** The continuous phase-field now supports nutrient-biased interface destabilization and actual branching protrusions that become persistent solid-phase material. The three prior growth systems remain intact; this is a physics-inspired artistic hybrid, not a calibrated dendritic solidification model.
 
+
+## A.6 — Mineral Flesh (material laboratory)
+
+- **Four new art finishes**: Mineral Relief, Stratified Ghost, Prismatic Oxide and Obsidian, alongside classic Etched Frost, Cold Glass and Dark Metal.
+- **Relief derived from geometry**: a two-pass chamfer distance transform calculates the thickness of each phase-field crystal body from the real solid/liquid interface. Grain orientations quantize the optical normals into coherent angular facets.
+- **Crystallization archaeology**: every phase cell stores its **first solidification tick**. Banding follows those timestamps, not arbitrary screen coordinates. Melting removes local age data; regrowth forms a new layer; undo restores past layers exactly.
+- **Four material controls**: relief, age-banding, light direction and spectral separation. They change the material without changing growth; extra controls appear only for new finishes.
+- **All 199 palettes preserved** in the canonical GitHub source and standalone; restart/new seed/refresh untouched.
+- **No real 3D geometry, measured birefringence, or calibrated thin-film optics claimed.** This is a 2.5D, morphology-based artistic renderer. Browser-only and no external API or Netlify needed.
+- **45 local automated tests**, including 6 new material/age tests; desktop + mobile browser smoke checks.
+
+[Details, implementation and limitations](docs/PROTOTYPE_A6.md)
+
 ## A.5 — Instability Garden (new)
 
 - Phase-field crystals can grow branching material fingers from their current solid/liquid boundary. An Allen–Cahn-like PDE continues to advance and thicken the deposited phase.

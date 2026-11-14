@@ -45,6 +45,7 @@ export class PhaseField {
     this.next=new Float32Array(this.phi.length);
     this.owner=new Uint8Array(this.phi.length);
     this.nextOwner=new Uint8Array(this.owner.length);
+    this.birth=new Uint32Array(this.phi.length); // first solidification tick+1; 0 means liquid or never solidified
     this.deposited=0;
     this.active=false;
     this.version=0;
@@ -70,7 +71,7 @@ export class PhaseField {
       if(this.world.crystal[center]&&this.world.crystal[center]!==grain)continue;
       const v=r<=2?1:r<=2.7?.64:.13;
       if(this.phi[i]<v){this.phi[i]=v;this.owner[i]=grain;}
-      if(v>=.58)this.writeSolid(ix,iy,grain,true);
+      if(v>=.58){this.writeSolid(ix,iy,grain,true); if(!this.birth[i])this.birth[i]=this.world.ticks+1;}
     }
     this.active=true;this.version++;
   }
@@ -166,7 +167,8 @@ export class PhaseField {
       no[i]=q[i]?grain:0;
       if((v>=.58)!==(q[i]>=.58)){
         this.writeSolid(x,y,grain,q[i]>=.58);
-        if(q[i]>=.58)this.deposited++;
+        if(q[i]>=.58){this.deposited++; if(!this.birth[i])this.birth[i]=w.ticks+1;}
+        else this.birth[i]=0;
         changed=true;
       }
       // Uptake is tied to positive change in solid fraction, not merely time.
@@ -253,6 +255,7 @@ export class PhaseField {
         this.phi[i]=.90;this.owner[i]=t.grain;
         this.writeSolid(ax,ay,t.grain,true);
         this.deposited++;
+        if(!this.birth[i])this.birth[i]=w.ticks+1;
       }
       const shoulders=[[1,0],[-1,0],[0,1],[0,-1]];
       for(const [dx,dy] of shoulders){
@@ -293,15 +296,15 @@ export class PhaseField {
       if((xx-cx)**2+(yy-cy)**2>rad*rad)continue;
       const i=yy*n+xx,grain=this.owner[i];
       if(grain){this.phi[i]=0;this.next[i]=0;this.owner[i]=0;this.nextOwner[i]=0;
-        this.writeSolid(xx,yy,grain,false);}
+        this.birth[i]=0;this.writeSolid(xx,yy,grain,false);}
     }
     this.sprouts=this.sprouts.filter(t=>(t.x-cx)**2+(t.y-cy)**2>(rad+1)**2);
     this.version++;
   }
-  snapshot(){return {phi:this.phi.slice(),next:this.next.slice(),owner:this.owner.slice(),nextOwner:this.nextOwner.slice(),deposited:this.deposited,active:this.active,version:this.version,sprouts:this.sprouts.map(t=>({...t})),sproutedGrains:[...this.sproutedGrains],branchEvents:this.branchEvents};}
+  snapshot(){return {birth:this.birth.slice(),phi:this.phi.slice(),next:this.next.slice(),owner:this.owner.slice(),nextOwner:this.nextOwner.slice(),deposited:this.deposited,active:this.active,version:this.version,sprouts:this.sprouts.map(t=>({...t})),sproutedGrains:[...this.sproutedGrains],branchEvents:this.branchEvents};}
   restore(v){
     if(!v)return;
-    this.phi=v.phi.slice();this.next=v.next.slice();this.owner=v.owner.slice();this.nextOwner=v.nextOwner.slice();
+    this.phi=v.phi.slice();this.birth=v.birth?v.birth.slice():new Uint32Array(this.phi.length);this.next=v.next.slice();this.owner=v.owner.slice();this.nextOwner=v.nextOwner.slice();
     this.deposited=v.deposited;this.active=v.active;this.version=v.version+1;
     this.sprouts=(v.sprouts||[]).map(t=>({...t}));
     this.sproutedGrains=[...(v.sproutedGrains||[])];this.branchEvents=v.branchEvents||0;

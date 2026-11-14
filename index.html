@@ -12,7 +12,7 @@
 <div class="shell">
   <header class="site-head">
     <div class="kicker"><span class="diamond">◆</span> MATHEMAGICAL! <span class="slash">/</span> MATTER LAB 07</div>
-    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / BLACK ICE CATHEDRAL</span></div>
+    <div class="heading"><h1>CRYSTALLIZATION <em>APOCALYPSE</em></h1><span class="edition">SPECIMEN 001 / MINERAL FLESH</span></div>
   </header>
   <main class="workspace">
     <section class="viewport" aria-label="Live crystal growth artwork">
@@ -33,7 +33,7 @@
       </div>
     </section>
     <aside class="inspector" aria-label="Crystallization settings">
-      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.5 · INSTABILITY GARDEN</span></div>
+      <div class="inspector-title"><span>MATTER CONTROLS</span><span class="version">PROTOTYPE A.6 · MINERAL FLESH</span></div>
       <div class="tabs" role="tablist" aria-label="Setting groups">
         <button class="active" data-tab="growth" role="tab" aria-selected="true">GROWTH</button>
         <button data-tab="environment" role="tab" aria-selected="false">ENVIRONMENT</button>
@@ -93,9 +93,17 @@
           <button id="restorePalette" type="button">↶ ORIGINAL COLORS</button>
         </div>
         <p class="control-note">All original color stops are preserved, including 12-color recipes. Editing a swatch changes only the appearance—not the crystals you've grown.</p>
-        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option></select>
+        <label class="select-label" for="finish">Material treatment</label><select id="finish"><option value="frost">ETCHED FROST</option><option value="glass">COLD GLASS</option><option value="metal">DARK METAL</option><option value="mineral">MINERAL RELIEF · FACET LIGHT</option><option value="strata">STRATIFIED GHOST · GROWTH BANDS</option><option value="prism">PRISMATIC OXIDE · IRIDESCENCE</option><option value="obsidian">OBSIDIAN · DARK METALLURGY</option></select>
+        <div id="mineralControls" hidden>
+          <div class="info"><strong>A.6 · MINERAL FLESH</strong><p>2.5D relief follows the actual growth silhouette. Interior bands come from the time each cell crystallized. Highlights change with grain orientation and lighting—no generic rainbow fog.</p></div>
+          <label class="range-label" for="materialDepth">Facet relief <output id="materialDepth-value">74%</output></label><input id="materialDepth" type="range" min="0" max="100" value="74" step="1" />
+          <label class="range-label" for="materialBands">Growth layer banding <output id="materialBands-value">55%</output></label><input id="materialBands" type="range" min="0" max="100" value="55" step="1" />
+          <label class="range-label" for="materialLight">Light direction <output id="materialLight-value">315°</output></label><input id="materialLight" type="range" min="0" max="360" value="315" step="1" />
+          <label class="range-label" for="materialSpectral">Spectral color separation <output id="materialSpectral-value">55%</output></label><input id="materialSpectral" type="range" min="0" max="100" value="55" step="1" />
+          <p class="control-note">Materials are real-state-derived artistic 2.5D projections, NOT physically measured birefringence or three-dimensional volumes. Change or restore any material without resetting growth.</p>
+        </div>
         <label class="range-label" for="luminosity">Highlight strength <output id="luminosity-value">62%</output></label><input id="luminosity" type="range" min="0" max="100" value="62" step="1" />
-        <div class="info"><strong>NO FAKE PHYSICS</strong><p>These are stylized structural finishes; birefringence and physical thin-film optics belong to the next optical research phase.</p></div>
+        <div class="info"><strong>NO FAKE PHYSICS</strong><p>These are artistic structural finishes, not calibrated optical simulation. A.6 uses real phase geometry and deposition history for depth and color. True volumetric ray tracing and physically correct birefringence remain future work.</p></div>
       </div>
       <div class="panel" id="panel-studio" role="tabpanel" hidden>
         <p class="panel-intro">Capture a specimen, or start an entirely new evolution deliberately.</p>

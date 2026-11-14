@@ -1,6 +1,7 @@
 import { CrystalWorld, SIZE, FRONT_MODES, PHASE_MODES } from './growth.js';
 import { DEFAULT_COMPOSITION, startComposition, addRandomColony, freshSeed } from './compositions.js';
 import { PALETTES, PALETTE_MAP, basePalette, originalStops, hexToRgb, buildColorLUT, randomColor } from './palettes.js';
+import { renderMineral, MINERAL_FINISHES } from './mineral.js';
 
 const $ = id => document.getElementById(id);
 const crystalCanvas = $('crystal');
@@ -17,6 +18,8 @@ let paletteLUT = buildColorLUT(activeStops);
 let paletteRevision = 0;
 let finish = 'frost';
 let luminosity = .62;
+let materialDepth=.74, materialBands=.55, materialLight=315, materialSpectral=.55;
+let materialRevision=0;
 let editing = false;
 let recentPoint = null;
 let lastPaint = -Infinity;
@@ -32,7 +35,7 @@ const layerCtx = layer.getContext('2d', { alpha:true });
 const phaseLayer=document.createElement('canvas');
 phaseLayer.width=phaseLayer.height=world.phase.size;
 const phaseCtx=phaseLayer.getContext('2d', {alpha:true});
-let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1, phasePaletteRevision=-1;
+let phaseRenderVersion=-1, phasePalette='', phaseFinish='', phaseLuminosity=-1, phasePaletteRevision=-1, phaseMaterialRevision=-1;
 const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
 
 function paletteIndex(t) { return (Math.floor((((t % 1) + 1) % 1) * 255) * 3); }
@@ -100,6 +103,31 @@ function strokeSegment(ctx, s, scale) {
   const col = colors(s.grain, s.level, s.stamp);
   const a = clamp(.40 + luminosity * .58 - s.level * .028, .27, 1);
   const lw = [2.16,1.53,1.05,.73,.44,.27][s.level] * scale;
+  const isMineral=MINERAL_FINISHES.includes(finish);
+  if(isMineral){
+    const dx=s.x1-s.x0,dy=s.y1-s.y0;
+    const orientation=Math.atan2(dy,dx);
+    const strike=Math.max(.07, .5 + .5*Math.sin(orientation - materialLight*Math.PI/180));
+    const strata=.5+.5*Math.cos((s.stamp||0)*.105 + s.grain*.9);
+    const spectral=finish==='prism' ? materialSpectral*(.18+.55*strike):0;
+    const color=colors(s.grain,s.level,(s.stamp||0)+spectral*90+strata*materialBands*11);
+    ctx.lineWidth=lw*(1+.32*materialDepth);
+    ctx.strokeStyle=finish==='obsidian' ? 'rgba(1,6,13,.9)' : 'rgba(4,13,25,.82)';
+    ctx.beginPath();ctx.moveTo(s.x0*scale+lw*.20,s.y0*scale+lw*.25);
+    ctx.lineTo(s.x1*scale+lw*.20,s.y1*scale+lw*.25);ctx.stroke();
+    ctx.lineWidth=lw*(finish==='obsidian'?.64:.91);
+    const shade=finish==='obsidian'?.23:(.53+.47*strike);
+    ctx.strokeStyle=`rgba(${Math.round(color[0]*shade)},${Math.round(color[1]*shade)},${Math.round(color[2]*shade)},${a})`;
+    ctx.beginPath();ctx.moveTo(s.x0*scale,s.y0*scale);ctx.lineTo(s.x1*scale,s.y1*scale);ctx.stroke();
+    if(s.level<=2 && materialDepth>.16){
+      ctx.lineWidth=Math.max(.15*scale,lw*.17*materialDepth);
+      const light=Math.round(200*strike);
+      ctx.strokeStyle=`rgba(${light},${light},${light},${a*.36*materialDepth})`;
+      ctx.beginPath();ctx.moveTo(s.x0*scale-lw*.13,s.y0*scale-lw*.13);
+      ctx.lineTo(s.x1*scale-lw*.13,s.y1*scale-lw*.13);ctx.stroke();
+    }
+    return;
+  }
   if (finish === 'metal' && s.level < 2) {
     ctx.lineWidth = lw * 1.42;
     ctx.strokeStyle = `rgba(6,15,23,${a*.8})`;
@@ -150,10 +178,13 @@ function paintBackdrop(ctx,size) {
 function paintPhase(ctx, size) {
   const field=world.phase;
   if(!field.active)return;
-  if(phaseRenderVersion!==field.version||phasePalette!==palette||phaseFinish!==finish||phaseLuminosity!==luminosity||phasePaletteRevision!==paletteRevision){
+  if(phaseRenderVersion!==field.version||phasePalette!==palette||phaseFinish!==finish||phaseLuminosity!==luminosity||phasePaletteRevision!==paletteRevision||phaseMaterialRevision!==materialRevision){
     const n=field.size;
     const img=phaseCtx.createImageData(n,n),data=img.data;
-    for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
+    if(MINERAL_FINISHES.includes(finish)){
+      const painted=renderMineral(field,world,paletteLUT,{finish,depth:materialDepth,bands:materialBands,lightAngle:materialLight,spectral:materialSpectral});
+      data.set(painted.data);
+    } else for(let y=1;y<n-1;y++)for(let x=1;x<n-1;x++){
       const i=y*n+x,v=field.phi[i],owner=field.owner[i];
       if(!owner||v<.025)continue;
       const edge=clamp(Math.abs(field.phi[i-1]-field.phi[i+1])+Math.abs(field.phi[i-n]-field.phi[i+n]),0,1);
@@ -171,7 +202,7 @@ function paintPhase(ctx, size) {
       data[idx+3]=Math.round(clamp(v*.96+edge*.35,0,1)*255);
     }
     phaseCtx.putImageData(img,0,0);
-    phaseRenderVersion=field.version;phasePalette=palette;phaseFinish=finish;phaseLuminosity=luminosity;phasePaletteRevision=paletteRevision;
+    phaseRenderVersion=field.version;phasePalette=palette;phaseFinish=finish;phaseLuminosity=luminosity;phasePaletteRevision=paletteRevision;phaseMaterialRevision=materialRevision;
   }
   ctx.save();ctx.imageSmoothingEnabled=true;ctx.drawImage(phaseLayer,0,0,size,size);ctx.restore();
 }
@@ -279,7 +310,17 @@ $('randomPalette').addEventListener('click',()=>choosePalette(PALETTES[Math.floo
 $('shuffleStops').addEventListener('click',()=>changeStops(shuffleColors(activeStops)));
 $('randomColors').addEventListener('click',()=>changeStops(activeStops.map(()=>randomColor())));
 $('restorePalette').addEventListener('click',()=>changeStops(originalStops(palette)));
-$('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;});
+function syncMineralControls(){ $('mineralControls').hidden=!MINERAL_FINISHES.includes(finish); }
+$('finish').addEventListener('change',ev=>{finish=ev.target.value;forceFull=true;phaseRenderVersion=-1;syncMineralControls();});
+syncMineralControls();
+const mineralSliders={materialDepth:v=>{materialDepth=v/100},materialBands:v=>{materialBands=v/100},materialLight:v=>{materialLight=v},materialSpectral:v=>{materialSpectral=v/100}};
+for(const [name,apply] of Object.entries(mineralSliders)){
+  $(name).addEventListener('input',ev=>{
+    const v=Number(ev.target.value);apply(v);
+    $(name+'-value').textContent=v+(name==='materialLight'?'°':'%');
+    materialRevision++;forceFull=true;phaseRenderVersion=-1;
+  });
+}
 $('luminosity').addEventListener('input',ev=>{luminosity=Number(ev.target.value)/100;$('luminosity-value').textContent=ev.target.value+'%';forceFull=true;});
 function setPlaying(p){playing=p;$('toggle').textContent=p?'Ⅱ PAUSE':'▶ RESUME';$('runState').textContent=p?'LIVE GROWTH':'GROWTH PAUSED';document.querySelector('.alive').classList.toggle('paused',!p);}
 $('toggle').addEventListener('click',()=>setPlaying(!playing));
